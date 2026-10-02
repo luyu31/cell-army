@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>细胞防线 - 完美网格与开局干员版（PC桌面版）</title>
+    <title>细胞防线 - 细胞凋亡与差异化攻击范围版</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: #121216; color: #d4d4d4; display: flex; height: 100vh; overflow: hidden; }
@@ -22,7 +22,7 @@
         .dock-area { background: #1c1c24; padding: 15px 20px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #2d2d3b; }
         .operator-list { display: flex; gap: 10px; overflow-x: auto; min-height: 85px; align-items: center; }
         .operator-card {
-            min-width: 130px; background: #22222e; border: 2px solid #38384d; border-radius: 10px;
+            min-width: 135px; background: #22222e; border: 2px solid #38384d; border-radius: 10px;
             padding: 8px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; flex-shrink: 0;
         }
         .operator-card:hover { border-color: #4facfe; transform: translateY(-2px); }
@@ -59,13 +59,12 @@
             </div>
         </div>
 
-        <!-- 画布区域（确保固定宽高以让网格稳定渲染） -->
         <div class="canvas-area">
             <canvas id="gameCanvas" width="770" height="350"></canvas>
         </div>
 
         <div class="dock-area">
-            <div style="font-size: 13px; color: #aaa;" id="tipMsg">提示：点击下方干员卡片选择，再点击网格空白处进行部署防守！</div>
+            <div style="font-size: 13px; color: #aaa;" id="tipMsg">提示：点击干员部署；点击**已部署的细胞**可触发“细胞凋亡（强制回收）”！</div>
             <div class="operator-list" id="operatorList"></div>
             <div class="controls-row">
                 <button class="btn-secondary" onclick="resetGame()">重置当前关卡</button>
@@ -74,7 +73,6 @@
         </div>
     </div>
 
-    <!-- 右侧固定关卡与干员说明面板（去除了复杂的抽卡活化中心） -->
     <div class="sidebar">
         <div class="card-box">
             <div class="card-title">🗺️ 人体全年龄段关卡 (1-10关)</div>
@@ -82,28 +80,29 @@
         </div>
 
         <div class="card-box">
-            <div class="card-title">🧬 年龄与干员解锁说明</div>
+            <div class="card-title">🧬 机制与攻击范围说明</div>
             <div style="font-size: 11px; color: #aaa; line-height: 1.6;">
-                • <b>儿童期 (1-3关)</b>：开局即拥有<b>中性粒细胞、红细胞、巨噬细胞</b>。<br>
-                • <b>青少年期 (4-5关)</b>：<b>自动解锁成熟T淋巴细胞！</b><br>
-                • <b>成年期 (6-7关)</b>：<b>自动解锁NK自然杀手细胞！</b><br>
-                • 敌人在网格直线上向左推进，请合理布局迎击病原体。
+                • <b>细胞凋亡</b>：点击格子上已有细胞可直接回收并返还部分ATP。<br>
+                • <b>攻击范围差异化</b>：<br>
+                  - 巨噬细胞：<b>十字广域</b>（吞噬多格敌人）<br>
+                  - 中性粒细胞：<b>前方2格</b>（急性穿透）<br>
+                  - 专精对策卡：如第2关特供“溶菌酶细胞”，高费高伤克制链球菌！
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // 细胞干员池定义
+    // 细胞干员池（包含大小、不同攻击范围与专精对策卡）
     const masterPool = [
-        { id: 'neutrophil', name: "中性粒细胞", unlockLevel: 1, cost: 4, maxCount: 6, rangeType: 'front1', atk: 12, maxLifeSec: 12, desc: "基础前排，急性炎症" },
-        { id: 'rbc', name: "红细胞", unlockLevel: 1, cost: 3, maxCount: 8, rangeType: 'front1', baseAtk: 8, maxLifeSec: 25, desc: "寿命长，稳固防线支持" },
-        { id: 'macrophage', name: "巨噬细胞", unlockLevel: 1, cost: 8, maxCount: 4, rangeType: 'front1', atk: 30, maxLifeSec: 15, desc: "近战吞噬强力输出" },
-        { id: 'tcell', name: "成熟T淋巴细胞", unlockLevel: 4, cost: 10, maxCount: 3, rangeType: 'circle1', atk: 25, maxLifeSec: 12, desc: "青少年期解锁，范围群攻" },
-        { id: 'nkcell', name: "NK杀手细胞", unlockLevel: 6, cost: 12, maxCount: 2, rangeType: 'cross2', atk: 45, maxLifeSec: 10, desc: "成年期解锁，十字广谱打击" }
+        { id: 'neutrophil', name: "中性粒细胞", unlockLevel: 1, cost: 4, maxCount: 6, rangeType: 'front2', atk: 14, maxLifeSec: 12, desc: "前方2格急性穿透" },
+        { id: 'rbc', name: "红细胞", unlockLevel: 1, cost: 3, maxCount: 8, rangeType: 'front1', atk: 8, maxLifeSec: 25, desc: "前方1格，超长寿命支持" },
+        { id: 'macrophage', name: "巨噬细胞", unlockLevel: 1, cost: 8, maxCount: 4, rangeType: 'cross2', atk: 32, maxLifeSec: 15, desc: "大体型，十字广域吞噬" },
+        { id: 'lysozyme', name: "溶菌酶分泌细胞", unlockLevel: 2, cost: 14, maxCount: 2, rangeType: 'allRow', atk: 65, maxLifeSec: 10, desc: "第2关特供：整行高伤，专克链球菌" },
+        { id: 'tcell', name: "成熟T淋巴细胞", unlockLevel: 4, cost: 10, maxCount: 3, rangeType: 'circle1', atk: 28, maxLifeSec: 12, desc: "周围3x3范围群攻" },
+        { id: 'nkcell', name: "NK杀手细胞", unlockLevel: 6, cost: 12, maxCount: 2, rangeType: 'cross3', atk: 50, maxLifeSec: 10, desc: "超大十字广谱打击" }
     ];
 
-    // 玩家当前可用的干员列表（开局直接默认拥有前3个）
     let playerOperators = [
         { ...masterPool[0] },
         { ...masterPool[1] },
@@ -115,16 +114,16 @@
     let currentLevel = 1;
 
     const levels = [
-        { id: 1, ageGroup: '儿童期', name: "第 1 关: 儿童末梢微循环 (流感入侵)", enemyHp: 35, enemyCount: 6, rewardNut: 25, baseHp: 12 },
-        { id: 2, ageGroup: '儿童期', name: "第 2 关: 乳牙期扁桃体防线 (链球菌)", enemyHp: 45, enemyCount: 8, rewardNut: 30, baseHp: 12 },
-        { id: 3, ageGroup: '儿童期', name: "第 3 关: 幼儿期气道黏膜 (支原体)", enemyHp: 55, enemyCount: 10, rewardNut: 35, baseHp: 12 },
-        { id: 4, ageGroup: '青少年期', name: "第 4 关: 学龄前淋巴结阵地 (腺病毒)", enemyHp: 70, enemyCount: 11, rewardNut: 40, baseHp: 15 },
-        { id: 5, ageGroup: '青少年期', name: "第 5 关: 青少年肝脏解毒区 (乙肝突袭)", enemyHp: 85, enemyCount: 12, rewardNut: 45, baseHp: 15 },
-        { id: 6, ageGroup: '成年期', name: "第 6 关: 脾脏免疫过滤网 (强效细菌)", enemyHp: 110, enemyCount: 14, rewardNut: 50, baseHp: 20 },
-        { id: 7, ageGroup: '成年期', name: "第 7 关: 中枢神经血脑屏障 (强敌突破)", enemyHp: 130, enemyCount: 15, rewardNut: 60, baseHp: 20 },
-        { id: 8, ageGroup: '老年期', name: "第 8 关: 老年期胃酸防御衰退圈", enemyHp: 160, enemyCount: 16, rewardNut: 70, baseHp: 10 },
-        { id: 9, ageGroup: '老年期', name: "第 9 关: 冠状动脉硬化险地 (老化病毒)", enemyHp: 190, enemyCount: 18, rewardNut: 80, baseHp: 10 },
-        { id: 10, ageGroup: '老年期', name: "第 10 关: 老年期全身免疫总决战", enemyHp: 230, enemyCount: 22, rewardNut: 100, baseHp: 10 }
+        { id: 1, ageGroup: '儿童期', name: "第 1 关: 儿童末梢微循环 (流感入侵)", enemyHp: 30, enemyCount: 6, rewardNut: 25, baseHp: 12 },
+        { id: 2, ageGroup: '儿童期', name: "第 2 关: 乳牙期扁桃体防线 (链球菌)", enemyHp: 55, enemyCount: 7, rewardNut: 30, baseHp: 12 },
+        { id: 3, ageGroup: '儿童期', name: "第 3 关: 幼儿期气道黏膜 (支原体)", enemyHp: 65, enemyCount: 9, rewardNut: 35, baseHp: 12 },
+        { id: 4, ageGroup: '青少年期', name: "第 4 关: 学龄前淋巴结阵地 (腺病毒)", enemyHp: 80, enemyCount: 10, rewardNut: 40, baseHp: 15 },
+        { id: 5, ageGroup: '青少年期', name: "第 5 关: 青少年肝脏解毒区 (乙肝突袭)", enemyHp: 95, enemyCount: 11, rewardNut: 45, baseHp: 15 },
+        { id: 6, ageGroup: '成年期', name: "第 6 关: 脾脏免疫过滤网 (强效细菌)", enemyHp: 120, enemyCount: 12, rewardNut: 50, baseHp: 20 },
+        { id: 7, ageGroup: '成年期', name: "第 7 关: 中枢神经血脑屏障 (强敌突破)", enemyHp: 145, enemyCount: 14, rewardNut: 60, baseHp: 20 },
+        { id: 8, ageGroup: '老年期', name: "第 8 关: 老年期胃酸防御衰退圈", enemyHp: 170, enemyCount: 15, rewardNut: 70, baseHp: 10 },
+        { id: 9, ageGroup: '老年期', name: "第 9 关: 冠状动脉硬化险地 (老化病毒)", enemyHp: 200, enemyCount: 16, rewardNut: 80, baseHp: 10 },
+        { id: 10, ageGroup: '老年期', name: "第 10 关: 老年期全身免疫总决战", enemyHp: 240, enemyCount: 20, rewardNut: 100, baseHp: 10 }
     ];
 
     let baseHp = levels[0].baseHp;
@@ -137,25 +136,23 @@
 
     const cols = 11;
     const rows = 5;
-    const tileSize = 70; // 11 * 70 = 770 宽度刚好适配画布
+    const tileSize = 70;
     let grid = Array(rows).fill().map(() => Array(cols).fill(null));
     let enemies = [];
 
-    // 根据关卡自动解锁干员
     function checkUnlockByLevel() {
         for(let master of masterPool) {
             if(currentLevel >= master.unlockLevel) {
                 let exists = playerOperators.find(op => op.id === master.id);
                 if(!exists) {
                     playerOperators.push({ ...master });
-                    alert(`🎉 免疫系统自然发育！随年龄增长已解锁新干员：【${master.name}】！`);
+                    alert(`🎉 免疫系统自然发育！随关卡推进已解锁专精对策干员：【${master.name}】！`);
                 }
             }
         }
         renderOperators();
     }
 
-    // 渲染左侧关卡列表
     function renderLevelList() {
         const list = document.getElementById('levelList');
         list.innerHTML = levels.map(lvl => `
@@ -178,7 +175,6 @@
         resetGame();
     }
 
-    // 渲染底部干员选择栏
     function renderOperators() {
         const list = document.getElementById('operatorList');
         list.innerHTML = playerOperators.map((op, idx) => `
@@ -193,28 +189,33 @@
 
     function selectOperator(idx) {
         selectedOp = playerOperators[idx];
-        document.getElementById('tipMsg').innerText = `已选择部署: ${selectedOp.name} (消耗 ${selectedOp.cost} ATP)`;
+        document.getElementById('tipMsg').innerText = `已选择: ${selectedOp.name} (${selectedOp.desc})`;
         renderOperators();
     }
 
-    // 计算攻击范围
+    // 根据不同细胞大小及生物学特性计算差异化攻击范围
     function getAttackedGrids(opR, opC, rangeType) {
         let list = [];
         for(let r = 0; r < rows; r++) {
             for(let c = 0; c < cols; c++) {
                 if(rangeType === 'front1') {
                     if(r === opR && c === opC + 1) list.push({r, c});
-                } else if(rangeType === 'circle1') {
-                    if(Math.abs(r - opR) <= 1 && Math.abs(c - opC) <= 1) list.push({r, c});
+                } else if(rangeType === 'front2') {
+                    if(r === opR && (c === opC + 1 || c === opC + 2)) list.push({r, c});
                 } else if(rangeType === 'cross2') {
                     if((r === opR && Math.abs(c - opC) <= 2) || (c === opC && Math.abs(r - opR) <= 2)) list.push({r, c});
+                } else if(rangeType === 'cross3') {
+                    if((r === opR && Math.abs(c - opC) <= 3) || (c === opC && Math.abs(r - opR) <= 3)) list.push({r, c});
+                } else if(rangeType === 'circle1') {
+                    if(Math.abs(r - opR) <= 1 && Math.abs(c - opC) <= 1) list.push({r, c});
+                } else if(rangeType === 'allRow') {
+                    if(r === opR && c > opC) list.push({r, c}); // 整行穿透溶菌酶
                 }
             }
         }
         return list;
     }
 
-    // 鼠标监听
     canvas.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         mouseX = e.clientX - rect.left;
@@ -226,20 +227,31 @@
         mouseY = -1;
     });
 
-    // 点击网格部署细胞
+    // 点击网格：若有细胞则触发【细胞凋亡（强制回收）】；若为空则部署
     canvas.addEventListener('click', (e) => {
         const rect = canvas.getBoundingClientRect();
         const c = Math.floor((e.clientX - rect.left) / tileSize);
         const r = Math.floor((e.clientY - rect.top) / tileSize);
 
         if(r >= 0 && r < rows && c >= 0 && c < cols) {
+            // 如果该格子已经有细胞，触发细胞凋亡回收
+            if(grid[r][c] !== null) {
+                let cell = grid[r][c];
+                let refund = Math.floor(cell.cost * 0.5);
+                atp = Math.min(60, atp + refund);
+                grid[r][c] = null;
+                document.getElementById('tipMsg').innerText = `已诱导 ${cell.name} 细胞凋亡，回收 ATP ⚡+${refund}`;
+                updateUI();
+                return;
+            }
+
+            // 否则进行正常部署
             if(!selectedOp) { alert("请先选择细胞！"); return; }
             if(atp < selectedOp.cost) { alert("ATP 能量不足！"); return; }
-            if(grid[r][c] !== null) { alert("该网格已有细胞驻守！"); return; }
 
             let deployedCount = grid.flat().filter(cell => cell && cell.id === selectedOp.id).length;
             if(deployedCount >= selectedOp.maxCount) {
-                alert(`该细胞部署数量已达到比例上限 (${selectedOp.maxCount})！`);
+                alert(`该细胞部署数量已达到人体比例上限 (${selectedOp.maxCount})！`);
                 return;
             }
 
@@ -256,7 +268,6 @@
         }
     });
 
-    // 开始进攻波次
     function startWave() {
         if(waveInProgress) return;
         waveInProgress = true;
@@ -271,7 +282,7 @@
                     y: targetRow * tileSize + tileSize / 2,
                     hp: lvlData.enemyHp,
                     maxHp: lvlData.enemyHp,
-                    speed: 0.5 + currentLevel * 0.02,
+                    speed: 0.45 + currentLevel * 0.015,
                     currentR: targetRow,
                     currentC: cols - 1
                 });
@@ -279,17 +290,15 @@
             } else {
                 clearInterval(spawnTimer);
             }
-        }, 1600);
+        }, 1500);
     }
 
-    // 游戏核心更新逻辑
     function updateGame() {
         if(Math.random() < 0.035) {
             atp = Math.min(60, atp + 1);
             updateUI();
         }
 
-        // 细胞攻击与寿命衰减
         for(let r = 0; r < rows; r++) {
             for(let c = 0; c < cols; c++) {
                 let op = grid[r][c];
@@ -310,7 +319,6 @@
             }
         }
 
-        // 敌人移动与阻挡
         for(let i = enemies.length - 1; i >= 0; i--) {
             let en = enemies[i];
             en.x -= en.speed;
@@ -319,8 +327,8 @@
 
             let cell = grid[en.currentR][en.currentC];
             if(cell) {
-                en.x += en.speed * 0.8; // 被细胞阻挡
-                cell.lifeTimer -= 1.5;  // 敌人消耗细胞寿命
+                en.x += en.speed * 0.8;
+                cell.lifeTimer -= 1.5;
             }
 
             if(en.hp <= 0) {
@@ -353,7 +361,6 @@
         }
     }
 
-    // 绘制游戏画布
     function drawGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -361,8 +368,8 @@
         let hoverR = Math.floor(mouseY / tileSize);
         let isValidHover = hoverR >= 0 && hoverR < rows && hoverC >= 0 && hoverC < cols;
 
-        // 鼠标网格及攻击范围预览高亮
-        if(selectedOp && isValidHover) {
+        // 鼠标悬停时的差异化攻击范围预览
+        if(selectedOp && isValidHover && grid[hoverR][hoverC] === null) {
             let rangeGrids = getAttackedGrids(hoverR, hoverC, selectedOp.rangeType);
             ctx.fillStyle = 'rgba(79, 172, 254, 0.25)';
             for(let tg of rangeGrids) {
@@ -372,13 +379,9 @@
                     ctx.strokeRect(tg.c * tileSize + 1, tg.r * tileSize + 1, tileSize - 2, tileSize - 2);
                 }
             }
-            ctx.fillStyle = 'rgba(46, 204, 113, 0.35)';
-            ctx.fillRect(hoverC * tileSize + 1, hoverR * tileSize + 1, tileSize - 2, tileSize - 2);
-            ctx.strokeStyle = '#2ecc71';
-            ctx.strokeRect(hoverC * tileSize + 1, hoverR * tileSize + 1, tileSize - 2, tileSize - 2);
         }
 
-        // 绘制网格线与格子中的细胞
+        // 绘制网格与驻守细胞
         for(let r = 0; r < rows; r++) {
             for(let c = 0; c < cols; c++) {
                 ctx.strokeStyle = '#333346';
@@ -387,14 +390,13 @@
 
                 let op = grid[r][c];
                 if(op) {
-                    ctx.fillStyle = op.id === 'nkcell' || op.id === 'tcell' ? '#8e44ad' : (op.id === 'macrophage' ? '#2980b9' : '#27ae60');
+                    ctx.fillStyle = op.id === 'lysozyme' ? '#d35400' : (op.id === 'nkcell' || op.id === 'tcell' ? '#8e44ad' : (op.id === 'macrophage' ? '#2980b9' : '#27ae60'));
                     ctx.fillRect(c * tileSize + 6, r * tileSize + 6, tileSize - 12, tileSize - 12);
                     
                     ctx.fillStyle = '#fff';
                     ctx.font = '11px sans-serif';
-                    ctx.fillText(op.name.slice(0, 4), c * tileSize + 10, r * tileSize + 30);
+                    ctx.fillText(op.name.slice(0, 4), c * tileSize + 8, r * tileSize + 30);
                     
-                    // 寿命血条
                     let lifeRatio = op.lifeTimer / op.maxLifeTimer;
                     ctx.fillStyle = '#444';
                     ctx.fillRect(c * tileSize + 10, r * tileSize + 50, tileSize - 20, 4);
@@ -404,7 +406,7 @@
             }
         }
 
-        // 绘制敌人
+        // 绘制敌人病原体
         for(let en of enemies) {
             ctx.fillStyle = '#e74c3c';
             ctx.beginPath();
@@ -437,18 +439,8 @@
         updateUI();
     }
 
-    // 主循环
     setInterval(() => {
         if(waveInProgress) {
             updateGame();
         }
-        drawGame();
-    }, 1000 / 60);
-
-    // 初始化
-    renderLevelList();
-    renderOperators();
-    updateUI();
-</script>
-</body>
-</html>
+        drawGame
