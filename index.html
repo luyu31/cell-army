@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>细胞防线 - 攻击范围与双回费模式（PC桌面版）</title>
+    <title>细胞防线 - 战棋网格范围与抽卡系统（PC桌面版）</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: #121216; color: #d4d4d4; display: flex; height: 100vh; overflow: hidden; }
@@ -19,32 +19,30 @@
         .canvas-area { flex: 1; display: flex; justify-content: center; align-items: center; background: #141418; position: relative; }
         canvas { background: #1a1a24; border: 2px solid #2d2d3b; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: crosshair; }
 
-        .dock-area { background: #1c1c24; padding: 20px; display: flex; flex-direction: column; gap: 15px; border-top: 1px solid #2d2d3b; }
-        .operator-list { display: flex; gap: 15px; overflow-x: auto; }
+        .dock-area { background: #1c1c24; padding: 15px 20px; display: flex; flex-direction: column; gap: 12px; border-top: 1px solid #2d2d3b; }
+        .operator-list { display: flex; gap: 12px; overflow-x: auto; min-height: 85px; align-items: center; }
         .operator-card {
-            min-width: 120px; background: #22222e; border: 2px solid #38384d; border-radius: 12px;
-            padding: 12px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative;
+            min-width: 110px; background: #22222e; border: 2px solid #38384d; border-radius: 10px;
+            padding: 10px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; flex-shrink: 0;
         }
         .operator-card:hover { border-color: #4facfe; transform: translateY(-2px); }
         .operator-card.selected { border-color: #4facfe; background: #1f304a; box-shadow: 0 0 10px rgba(79,172,254,0.3); }
-        .operator-card .cost { font-size: 13px; color: #ffb142; margin-top: 4px; font-weight: bold; }
-        .operator-card .name { font-size: 14px; color: #fff; font-weight: bold; }
-        .operator-card .desc { font-size: 11px; color: #888; margin-top: 2px; }
-        .operator-card .range-tag { font-size: 10px; color: #4facfe; background: #141418; padding: 2px 6px; border-radius: 4px; display:inline-block; margin-top:4px; }
+        .operator-card .cost { font-size: 12px; color: #ffb142; margin-top: 3px; font-weight: bold; }
+        .operator-card .name { font-size: 13px; color: #fff; font-weight: bold; }
+        .operator-card .desc { font-size: 10px; color: #888; margin-top: 2px; }
 
         .controls-row { display: flex; justify-content: space-between; align-items: center; }
-        .btn-primary { background: #4facfe; color: #fff; border: none; border-radius: 8px; padding: 10px 24px; font-size: 14px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-primary { background: #4facfe; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
         .btn-primary:hover { background: #3598db; }
-        .btn-secondary { background: #2a2a38; color: #ccc; border: none; border-radius: 8px; padding: 10px 18px; font-size: 13px; cursor: pointer; }
+        .btn-secondary { background: #2a2a38; color: #ccc; border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; cursor: pointer; }
         .btn-secondary:hover { background: #38384d; color: #fff; }
-        .btn-mode { background: #6c5ce7; color: #fff; border: none; border-radius: 8px; padding: 10px 16px; font-size: 13px; font-weight: bold; cursor: pointer; }
-        .btn-mode:hover { background: #5f3dc4; }
+        .btn-gacha { background: linear-gradient(135deg, #f39c12, #e67e22); color: #fff; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(243,156,18,0.3); }
+        .btn-gacha:hover { filter: brightness(1.1); }
+        .btn-mode { background: #6c5ce7; color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
 
         .sidebar { flex: 1.2; background: #1a1a22; display: flex; flex-direction: column; padding: 20px; gap: 20px; overflow-y: auto; }
         .card-box { background: #22222e; border: 1px solid #333342; border-radius: 12px; padding: 18px; }
         .card-title { font-size: 15px; font-weight: bold; color: #4facfe; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        input, textarea { width: 100%; background: #141418; border: 1px solid #333342; border-radius: 8px; padding: 10px; color: #fff; font-size: 13px; outline: none; margin-bottom: 10px; }
-        input:focus { border-color: #4facfe; }
     </style>
 </head>
 <body>
@@ -54,20 +52,23 @@
     <div class="main-panel">
         <div class="top-bar">
             <div><span class="hp-badge">❤️ 基地核心生命: <span id="baseHp">15</span></span></div>
-            <div style="font-size: 15px; font-weight: bold;">
+            <div style="font-size: 14px; font-weight: bold;">
                 回费模式: <span id="modeDisplay" style="color: #6c5ce7;">⏳ 自动自然回费</span>
             </div>
             <div class="res-badge">⚡ ATP 能量: <span id="atpVal" style="font-size:16px;">15</span></div>
         </div>
 
         <div class="canvas-area">
-            <canvas id="gameCanvas" width="700" height="420"></canvas>
+            <canvas id="gameCanvas" width="770" height="420"></canvas>
         </div>
 
         <div class="dock-area">
             <div style="display:flex; justify-content:space-between; align-items:center; font-size: 13px;">
-                <span style="color: #aaa;" id="tipMsg">请选择下方干员卡片，并在网格中查看攻击范围并部署</span>
-                <button class="btn-mode" onclick="toggleEcoMode()" id="modeBtn">切换为: ⚔️ 击杀回费模式</button>
+                <span style="color: #aaa;" id="tipMsg">请在下方选择干员，将鼠标悬停在网格上查看攻击格子预览</span>
+                <div style="display:flex; gap:10px;">
+                    <button class="btn-mode" onclick="toggleEcoMode()" id="modeBtn">切换回费模式</button>
+                    <button class="btn-gacha" onclick="pullGacha()">✨ 干员寻访 (消耗 10 ATP)</button>
+                </div>
             </div>
             <div class="operator-list" id="operatorList"></div>
             <div class="controls-row">
@@ -77,58 +78,64 @@
         </div>
     </div>
 
-    <!-- 右侧：干员名册、添加与说明 -->
+    <!-- 右侧：抽卡池说明与作战情报 -->
     <div class="sidebar">
         <div class="card-box">
-            <div class="card-title">🛡️ 细胞卫士名册</div>
-            <div id="rosterList" style="display:flex; flex-direction:column; gap:8px; max-height:180px; overflow-y:auto;"></div>
-        </div>
-
-        <div class="card-box">
-            <div class="card-title">➕ 招募/添加新干员</div>
-            <input type="text" id="newOpName" placeholder="干员名称（如：线粒体炮塔）">
-            <input type="number" id="newOpCost" placeholder="部署 ATP 消耗（如：8）">
-            <input type="number" id="newOpRange" placeholder="攻击范围半径（如：120）" value="120">
-            <input type="text" id="newOpDesc" placeholder="干员简要特性描述">
-            <button class="btn-primary" onclick="addNewOperator()" style="width:100%;">保存并加入作战编队</button>
-        </div>
-
-        <div class="card-box">
-            <div class="card-title">📖 玩法说明</div>
-            <div style="font-size: 13px; color: #aaa; line-height: 1.6;">
-                • <b>攻击范围显示</b>：选中干员后，移动鼠标到格子或已部署干员上，即可预览蓝色攻击圈。<br>
-                • <b>双模式切换</b>：可在顶部切换<b>自动回费</b>或<b>击杀回费（击杀敌人+3 ATP）</b>。
+            <div class="card-title">✨ 细胞干员寻访池（卡池概率）</div>
+            <div style="font-size: 13px; color: #aaa; line-height: 1.6;" id="gachaPoolInfo">
+                • <b>T细胞</b> (消耗5 ATP | 射程1格) - 基础单体物理输出<br>
+                • <b>巨噬细胞</b> (消耗8 ATP | 射程1格) - 强力近战阻挡<br>
+                • <b>抗体狙击</b> (消耗7 ATP | 射程2格) - 远距精准打击<br>
+                • <b>内切酶</b> (消耗9 ATP | 射程2格) - 特种范围切割<br>
+                • <b>线粒体核心</b> (消耗12 ATP | 射程3格) - 高能轰炸炮塔
             </div>
         </div>
 
         <div class="card-box">
-            <div class="card-title">⚙ 调试与设置</div>
-            <button class="btn-secondary" onclick="localStorage.clear(); location.reload();" style="width:100%; color:#ff5252;">恢复默认数据与重置</button>
+            <div class="card-title">📖 网格战术说明</div>
+            <div style="font-size: 13px; color: #aaa; line-height: 1.6;">
+                • <b>格子攻击范围</b>：干员放置后，其能够攻击的周围**特定曼哈顿距离网格**会变为淡蓝色提示。<br>
+                • <b>寻访系统</b>：点击右下角“干员寻访”随机获取编队干员，丰富你的战术组合！
+            </div>
+        </div>
+
+        <div class="card-box">
+            <div class="card-title">⚙ 系统设置</div>
+            <button class="btn-secondary" onclick="localStorage.clear(); location.reload();" style="width:100%; color:#ff5252;">重置所有数据与卡池</button>
         </div>
     </div>
 </div>
 
 <script>
-    let operators = JSON.parse(localStorage.getItem('td_operators')) || [
-        { id: 1, name: "T细胞", cost: 5, atk: 12, range: 100, desc: "单体物理输出" },
-        { id: 2, name: "巨噬细胞", cost: 8, atk: 9, range: 80, desc: "大范围群体清理" },
-        { id: 3, name: "抗体狙击", cost: 6, atk: 16, range: 160, desc: "远程高伤狙击" }
+    // 游戏总干员库（用于抽卡随机池）
+    const masterPool = [
+        { name: "T细胞", cost: 5, atk: 12, rangeGrid: 1, desc: "单体物理输出" },
+        { name: "巨噬细胞", cost: 8, atk: 10, rangeGrid: 1, desc: "近战防御清理" },
+        { name: "抗体狙击", cost: 7, atk: 15, rangeGrid: 2, desc: "远程单体狙击" },
+        { name: "内切酶", cost: 9, atk: 14, rangeGrid: 2, desc: "特种高效切割" },
+        { name: "线粒体核心", cost: 12, atk: 22, rangeGrid: 3, desc: "高能重型炮塔" }
     ];
 
-    let atp = 15;
+    // 玩家当前拥有的干员编队
+    let operators = JSON.parse(localStorage.getItem('td_operators')) || [
+        { name: "T细胞", cost: 5, atk: 12, rangeGrid: 1, desc: "单体物理输出" },
+        { name: "巨噬细胞", cost: 8, atk: 10, rangeGrid: 1, desc: "近战防御清理" }
+    ];
+
+    let atp = 20;
     let baseHp = 15;
     let wave = 1;
     let selectedOp = null;
-    let ecoMode = 'auto'; // 'auto' (自然回费) 或 'kill' (击杀回费)
+    let ecoMode = 'auto'; // 'auto' 或 'kill'
 
     let mouseX = 0, mouseY = 0;
 
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
-    const cols = 10;
+    const cols = 11;
     const rows = 6;
-    const tileSize = 70;
+    const tileSize = 64; // 精准适配网格大小
     let grid = Array(rows).fill().map(() => Array(cols).fill(null));
     let enemies = [];
     let waveInProgress = false;
@@ -139,25 +146,15 @@
             <div class="operator-card ${selectedOp === op ? 'selected' : ''}" onclick="selectOperator(${idx})">
                 <div class="name">${op.name}</div>
                 <div class="cost">⚡ ${op.cost} ATP</div>
-                <div class="range-tag">射程: ${op.range}</div>
+                <div style="font-size:10px; color:#4facfe;">射程: ${op.rangeGrid}格</div>
                 <div class="desc">${op.desc}</div>
             </div>
         `).join('');
-
-        const rosterList = document.getElementById('rosterList');
-        if(rosterList) {
-            rosterList.innerHTML = operators.map(op => `
-                <div style="background:#141418; padding:8px 12px; border-radius:8px; display:flex; justify-content:space-between; align-items:center; font-size:12px;">
-                    <div><b>${op.name}</b> <span style="color:#777;">(射程:${op.range})</span></div>
-                    <div style="color:#ffb142; font-weight:bold;">${op.cost} ATP</div>
-                </div>
-            `).join('');
-        }
     }
 
     function selectOperator(idx) {
         selectedOp = operators[idx];
-        document.getElementById('tipMsg').innerText = `已选择: ${selectedOp.name} (请在网格中查看蓝色攻击范围并放置)`;
+        document.getElementById('tipMsg').innerText = `已选择: ${selectedOp.name} (请在网格上查看蓝色可攻击格子并放置)`;
         renderOperators();
     }
 
@@ -165,22 +162,35 @@
         if(ecoMode === 'auto') {
             ecoMode = 'kill';
             document.getElementById('modeDisplay').innerText = "⚔️ 击杀回费 (击杀+3)";
-            document.getElementById('modeBtn').innerText = "切换为: ⏳ 自动自然回费";
+            document.getElementById('modeBtn').innerText = "切换: 自动回费";
         } else {
             ecoMode = 'auto';
             document.getElementById('modeDisplay').innerText = "⏳ 自动自然回费";
-            document.getElementById('modeBtn').innerText = "切换为: ⚔️ 击杀回费模式";
+            document.getElementById('modeBtn').innerText = "切换: 击杀回费";
         }
     }
 
-    // 鼠标移动以实时捕捉位置并渲染攻击范围预览
+    function pullGacha() {
+        if(atp < 10) {
+            alert("ATP 不足 10，无法进行干员寻访！");
+            return;
+        }
+        atp -= 10;
+        let randomOp = masterPool[Math.floor(Math.random() * masterPool.length)];
+        // 允许重复抽取，或者直接加入编队
+        operators.push({ ...randomOp });
+        localStorage.setItem('td_operators', JSON.stringify(operators));
+        updateUI();
+        renderOperators();
+        alert(`🎉 寻访成功！恭喜获得了新干员：【${randomOp.name}】（${randomOp.desc}）！`);
+    }
+
     canvas.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         mouseX = e.clientX - rect.left;
         mouseY = e.clientY - rect.top;
     });
 
-    // 鼠标点击画板放置干员
     canvas.addEventListener('click', (e) => {
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -204,7 +214,7 @@
             }
 
             atp -= selectedOp.cost;
-            grid[r][c] = { ...selectedOp, x: c * tileSize + tileSize/2, y: r * tileSize + tileSize/2 };
+            grid[r][c] = { ...selectedOp, r, c };
             updateUI();
         }
     });
@@ -221,29 +231,34 @@
                 enemies.push({
                     x: cols * tileSize,
                     y: Math.floor(Math.random() * rows) * tileSize + tileSize/2,
-                    hp: 45 + wave * 15,
-                    maxHp: 45 + wave * 15,
-                    speed: 0.8 + wave * 0.08,
-                    atk: 1
+                    hp: 50 + wave * 18,
+                    maxHp: 50 + wave * 18,
+                    speed: 0.75 + wave * 0.07,
+                    atk: 1,
+                    currentR: 0,
+                    currentC: 0
                 });
                 spawned++;
             } else {
                 clearInterval(spawnTimer);
             }
-        }, 1500);
+        }, 1600);
     }
 
     function updateGame() {
-        // 模式 1：自动自然回费
-        if(ecoMode === 'auto' && Math.random() < 0.02) {
-            atp = Math.min(50, atp + 1);
+        // 自动回费模式
+        if(ecoMode === 'auto' && Math.random() < 0.022) {
+            atp = Math.min(60, atp + 1);
             updateUI();
         }
 
-        // 敌人移动与攻击
         for(let i = enemies.length - 1; i >= 0; i--) {
             let en = enemies[i];
             en.x -= en.speed;
+
+            // 记录当前敌人所在的行和列
+            en.currentC = Math.floor(en.x / tileSize);
+            en.currentR = Math.floor(en.y / tileSize);
 
             if(en.x <= 0) {
                 baseHp -= en.atk;
@@ -256,27 +271,23 @@
                 continue;
             }
 
-            // 干员攻击判定
+            // 遍历所有干员，检查敌人在不在其网格攻击范围内（曼哈顿距离判断）
             for(let r = 0; r < rows; r++) {
                 for(let c = 0; c < cols; c++) {
                     let op = grid[r][c];
                     if(op) {
-                        let opX = c * tileSize + tileSize/2;
-                        let opY = r * tileSize + tileSize/2;
-                        let dist = Math.hypot(en.x - opX, en.y - opY);
-                        if(dist <= op.range) {
-                            en.hp -= 0.6;
+                        let distGrid = Math.abs(r - en.currentR) + Math.abs(c - en.currentC);
+                        if(distGrid <= op.rangeGrid) {
+                            en.hp -= 0.55;
                         }
                     }
                 }
             }
 
-            // 敌人被击杀
             if(en.hp <= 0) {
                 enemies.splice(i, 1);
-                // 模式 2：击杀回费（打死一个加 3 ATP）
                 if(ecoMode === 'kill') {
-                    atp += 3;
+                    atp += 4; // 击杀回费奖励
                 }
                 updateUI();
             }
@@ -288,8 +299,8 @@
     function drawGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 绘制网格
-        ctx.strokeStyle = '#232330';
+        // 1. 绘制网格线
+        ctx.strokeStyle = '#282836';
         ctx.lineWidth = 1;
         for(let r = 0; r <= rows; r++) {
             ctx.beginPath(); ctx.moveTo(0, r * tileSize); ctx.lineTo(cols * tileSize, r * tileSize); ctx.stroke();
@@ -298,97 +309,90 @@
             ctx.beginPath(); ctx.moveTo(c * tileSize, 0); ctx.lineTo(c * tileSize, rows * tileSize); ctx.stroke();
         }
 
-        // 鼠标悬停网格时的攻击范围预览
+        // 2. 鼠标悬停时的网格攻击范围预览高亮
         const hoverC = Math.floor(mouseX / tileSize);
         const hoverR = Math.floor(mouseY / tileSize);
-        if(hoverR >= 0 && hoverR < rows && hoverC >= 0 && hoverC < cols) {
-            if(selectedOp) {
-                ctx.strokeStyle = 'rgba(79, 172, 254, 0.4)';
-                ctx.fillStyle = 'rgba(79, 172, 254, 0.08)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.arc(hoverC * tileSize + tileSize/2, hoverR * tileSize + tileSize/2, selectedOp.range, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.stroke();
-            }
-        }
-
-        // 绘制已部署干员及其攻击范围圈
-        for(let r = 0; r < rows; r++) {
-            for(let c = 0; c < cols; c++) {
-                let op = grid[r][c];
-                if(op) {
-                    let opX = c * tileSize + tileSize/2;
-                    let opY = r * tileSize + tileSize/2;
-
-                    // 绘制干员攻击范围淡蓝色圈
-                    ctx.strokeStyle = 'rgba(79, 172, 254, 0.25)';
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.arc(opX, opY, op.range, 0, Math.PI * 2);
-                    ctx.stroke();
-
-                    // 绘制干员核心主体
-                    ctx.fillStyle = '#4facfe';
-                    ctx.beginPath();
-                    ctx.arc(opX, opY, 22, 0, Math.PI * 2);
-                    ctx.fill();
-                    
-                    ctx.fillStyle = '#fff';
-                    ctx.font = 'bold 12px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(op.name, opX, opY + 4);
+        if(hoverR >= 0 && hoverR < rows && hoverC >= 0 && hoverC < cols && selectedOp) {
+            for(let r = 0; r < rows; r++) {
+                for(let c = 0; c < cols; c++) {
+                    let dist = Math.abs(r - hoverR) + Math.abs(c - hoverC);
+                    if(dist <= selectedOp.rangeGrid) {
+                        ctx.fillStyle = 'rgba(79, 172, 254, 0.18)';
+                        ctx.fillRect(c * tileSize + 1, r * tileSize + 1, tileSize - 2, tileSize - 2);
+                    }
                 }
             }
         }
 
-        // 绘制敌人
+        // 3. 已放置干员的网格攻击范围高亮（当鼠标悬停在其上面或选中时显示）
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                let op = grid[r][c];
+                if(op) {
+                    // 如果鼠标指着这个干员，高亮它的攻击格子
+                    if(hoverR === r && hoverC === c) {
+                        for(let tr = 0; tr < rows; tr++) {
+                            for(let tc = 0; tc < cols; tc++) {
+                                if(Math.abs(tr - r) + Math.abs(tc - c) <= op.rangeGrid) {
+                                    ctx.fillStyle = 'rgba(255, 177, 66, 0.2)';
+                                    ctx.fillRect(tc * tileSize + 1, tr * tileSize + 1, tileSize - 2, tileSize - 2);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 4. 绘制已部署的干员实体
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                let op = grid[r][c];
+                if(op) {
+                    let centerX = c * tileSize + tileSize/2;
+                    let centerY = r * tileSize + tileSize/2;
+
+                    ctx.fillStyle = '#4facfe';
+                    ctx.beginPath();
+                    ctx.arc(centerX, centerY, tileSize/3, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#fff';
+                    ctx.font = 'bold 11px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(op.name, centerX, centerY + 4);
+                }
+            }
+        }
+
+        // 5. 绘制敌人
         for(let en of enemies) {
             ctx.fillStyle = '#ff5252';
             ctx.beginPath();
-            ctx.arc(en.x, en.y, 14, 0, Math.PI * 2);
+            ctx.arc(en.x, en.y, 13, 0, Math.PI * 2);
             ctx.fill();
 
             // 血条
             ctx.fillStyle = '#222';
-            ctx.fillRect(en.x - 18, en.y - 24, 36, 5);
+            ctx.fillRect(en.x - 16, en.y - 22, 32, 4);
             ctx.fillStyle = '#4cd137';
-            ctx.fillRect(en.x - 18, en.y - 24, 36 * (en.hp / en.maxHp), 5);
+            ctx.fillRect(en.x - 16, en.y - 22, 32 * (en.hp / en.maxHp), 4);
         }
     }
 
     function updateUI() {
         document.getElementById('atpVal').innerText = atp;
         document.getElementById('baseHp').innerText = baseHp;
-        document.getElementById('waveNum').innerText = wave;
     }
 
     function resetGame() {
         grid = Array(rows).fill().map(() => Array(cols).fill(null));
         enemies = [];
-        atp = 15;
+        atp = 20;
         baseHp = 15;
         wave = 1;
         waveInProgress = false;
         updateUI();
-    }
-
-    function addNewOperator() {
-        const name = document.getElementById('newOpName').value.trim();
-        const cost = parseInt(document.getElementById('newOpCost').value);
-        const range = parseInt(document.getElementById('newOpRange').value) || 120;
-        const desc = document.getElementById('newOpDesc').value.trim();
-        if(!name || isNaN(cost)) {
-            alert("请完整填写名称和 ATP 消耗！");
-            return;
-        }
-        operators.push({ id: operators.length + 1, name, cost, atk: 12, range, desc: desc || "自定义干员" });
-        localStorage.setItem('td_operators', JSON.stringify(operators));
-        document.getElementById('newOpName').value = '';
-        document.getElementById('newOpCost').value = '';
-        document.getElementById('newOpDesc').value = '';
-        renderOperators();
-        alert("新干员已成功加入作战编队！");
     }
 
     renderOperators();
