@@ -59,10 +59,10 @@
 <div class="pc-container">
     <div class="main-panel">
         <div class="top-bar">
-            <div><span class="hp-badge">❤️ 宿主基底生命: <span id="baseHp">15</span></span></div>
-            <div style="font-weight: bold; color: #f39c12;" id="levelTitleDisplay">当前关卡：儿童期 (1-3关)</div>
+            <div><span class="hp-badge">❤️️ 宿主基底生命: <span id="baseHp">15</span></span></div>
+            <div style="font-weight: bold; color: #f39c12;" id="levelTitleDisplay">当前关卡：第 1 关 (儿童期)</div>
             <div style="display:flex; gap:12px;">
-                <div class="res-badge nut-badge">🧪 营养: <span id="nutVal">50</span></div>
+                <div class="res-badge nut-badge">🧪 营养: <span id="nutVal">60</span></div>
                 <div class="res-badge">⚡ ATP: <span id="atpVal">25</span></div>
             </div>
         </div>
@@ -74,7 +74,7 @@
         <div class="dock-area">
             <div style="display:flex; justify-content:space-between; align-items:center; font-size: 13px;">
                 <span style="color: #aaa;" id="tipMsg">注意不同细胞的真实生物学寿命与宿主年龄状态！</span>
-                <button class="btn-tab" onclick="switchPanel()">✨ 进入寻访、突破与仓库</button>
+                <button class="btn-tab" onclick="switchPanel()">🧬 进入营养诱导与活化中心</button>
             </div>
             <div class="operator-list" id="operatorList"></div>
             <div class="controls-row">
@@ -96,25 +96,25 @@
             <div class="card-box">
                 <div class="card-title">🧬 年龄与细胞寿命说明</div>
                 <div style="font-size: 11px; color: #aaa; line-height: 1.5;">
-                    • <b>1~3关 (儿童期)</b>：免疫幼稚，敌人温和。<br>
-                    • <b>3~5关 (青少年期)</b>：免疫力上升，细胞寿命标准。<br>
-                    • <b>5~7关 (成年期)</b>：巅峰战力，病毒侵袭加剧。<br>
-                    • <b>8~10关 (老年期)</b>：免疫机能老化，**所有干员自然寿命大打折扣**！
+                    • <b>第 1-3 关 (儿童期)</b>：免疫幼稚，敌人温和。<br>
+                    • <b>第 4-5 关 (青少年期)</b>：免疫力上升，细胞寿命标准。<br>
+                    • <b>第 6-7 关 (成年期)</b>：巅峰战力，病毒侵袭加剧。<br>
+                    • <b>第 8-10 关 (老年期)</b>：免疫机能老化，**所有干员自然寿命与抗击能力大打折扣**！
                 </div>
             </div>
         </div>
 
-        <!-- 切换后：寻访、突破与仓库面板 -->
+        <!-- 切换后：诱导分化与细胞活化面板 -->
         <div id="panelGacha" style="display:none;">
             <div class="gacha-box">
-                <div style="font-size: 15px; font-weight: bold; color: #f39c12;">🔬 骨髓干细胞寻访中心</div>
-                <div style="font-size: 11px; color: #aaa; margin-top: 4px;">重复招募将自动转化为干员潜能突破！</div>
-                <button class="btn-gacha" onclick="pullGacha(1)">单次寻访 (消耗 15 营养)</button>
-                <button class="btn-gacha" onclick="pullGacha(10)" style="background: linear-gradient(135deg, #8e44ad, #9b59b6);">十连寻访 (消耗 135 营养)</button>
+                <div style="font-size: 15px; font-weight: bold; color: #f39c12;">🔬 骨髓干细胞营养诱导分化中心</div>
+                <div style="font-size: 11px; color: #aaa; margin-top: 4px;">消耗营养进行诱导，分化出新型细胞群落！</div>
+                <button class="btn-gacha" onclick="pullGacha(1)">单次诱导分化 (消耗 15 营养)</button>
+                <button class="btn-gacha" onclick="pullGacha(10)" style="background: linear-gradient(135deg, #8e44ad, #9b59b6);">十连诱导分化 (消耗 135 营养)</button>
             </div>
 
             <div class="card-box">
-                <div class="card-title">🧺 细胞仓库与干员强化</div>
+                <div class="card-title">🧺 细胞群落仓库与细胞活化</div>
                 <div class="warehouse-grid" id="warehouseGrid"></div>
             </div>
             <button class="btn-secondary" onclick="switchPanel()" style="width:100%; margin-top: 5px;">返回战场作战</button>
@@ -132,12 +132,12 @@
         { id: 'nkcell', name: "NK自然杀手细胞", rarity: 'SSR', weight: 2, cost: 12, maxCount: 1, rangeType: 'cross2', baseAtk: 38, maxLifeSec: 10, desc: "终极免疫，十字穿透，寿命10秒" }
     ];
 
-    let playerWarehouse = JSON.parse(localStorage.getItem('td_warehouse_v3')) || [
+    let playerWarehouse = JSON.parse(localStorage.getItem('td_warehouse_v4')) || [
         { ...masterPool[0], count: 2, potential: 1 },
         { ...masterPool[1], count: 2, potential: 1 }
     ];
 
-    let nutrients = parseInt(localStorage.getItem('td_nutrients_v3')) || 60;
+    let nutrients = parseInt(localStorage.getItem('td_nutrients_v4')) || 60;
     let atp = 25;
     let baseHp = 15;
     let currentLevel = 1;
@@ -145,7 +145,6 @@
     let waveInProgress = false;
     let currentView = 'battle';
 
-    let mouseX = 0, mouseY = 0;
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
 
@@ -156,7 +155,6 @@
     let enemies = [];
 
     // 10个关卡：精确划分 4 个年龄段
-    // 1-3: 儿童期, 4-5: 青少年期, 6-7: 成年期, 8-10: 老年期
     const levels = [
         { id: 1, ageGroup: '儿童期', name: "第 1 关: 儿童末梢微循环 (流感入侵)", enemyHp: 30, enemyCount: 6, rewardNut: 25 },
         { id: 2, ageGroup: '儿童期', name: "第 2 关: 乳牙期扁桃体防线 (链球菌)", enemyHp: 40, enemyCount: 8, rewardNut: 30 },
@@ -174,7 +172,7 @@
         const list = document.getElementById('levelList');
         list.innerHTML = levels.map(lvl => `
             <div class="level-item ${currentLevel === lvl.id ? 'active' : ''}" onclick="selectLevel(${lvl.id})">
-                <div><b>${lvl.name}</b> <span style="color:#4facfe; font-size:10px;">[${lvl.ageGroup}]</span></div>
+                <div><b>${lvl.name}</b></div>
                 <div style="color: #f39c12;">🧪${lvl.rewardNut}</div>
             </div>
         `).join('');
@@ -184,7 +182,7 @@
         if(waveInProgress) { alert("战斗中无法切换关卡！"); return; }
         currentLevel = lvlId;
         let lvl = levels[lvlId-1];
-        document.getElementById('levelTitleDisplay').innerText = `${lvl.ageGroup}：${lvl.name}`;
+        document.getElementById('levelTitleDisplay').innerText = `当前关卡：第 ${lvl.id} 关 (${lvl.ageGroup})`;
         renderLevelList();
         resetGame();
     }
@@ -227,30 +225,30 @@
             <div class="wh-item">
                 <div>
                     <div style="font-weight:bold; color:#fff; font-size:12px;">${op.name} <span style="color:#f39c12;">[潜能 P${op.potential}]</span></div>
-                    <div style="font-size:10px; color:#aaa;">拥有碎片: ${op.count} | 攻击: ${op.baseAtk * op.potential}</div>
+                    <div style="font-size:10px; color:#aaa;">细胞群落储量: ${op.count} | 攻击: ${op.baseAtk * op.potential}</div>
                 </div>
-                <button class="btn-primary" style="padding:4px 10px; font-size:11px;" onclick="upgradeOperator(${idx})">升级 (🧪20)</button>
+                <button class="btn-primary" style="padding:4px 10px; font-size:11px;" onclick="activateOperator(${idx})">细胞活化 (🧪20)</button>
             </div>
         `).join('');
     }
 
-    function upgradeOperator(idx) {
+    function activateOperator(idx) {
         let op = playerWarehouse[idx];
         if(nutrients < 20) { alert("营养不足！"); return; }
         nutrients -= 20;
         op.baseAtk += 5;
-        localStorage.setItem('td_nutrients_v3', nutrients);
-        localStorage.setItem('td_warehouse_v3', JSON.stringify(playerWarehouse));
+        localStorage.setItem('td_nutrients_v4', nutrients);
+        localStorage.setItem('td_warehouse_v4', JSON.stringify(playerWarehouse));
         renderWarehouse();
         renderOperators();
-        alert(`✨ ${op.name} 强化成功！`);
+        alert(`✨ ${op.name} 细胞活化成功！生理活性与攻击力提升。`);
     }
 
     function pullGacha(amount) {
         let costTotal = amount === 1 ? 15 : 135;
-        if(nutrients < costTotal) { alert("营养不足！多去通关获取奖励。"); return; }
+        if(nutrients < costTotal) { alert("营养不足！请去通关获取奖励。"); return; }
         nutrients -= costTotal;
-        localStorage.setItem('td_nutrients_v3', nutrients);
+        localStorage.setItem('td_nutrients_v4', nutrients);
 
         let results = [];
         for(let i = 0; i < amount; i++) {
@@ -273,10 +271,10 @@
             }
         }
 
-        localStorage.setItem('td_warehouse_v3', JSON.stringify(playerWarehouse));
+        localStorage.setItem('td_nutrients_v4', JSON.stringify(playerWarehouse));
         renderWarehouse();
         renderOperators();
-        alert(`🎉 寻访获得：\n${results.join(', ')}\n(重复干员已自动转化为潜能与战力提升！)`);
+        alert(`🎉 营养诱导分化获得：\n${results.join(', ')}\n(重复细胞已自动转化为群落潜能与战力突破！)`);
     }
 
     function getAttackedGridsForOperator(opR, opC, rangeType) {
@@ -284,7 +282,7 @@
         for(let r = 0; r < rows; r++) {
             for(let c = 0; c < cols; c++) {
                 if(rangeType === 'front1') {
-                    if(r === opR && c === opC - 1) list.push({r, c});
+                    if(r === opR && c === opC + 1) list.push({r, c});
                 } else if(rangeType === 'circle1') {
                     if(Math.abs(r - opR) <= 1 && Math.abs(c - opC) <= 1) list.push({r, c});
                 } else if(rangeType === 'cross2') {
@@ -295,12 +293,6 @@
         return list;
     }
 
-    canvas.addEventListener('mousemove', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        mouseX = e.clientX - rect.left;
-        mouseY = e.clientY - rect.top;
-    });
-
     canvas.addEventListener('click', (e) => {
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -309,7 +301,7 @@
         const r = Math.floor(y / tileSize);
 
         if(r >= 0 && r < rows && c >= 0 && c < cols) {
-            if(!selectedOp) { alert("请先选择干员！"); return; }
+            if(!selectedOp) { alert("请先选择细胞！"); return; }
             if(atp < selectedOp.cost) { alert("ATP 能量不足！"); return; }
             if(grid[r][c] !== null) { alert("该网格已有细胞！"); return; }
 
@@ -334,8 +326,6 @@
                 ...selectedOp, 
                 r, c, 
                 atk: selectedOp.baseAtk * selectedOp.potential,
-                currentHp: 500, 
-                maxHp: 500,
                 lifeTimer: totalFrames,
                 maxLifeTimer: totalFrames
             };
@@ -351,15 +341,14 @@
 
         let spawnTimer = setInterval(() => {
             if(spawned < lvlData.enemyCount) {
-                // 根据年龄段调整敌人的攻击属性
-                let enemyAtkBonus = currentLevel >= 8 ? 3 : 1;
+                let enemyAtkBonus = currentLevel >= 8 ? 1.4 : 1;
                 enemies.push({
-                    x: cols * tileSize,
+                    x: cols * tileSize - 10,
                     y: Math.floor(Math.random() * rows) * tileSize + tileSize/2,
                     hp: lvlData.enemyHp,
                     maxHp: lvlData.enemyHp,
-                    speed: 0.7 + currentLevel * 0.03,
-                    atk: (6 + currentLevel * 1.5) * enemyAtkBonus,
+                    speed: 0.6 + currentLevel * 0.02,
+                    atk: (5 + currentLevel * 1.2) * enemyAtkBonus,
                     currentR: 0,
                     currentC: 0
                 });
@@ -367,34 +356,31 @@
             } else {
                 clearInterval(spawnTimer);
             }
-        }, 1400);
+        }, 1500);
     }
 
     function updateGame() {
-        if(Math.random() < 0.025) {
+        if(Math.random() < 0.03) {
             atp = Math.min(60, atp + 1);
             updateUI();
         }
 
-        // 1. 更新网格上的干员（寿命倒计时与双向互殴）
+        // 1. 更新网格上的细胞（寿命倒计时与双向互殴）
         for(let r = 0; r < rows; r++) {
             for(let c = 0; c < cols; c++) {
                 let op = grid[r][c];
                 if(op) {
-                    // 自然生物学寿命倒计时（时间到自动凋亡）
                     op.lifeTimer -= 1;
-                    if(op.lifeTimer <= 0 || op.currentHp <= 0) {
-                        grid[r][c] = null; // 细胞凋亡/阵亡
+                    if(op.lifeTimer <= 0) {
+                        grid[r][c] = null; // 细胞自然凋亡
                         continue;
                     }
 
-                    // 攻击范围内敌人判定
                     let targetGrids = getAttackedGridsForOperator(r, c, op.rangeType);
                     for(let en of enemies) {
                         let inRange = targetGrids.some(tg => tg.r === en.currentR && tg.c === en.currentC);
                         if(inRange) {
-                            en.hp -= (op.atk * 0.04);
-                            op.currentHp -= (en.atk * 0.025);
+                            en.hp -= (op.atk * 0.05);
                         }
                     }
                 }
@@ -405,11 +391,27 @@
         for(let i = enemies.length - 1; i >= 0; i--) {
             let en = enemies[i];
             en.x -= en.speed;
-            en.currentC = Math.floor(en.x / tileSize);
-            en.currentR = Math.floor(en.y / tileSize);
+            en.currentC = Math.max(0, Math.min(cols - 1, Math.floor(en.x / tileSize)));
+            en.currentR = Math.max(0, Math.min(rows - 1, Math.floor(en.y / tileSize)));
 
-            if(en.x <= 0) {
+            // 敌人与所在格子的细胞发生拦截交互
+            let cell = grid[en.currentR][en.currentC];
+            if(cell) {
+                en.x += en.speed * 0.8; // 受阻减速
+                cell.lifeTimer -= 1.5;  // 敌人的攻击会加速细胞消耗/凋亡
+            }
+
+            if(en.hp <= 0) {
+                enemies.splice(i, 1);
+            } else if(en.x <= 0) {
                 baseHp -= 1;
                 enemies.splice(i, 1);
                 updateUI();
-           
+                if(baseHp <= 0) {
+                    alert("宿主免疫防线崩溃！游戏失败。");
+                    resetGame();
+                }
+            }
+        }
+
+      
