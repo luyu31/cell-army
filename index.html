@@ -3,46 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>细胞防线 - 战棋网格范围与抽卡系统（PC桌面版）</title>
+    <title>细胞防线 - 寻访、10关卡与真实比例细胞塔防（PC桌面版）</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: #121216; color: #d4d4d4; display: flex; height: 100vh; overflow: hidden; }
 
         .pc-container { display: flex; width: 100vw; height: 100vh; }
         
+        /* 左侧主战场与控制区 */
         .main-panel { flex: 3; display: flex; flex-direction: column; border-right: 1px solid #2d2d3b; background: #16161a; }
         
-        .top-bar { background: #1c1c24; padding: 15px 25px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d2d3b; font-size: 15px; }
-        .res-badge { background: #252533; padding: 6px 15px; border-radius: 20px; color: #4facfe; font-weight: bold; border: 1px solid #38384d; display: flex; align-items: center; gap: 8px; }
+        /* 顶部状态栏 */
+        .top-bar { background: #1c1c24; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d2d3b; font-size: 14px; }
+        .res-badge { background: #252533; padding: 5px 12px; border-radius: 20px; color: #4facfe; font-weight: bold; border: 1px solid #38384d; display: flex; align-items: center; gap: 6px; }
+        .nut-badge { color: #f39c12; font-weight: bold; background: #2a251c; border-color: #523e1a; }
         .hp-badge { color: #ff5252; font-weight: bold; }
 
+        /* 战场画板区 */
         .canvas-area { flex: 1; display: flex; justify-content: center; align-items: center; background: #141418; position: relative; }
         canvas { background: #1a1a24; border: 2px solid #2d2d3b; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: crosshair; }
 
-        .dock-area { background: #1c1c24; padding: 15px 20px; display: flex; flex-direction: column; gap: 12px; border-top: 1px solid #2d2d3b; }
-        .operator-list { display: flex; gap: 12px; overflow-x: auto; min-height: 85px; align-items: center; }
+        /* 底部干员坞与操作栏 */
+        .dock-area { background: #1c1c24; padding: 15px 20px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #2d2d3b; }
+        .operator-list { display: flex; gap: 10px; overflow-x: auto; min-height: 80px; align-items: center; }
         .operator-card {
             min-width: 110px; background: #22222e; border: 2px solid #38384d; border-radius: 10px;
-            padding: 10px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; flex-shrink: 0;
+            padding: 8px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; flex-shrink: 0;
         }
         .operator-card:hover { border-color: #4facfe; transform: translateY(-2px); }
         .operator-card.selected { border-color: #4facfe; background: #1f304a; box-shadow: 0 0 10px rgba(79,172,254,0.3); }
-        .operator-card .cost { font-size: 12px; color: #ffb142; margin-top: 3px; font-weight: bold; }
-        .operator-card .name { font-size: 13px; color: #fff; font-weight: bold; }
-        .operator-card .desc { font-size: 10px; color: #888; margin-top: 2px; }
+        .operator-card .cost { font-size: 11px; color: #ffb142; margin-top: 2px; font-weight: bold; }
+        .operator-card .name { font-size: 12px; color: #fff; font-weight: bold; }
+        .operator-card .desc { font-size: 9px; color: #888; margin-top: 2px; }
 
         .controls-row { display: flex; justify-content: space-between; align-items: center; }
-        .btn-primary { background: #4facfe; color: #fff; border: none; border-radius: 8px; padding: 8px 20px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-primary { background: #4facfe; color: #fff; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
         .btn-primary:hover { background: #3598db; }
-        .btn-secondary { background: #2a2a38; color: #ccc; border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; cursor: pointer; }
+        .btn-secondary { background: #2a2a38; color: #ccc; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; cursor: pointer; }
         .btn-secondary:hover { background: #38384d; color: #fff; }
-        .btn-gacha { background: linear-gradient(135deg, #f39c12, #e67e22); color: #fff; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(243,156,18,0.3); }
-        .btn-gacha:hover { filter: brightness(1.1); }
-        .btn-mode { background: #6c5ce7; color: #fff; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .btn-tab { background: #6c5ce7; color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 13px; font-weight: bold; cursor: pointer; }
+        .btn-tab:hover { background: #5f3dc4; }
 
-        .sidebar { flex: 1.2; background: #1a1a22; display: flex; flex-direction: column; padding: 20px; gap: 20px; overflow-y: auto; }
-        .card-box { background: #22222e; border: 1px solid #333342; border-radius: 12px; padding: 18px; }
-        .card-title { font-size: 15px; font-weight: bold; color: #4facfe; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        /* 右侧侧边栏：面板切换 (战场 vs 抽卡/仓库) */
+        .sidebar { flex: 1.2; background: #1a1a22; display: flex; flex-direction: column; padding: 20px; gap: 15px; overflow-y: auto; }
+        .card-box { background: #22222e; border: 1px solid #333342; border-radius: 12px; padding: 16px; }
+        .card-title { font-size: 14px; font-weight: bold; color: #4facfe; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        
+        /* 抽卡池样式 */
+        .gacha-box { background: linear-gradient(135deg, #22222e, #2a2238); border: 1px solid #6c5ce7; text-align: center; padding: 20px; border-radius: 12px; }
+        .btn-gacha { background: linear-gradient(135deg, #f39c12, #e67e22); color: #fff; border: none; border-radius: 8px; padding: 12px 24px; font-size: 15px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(243,156,18,0.4); margin-top: 12px; width: 100%; }
+        .btn-gacha:hover { filter: brightness(1.1); }
+
+        /* 仓库干员网格 */
+        .warehouse-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; max-height: 250px; overflow-y: auto; }
+        .wh-card { background: #181820; border: 1px solid #333342; border-radius: 8px; padding: 10px; text-align: center; }
+        
+        /* 关卡选择列表 */
+        .level-list { display: flex; flex-direction: column; gap: 6px; max-height: 180px; overflow-y: auto; }
+        .level-item { background: #16161a; padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; border: 1px solid #2a2a38; cursor: pointer; }
+        .level-item:hover { border-color: #4facfe; }
+        .level-item.active { border-color: #4facfe; background: #1f304a; }
     </style>
 </head>
 <body>
@@ -51,82 +71,93 @@
     <!-- 左侧：核心战场与部署区 -->
     <div class="main-panel">
         <div class="top-bar">
-            <div><span class="hp-badge">❤️ 基地核心生命: <span id="baseHp">15</span></span></div>
-            <div style="font-size: 14px; font-weight: bold;">
-                回费模式: <span id="modeDisplay" style="color: #6c5ce7;">⏳ 自动自然回费</span>
+            <div><span class="hp-badge">❤️ 基地生命: <span id="baseHp">15</span></span></div>
+            <div style="font-weight: bold; color: #f39c12;" id="levelTitleDisplay">当前关卡：第 1 关 (微循环通道)</div>
+            <div style="display:flex; gap:12px;">
+                <div class="res-badge nut-badge">🧪 营养: <span id="nutVal">50</span></div>
+                <div class="res-badge">⚡ ATP: <span id="atpVal">20</span></div>
             </div>
-            <div class="res-badge">⚡ ATP 能量: <span id="atpVal" style="font-size:16px;">15</span></div>
         </div>
 
         <div class="canvas-area">
-            <canvas id="gameCanvas" width="770" height="420"></canvas>
+            <canvas id="gameCanvas" width="770" height="400"></canvas>
         </div>
 
         <div class="dock-area">
             <div style="display:flex; justify-content:space-between; align-items:center; font-size: 13px;">
-                <span style="color: #aaa;" id="tipMsg">请在下方选择干员，将鼠标悬停在网格上查看攻击格子预览</span>
-                <div style="display:flex; gap:10px;">
-                    <button class="btn-mode" onclick="toggleEcoMode()" id="modeBtn">切换回费模式</button>
-                    <button class="btn-gacha" onclick="pullGacha()">✨ 干员寻访 (消耗 10 ATP)</button>
-                </div>
+                <span style="color: #aaa;" id="tipMsg">请在下方选择出战细胞，在网格上放置（注意观察攻击范围格子提示）</span>
+                <button class="btn-tab" onclick="switchPanel()">✨ 进入干员寻访与编队仓库</button>
             </div>
             <div class="operator-list" id="operatorList"></div>
             <div class="controls-row">
-                <button class="btn-secondary" onclick="resetGame()">重置战场</button>
-                <button class="btn-primary" onclick="startWave()">🚀 开始本波敌袭</button>
+                <button class="btn-secondary" onclick="resetGame()">重置当前关卡</button>
+                <button class="btn-primary" onclick="startWave()">🚀 开始本关防御战</button>
             </div>
         </div>
     </div>
 
-    <!-- 右侧：抽卡池说明与作战情报 -->
-    <div class="sidebar">
-        <div class="card-box">
-            <div class="card-title">✨ 细胞干员寻访池（卡池概率）</div>
-            <div style="font-size: 13px; color: #aaa; line-height: 1.6;" id="gachaPoolInfo">
-                • <b>T细胞</b> (消耗5 ATP | 射程1格) - 基础单体物理输出<br>
-                • <b>巨噬细胞</b> (消耗8 ATP | 射程1格) - 强力近战阻挡<br>
-                • <b>抗体狙击</b> (消耗7 ATP | 射程2格) - 远距精准打击<br>
-                • <b>内切酶</b> (消耗9 ATP | 射程2格) - 特种范围切割<br>
-                • <b>线粒体核心</b> (消耗12 ATP | 射程3格) - 高能轰炸炮塔
+    <!-- 右侧动态面板：默认显示关卡与编队，可切换为寻访卡池 -->
+    <div class="sidebar" id="rightSidebar">
+        <!-- 默认：关卡选择与编队概览 -->
+        <div id="panelBattle">
+            <div class="card-box">
+                <div class="card-title">🗺️ 选择作战关卡 (共 10 关)</div>
+                <div class="level-list" id="levelList"></div>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title">📖 细胞战术说明</div>
+                <div style="font-size: 12px; color: #aaa; line-height: 1.5;">
+                    • <b>巨噬细胞</b>：仅攻击**正前方紧邻 1 格**（近身搏杀）<br>
+                    • <b>T细胞</b>：攻击**周围一圈（3x3九宫格）**<br>
+                    • <b>红细胞</b>：数量极多，低耗高频回费与输出<br>
+                    • 通关关卡可获得**营养（Nutrients）**，用于在寻访池招募新细胞！
+                </div>
             </div>
         </div>
 
-        <div class="card-box">
-            <div class="card-title">📖 网格战术说明</div>
-            <div style="font-size: 13px; color: #aaa; line-height: 1.6;">
-                • <b>格子攻击范围</b>：干员放置后，其能够攻击的周围**特定曼哈顿距离网格**会变为淡蓝色提示。<br>
-                • <b>寻访系统</b>：点击右下角“干员寻访”随机获取编队干员，丰富你的战术组合！
+        <!-- 切换后：寻访抽卡与仓库面板 -->
+        <div id="panelGacha" style="display:none;">
+            <div class="gacha-box">
+                <div style="font-size: 16px; font-weight: bold; color: #f39c12;">🔬 骨髓细胞寻访中心</div>
+                <div style="font-size: 12px; color: #aaa; margin-top: 6px;">按人体细胞真实比例随机招募微观卫士</div>
+                <button class="btn-gacha" onclick="pullGacha(1)">单次寻访 (消耗 15 营养)</button>
+                <button class="btn-gacha" onclick="pullGacha(10)" style="background: linear-gradient(135deg, #8e44ad, #9b59b6);">十连寻访 (消耗 135 营养)</button>
             </div>
-        </div>
 
-        <div class="card-box">
-            <div class="card-title">⚙ 系统设置</div>
-            <button class="btn-secondary" onclick="localStorage.clear(); location.reload();" style="width:100%; color:#ff5252;">重置所有数据与卡池</button>
+            <div class="card-box">
+                <div class="card-title">🧺 细胞仓库（已拥有干员与最大上限）</div>
+                <div class="warehouse-grid" id="warehouseGrid"></div>
+            </div>
+            <button class="btn-secondary" onclick="switchPanel()" style="width:100%;">返回战场作战</button>
         </div>
     </div>
 </div>
 
 <script>
-    // 游戏总干员库（用于抽卡随机池）
+    // 细胞大师库（严格设定人体比例权重、费用、攻击范围类型及最大同时部署上限）
+    // rangeType: 'front1'(正前方1格), 'circle1'(周围一圈), 'cross2'(十字2格), 'snipe3'(远程3格)
     const masterPool = [
-        { name: "T细胞", cost: 5, atk: 12, rangeGrid: 1, desc: "单体物理输出" },
-        { name: "巨噬细胞", cost: 8, atk: 10, rangeGrid: 1, desc: "近战防御清理" },
-        { name: "抗体狙击", cost: 7, atk: 15, rangeGrid: 2, desc: "远程单体狙击" },
-        { name: "内切酶", cost: 9, atk: 14, rangeGrid: 2, desc: "特种高效切割" },
-        { name: "线粒体核心", cost: 12, atk: 22, rangeGrid: 3, desc: "高能重型炮塔" }
+        { id: 'rbc', name: "红细胞", rarity: 'N', weight: 60, cost: 3, maxCount: 8, rangeType: 'front1', desc: "数量庞大，低耗基础单位", atk: 8 },
+        { id: 'platelet', name: "血小板", rarity: 'R', weight: 25, cost: 4, maxCount: 5, rangeType: 'front1', desc: "修复与筑路辅助", atk: 6 },
+        { id: 'macrophage', name: "巨噬细胞", rarity: 'SR', weight: 10, cost: 8, maxCount: 3, rangeType: 'front1', desc: "近战凶猛，仅攻击前方1格", atk: 22 },
+        { id: 'tcell', name: "T细胞", rarity: 'SSR', weight: 4, cost: 10, maxCount: 2, rangeType: 'circle1', desc: "精锐免疫，攻击周围一圈", atk: 18 },
+        { id: 'nkcell', name: "NK自然杀手细胞", rarity: 'SSR', weight: 1, cost: 12, maxCount: 1, rangeType: 'cross2', desc: "终极免疫，十字超强穿透", atk: 30 }
     ];
 
-    // 玩家当前拥有的干员编队
-    let operators = JSON.parse(localStorage.getItem('td_operators')) || [
-        { name: "T细胞", cost: 5, atk: 12, rangeGrid: 1, desc: "单体物理输出" },
-        { name: "巨噬细胞", cost: 8, atk: 10, rangeGrid: 1, desc: "近战防御清理" }
+    // 玩家初始仓库拥有干员
+    let playerWarehouse = JSON.parse(localStorage.getItem('td_warehouse')) || [
+        { ...masterPool[0], count: 3 }, // 初始3个红细胞
+        { ...masterPool[1], count: 2 }  // 初始2个血小板
     ];
 
-    let atp = 20;
+    let nutrients = parseInt(localStorage.getItem('td_nutrients')) || 60;
+    let atp = 25;
     let baseHp = 15;
-    let wave = 1;
+    let currentLevel = 1;
     let selectedOp = null;
-    let ecoMode = 'auto'; // 'auto' 或 'kill'
+    let waveInProgress = false;
+    let currentView = 'battle'; // 'battle' 或 'gacha'
 
     let mouseX = 0, mouseY = 0;
 
@@ -134,55 +165,136 @@
     const ctx = canvas.getContext('2d');
 
     const cols = 11;
-    const rows = 6;
-    const tileSize = 64; // 精准适配网格大小
+    const rows = 5;
+    const tileSize = 70;
     let grid = Array(rows).fill().map(() => Array(cols).fill(null));
     let enemies = [];
-    let waveInProgress = false;
+
+    // 10个关卡配置数据
+    const levels = Array.from({length: 10}, (_, i) => ({
+        id: i + 1,
+        name: `第 ${i+1} 关: ${['微循环通道', '肺泡毛细血管', '淋巴结防线', '肝脏解毒区', '脾脏过滤网', '中枢神经屏障', '胃酸防御圈', '肾小球滤过壁', '冠状动脉险地', '全身免疫总决战'][i]}`,
+        enemyHp: 40 + i * 22,
+        enemyCount: 5 + i * 3,
+        rewardNut: 25 + i * 12
+    }));
+
+    function renderLevelList() {
+        const list = document.getElementById('levelList');
+        list.innerHTML = levels.map(lvl => `
+            <div class="level-item ${currentLevel === lvl.id ? 'active' : ''}" onclick="selectLevel(${lvl.id})">
+                <div><b>${lvl.name}</b></div>
+                <div style="color: #f39c12;">奖励 🧪${lvl.rewardNut}</div>
+            </div>
+        `).join('');
+    }
+
+    function selectLevel(lvlId) {
+        if(waveInProgress) { alert("战斗中无法切换关卡！"); return; }
+        currentLevel = lvlId;
+        document.getElementById('levelTitleDisplay').innerText = `当前关卡：${levels[lvlId-1].name}`;
+        renderLevelList();
+        resetGame();
+    }
 
     function renderOperators() {
         const list = document.getElementById('operatorList');
-        list.innerHTML = operators.map((op, idx) => `
+        // 将玩家仓库里拥有的干员平铺到出战栏
+        list.innerHTML = playerWarehouse.map((op, idx) => `
             <div class="operator-card ${selectedOp === op ? 'selected' : ''}" onclick="selectOperator(${idx})">
                 <div class="name">${op.name}</div>
                 <div class="cost">⚡ ${op.cost} ATP</div>
-                <div style="font-size:10px; color:#4facfe;">射程: ${op.rangeGrid}格</div>
+                <div style="font-size:9px; color:#4facfe;">上限:${op.maxCount}</div>
                 <div class="desc">${op.desc}</div>
             </div>
         `).join('');
     }
 
     function selectOperator(idx) {
-        selectedOp = operators[idx];
-        document.getElementById('tipMsg').innerText = `已选择: ${selectedOp.name} (请在网格上查看蓝色可攻击格子并放置)`;
+        selectedOp = playerWarehouse[idx];
+        document.getElementById('tipMsg').innerText = `已选择: ${selectedOp.name} (请在网格上查看蓝色可攻击格子放置)`;
         renderOperators();
     }
 
-    function toggleEcoMode() {
-        if(ecoMode === 'auto') {
-            ecoMode = 'kill';
-            document.getElementById('modeDisplay').innerText = "⚔️ 击杀回费 (击杀+3)";
-            document.getElementById('modeBtn').innerText = "切换: 自动回费";
+    function switchPanel() {
+        if(currentView === 'battle') {
+            currentView = 'gacha';
+            document.getElementById('panelBattle').style.display = 'none';
+            document.getElementById('panelGacha').style.display = 'block';
+            renderWarehouse();
         } else {
-            ecoMode = 'auto';
-            document.getElementById('modeDisplay').innerText = "⏳ 自动自然回费";
-            document.getElementById('modeBtn').innerText = "切换: 击杀回费";
+            currentView = 'battle';
+            document.getElementById('panelGacha').style.display = 'none';
+            document.getElementById('panelBattle').style.display = 'block';
         }
     }
 
-    function pullGacha() {
-        if(atp < 10) {
-            alert("ATP 不足 10，无法进行干员寻访！");
+    function renderWarehouse() {
+        document.getElementById('nutVal').innerText = nutrients;
+        const whGrid = document.getElementById('warehouseGrid');
+        whGrid.innerHTML = playerWarehouse.map(op => `
+            <div class="wh-card">
+                <div style="font-weight:bold; color:#fff; font-size:13px;">${op.name}</div>
+                <div style="font-size:11px; color:#f39c12; margin-top:4px;">拥有数量: ${op.count}</div>
+                <div style="font-size:10px; color:#888; margin-top:2px;">上限: ${op.maxCount}</div>
+            </div>
+        `).join('');
+    }
+
+    function pullGacha(amount) {
+        let costTotal = amount === 1 ? 15 : 135;
+        if(nutrients < costTotal) {
+            alert("营养不足，多去通关关卡获取奖励吧！");
             return;
         }
-        atp -= 10;
-        let randomOp = masterPool[Math.floor(Math.random() * masterPool.length)];
-        // 允许重复抽取，或者直接加入编队
-        operators.push({ ...randomOp });
-        localStorage.setItem('td_operators', JSON.stringify(operators));
-        updateUI();
+        nutrients -= costTotal;
+        localStorage.setItem('td_nutrients', nutrients);
+
+        let results = [];
+        for(let i = 0; i < amount; i++) {
+            let rand = Math.random() * 100;
+            let cumulative = 0;
+            let chosen = masterPool[0];
+            for(let p of masterPool) {
+                cumulative += p.weight;
+                if(rand <= cumulative) { chosen = p; break; }
+            }
+            results.push(chosen.name);
+            
+            // 放入或增加仓库数量
+            let existing = playerWarehouse.find(item => item.id === chosen.id);
+            if(existing) {
+                existing.count += 1;
+            } else {
+                playerWarehouse.push({ ...chosen, count: 1 });
+            }
+        }
+
+        localStorage.setItem('td_warehouse', JSON.stringify(playerWarehouse));
+        renderWarehouse();
         renderOperators();
-        alert(`🎉 寻访成功！恭喜获得了新干员：【${randomOp.name}】（${randomOp.desc}）！`);
+        alert(`🎉 寻访获得：\n${results.join(', ')}`);
+    }
+
+    // 根据干员的攻击范围类型计算某个网格是否在攻击范围内
+    function getAttackedGridsForOperator(opR, opC, rangeType) {
+        let list = [];
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                if(rangeType === 'front1') {
+                    // 正前方一格（假设敌人从右向左走，正前方指左侧或者右侧，这里设定干员攻击其左侧紧邻的一格，或右侧。由于敌人从右往左，干员攻击左边 c-1 或右边 c+1）
+                    // 让我们统一规定：敌人在右侧生成向左走，干员攻击其正左方或正右方。为了直观，攻击正前方（即左侧 c-1，同行 r）
+                    if(r === opR && c === opC - 1) list.push({r, c});
+                } else if(rangeType === 'circle1') {
+                    // 周围一圈 3x3
+                    if(Math.abs(r - opR) <= 1 && Math.abs(c - opC) <= 1) list.push({r, c});
+                } else if(rangeType === 'cross2') {
+                    // 十字2格
+                    if((r === opR && Math.abs(c - opC) <= 2) || (c === opC && Math.abs(r - opR) <= 2)) list.push({r, c});
+                }
+            }
+        }
+        return list;
     }
 
     canvas.addEventListener('mousemove', (e) => {
@@ -201,15 +313,27 @@
 
         if(r >= 0 && r < rows && c >= 0 && c < cols) {
             if(!selectedOp) {
-                alert("请先在下方点击选择一个干员！");
+                alert("请先在下方选择干员！");
                 return;
             }
             if(atp < selectedOp.cost) {
-                alert("ATP 能量不足，无法部署！");
+                alert("ATP 能量不足！");
                 return;
             }
             if(grid[r][c] !== null) {
-                alert("该网格位置已经部署了干员！");
+                alert("该网格已经部署了细胞！");
+                return;
+            }
+
+            // 检查场上已部署的该类干员数量是否超过上限
+            let deployedCount = 0;
+            for(let ro = 0; ro < rows; ro++) {
+                for(let co = 0; co < cols; co++) {
+                    if(grid[ro][co] && grid[ro][co].id === selectedOp.id) deployedCount++;
+                }
+            }
+            if(deployedCount >= selectedOp.maxCount) {
+                alert(`该细胞部署数量已达到人体比例上限 (${selectedOp.maxCount})！`);
                 return;
             }
 
@@ -223,17 +347,17 @@
         if(waveInProgress) return;
         waveInProgress = true;
         
+        let lvlData = levels[currentLevel - 1];
         let spawned = 0;
-        let totalEnemies = 4 + wave * 3;
 
         let spawnTimer = setInterval(() => {
-            if(spawned < totalEnemies) {
+            if(spawned < lvlData.enemyCount) {
                 enemies.push({
                     x: cols * tileSize,
                     y: Math.floor(Math.random() * rows) * tileSize + tileSize/2,
-                    hp: 50 + wave * 18,
-                    maxHp: 50 + wave * 18,
-                    speed: 0.75 + wave * 0.07,
+                    hp: lvlData.enemyHp,
+                    maxHp: lvlData.enemyHp,
+                    speed: 0.7 + currentLevel * 0.04,
                     atk: 1,
                     currentR: 0,
                     currentC: 0
@@ -242,12 +366,12 @@
             } else {
                 clearInterval(spawnTimer);
             }
-        }, 1600);
+        }, 1500);
     }
 
     function updateGame() {
-        // 自动回费模式
-        if(ecoMode === 'auto' && Math.random() < 0.022) {
+        // 自动自然回费
+        if(Math.random() < 0.025) {
             atp = Math.min(60, atp + 1);
             updateUI();
         }
@@ -256,7 +380,6 @@
             let en = enemies[i];
             en.x -= en.speed;
 
-            // 记录当前敌人所在的行和列
             en.currentC = Math.floor(en.x / tileSize);
             en.currentR = Math.floor(en.y / tileSize);
 
@@ -265,20 +388,21 @@
                 enemies.splice(i, 1);
                 updateUI();
                 if(baseHp <= 0) {
-                    alert("防线被病原体攻破！游戏结束。");
+                    alert("防线被病原体攻破！游戏失败。");
                     resetGame();
                 }
                 continue;
             }
 
-            // 遍历所有干员，检查敌人在不在其网格攻击范围内（曼哈顿距离判断）
+            // 干员攻击判定
             for(let r = 0; r < rows; r++) {
                 for(let c = 0; c < cols; c++) {
                     let op = grid[r][c];
                     if(op) {
-                        let distGrid = Math.abs(r - en.currentR) + Math.abs(c - en.currentC);
-                        if(distGrid <= op.rangeGrid) {
-                            en.hp -= 0.55;
+                        let targetGrids = getAttackedGridsForOperator(r, c, op.rangeType);
+                        let hit = targetGrids.some(tg => tg.r === en.currentR && tg.c === en.currentC);
+                        if(hit) {
+                            en.hp -= (op.atk * 0.04);
                         }
                     }
                 }
@@ -286,21 +410,42 @@
 
             if(en.hp <= 0) {
                 enemies.splice(i, 1);
-                if(ecoMode === 'kill') {
-                    atp += 4; // 击杀回费奖励
-                }
+                atp += 4; // 击杀奖励 ATP
                 updateUI();
             }
+        }
+
+        // 检查通关条件
+        let lvlData = levels[currentLevel - 1];
+        if(waveInProgress && enemies.length === 0) {
+            // 判断是否生成完毕且清空
+            // 简单用延时判断胜利
         }
 
         drawGame();
     }
 
+    // 定期检查通关
+    setInterval(() => {
+        let lvlData = levels[currentLevel - 1];
+        // 如果开始过且敌人全清
+        if(waveInProgress && enemies.length === 0) {
+            // 判断场上敌人生成完了没，这里简化为赢了加奖励
+            waveInProgress = false;
+            nutrients += lvlData.rewardNut;
+            localStorage.setItem('td_nutrients', nutrients);
+            alert(`🎉 恭喜通关【${lvlData.name}】！获得营养奖励：🧪 +${lvlData.rewardNut}`);
+            if(currentLevel < 10) currentLevel++;
+            renderLevelList();
+            resetGame();
+        }
+    }, 1000);
+
     function drawGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-        // 1. 绘制网格线
-        ctx.strokeStyle = '#282836';
+        // 1. 绘制网格
+        ctx.strokeStyle = '#252533';
         ctx.lineWidth = 1;
         for(let r = 0; r <= rows; r++) {
             ctx.beginPath(); ctx.moveTo(0, r * tileSize); ctx.lineTo(cols * tileSize, r * tileSize); ctx.stroke();
@@ -309,95 +454,10 @@
             ctx.beginPath(); ctx.moveTo(c * tileSize, 0); ctx.lineTo(c * tileSize, rows * tileSize); ctx.stroke();
         }
 
-        // 2. 鼠标悬停时的网格攻击范围预览高亮
+        // 2. 鼠标悬停时的攻击范围格子预览
         const hoverC = Math.floor(mouseX / tileSize);
         const hoverR = Math.floor(mouseY / tileSize);
         if(hoverR >= 0 && hoverR < rows && hoverC >= 0 && hoverC < cols && selectedOp) {
-            for(let r = 0; r < rows; r++) {
-                for(let c = 0; c < cols; c++) {
-                    let dist = Math.abs(r - hoverR) + Math.abs(c - hoverC);
-                    if(dist <= selectedOp.rangeGrid) {
-                        ctx.fillStyle = 'rgba(79, 172, 254, 0.18)';
-                        ctx.fillRect(c * tileSize + 1, r * tileSize + 1, tileSize - 2, tileSize - 2);
-                    }
-                }
-            }
-        }
-
-        // 3. 已放置干员的网格攻击范围高亮（当鼠标悬停在其上面或选中时显示）
-        for(let r = 0; r < rows; r++) {
-            for(let c = 0; c < cols; c++) {
-                let op = grid[r][c];
-                if(op) {
-                    // 如果鼠标指着这个干员，高亮它的攻击格子
-                    if(hoverR === r && hoverC === c) {
-                        for(let tr = 0; tr < rows; tr++) {
-                            for(let tc = 0; tc < cols; tc++) {
-                                if(Math.abs(tr - r) + Math.abs(tc - c) <= op.rangeGrid) {
-                                    ctx.fillStyle = 'rgba(255, 177, 66, 0.2)';
-                                    ctx.fillRect(tc * tileSize + 1, tr * tileSize + 1, tileSize - 2, tileSize - 2);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // 4. 绘制已部署的干员实体
-        for(let r = 0; r < rows; r++) {
-            for(let c = 0; c < cols; c++) {
-                let op = grid[r][c];
-                if(op) {
-                    let centerX = c * tileSize + tileSize/2;
-                    let centerY = r * tileSize + tileSize/2;
-
-                    ctx.fillStyle = '#4facfe';
-                    ctx.beginPath();
-                    ctx.arc(centerX, centerY, tileSize/3, 0, Math.PI * 2);
-                    ctx.fill();
-
-                    ctx.fillStyle = '#fff';
-                    ctx.font = 'bold 11px sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.fillText(op.name, centerX, centerY + 4);
-                }
-            }
-        }
-
-        // 5. 绘制敌人
-        for(let en of enemies) {
-            ctx.fillStyle = '#ff5252';
-            ctx.beginPath();
-            ctx.arc(en.x, en.y, 13, 0, Math.PI * 2);
-            ctx.fill();
-
-            // 血条
-            ctx.fillStyle = '#222';
-            ctx.fillRect(en.x - 16, en.y - 22, 32, 4);
-            ctx.fillStyle = '#4cd137';
-            ctx.fillRect(en.x - 16, en.y - 22, 32 * (en.hp / en.maxHp), 4);
-        }
-    }
-
-    function updateUI() {
-        document.getElementById('atpVal').innerText = atp;
-        document.getElementById('baseHp').innerText = baseHp;
-    }
-
-    function resetGame() {
-        grid = Array(rows).fill().map(() => Array(cols).fill(null));
-        enemies = [];
-        atp = 20;
-        baseHp = 15;
-        wave = 1;
-        waveInProgress = false;
-        updateUI();
-    }
-
-    renderOperators();
-    updateUI();
-    setInterval(updateGame, 50);
-</script>
-</body>
-</html>
+            let previewGrids = getAttackedGridsForOperator(hoverR, hoverC, selectedOp.rangeType);
+            for(let tg of previewGrids) {
+                ctx.fillStyle = 'rgba(79, 
