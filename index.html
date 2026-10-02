@@ -3,12 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>细胞防线 - 模块化整合版</title>
-    
-    <!-- 引入你独立分类管理的干员与关卡/敌人外部文件 -->
-    <script src="cells/operators.js"></script>
-    <script src="data.js"></script>
-
+    <title>细胞防线 - 20关完整单文件版</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: #121216; color: #d4d4d4; display: flex; height: 100vh; overflow: hidden; }
@@ -46,7 +41,7 @@
         .card-box { background: #22222e; border: 1px solid #333342; border-radius: 12px; padding: 16px; }
         .card-title { font-size: 14px; font-weight: bold; color: #4facfe; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
         
-        .level-list { display: flex; flex-direction: column; gap: 6px; max-height: 250px; overflow-y: auto; }
+        .level-list { display: flex; flex-direction: column; gap: 6px; max-height: 380px; overflow-y: auto; }
         .level-item { background: #16161a; padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; border: 1px solid #2a2a38; cursor: pointer; }
         .level-item.active { border-color: #4facfe; background: #1f304a; }
     </style>
@@ -57,7 +52,7 @@
     <div class="main-panel">
         <div class="top-bar">
             <div><span class="hp-badge">❤ 宿主生命: <span id="baseHp">12</span></span></div>
-            <div style="font-weight: bold; color: #f39c12;" id="levelTitleDisplay">当前关卡：第 1 关</div>
+            <div style="font-weight: bold; color: #f39c12;" id="levelTitleDisplay">当前关卡：第 1 关 (幼儿期)</div>
             <div style="display:flex; gap:12px;">
                 <div class="res-badge nut-badge">🧪 营养: <span id="nutVal">100</span></div>
                 <div class="res-badge">⚡ ATP: <span id="atpVal">30</span></div>
@@ -69,10 +64,10 @@
         </div>
 
         <div class="dock-area">
-            <div style="font-size: 13px; color: #aaa;" id="tipMsg">提示：点击部署；点击已部署细胞可触发**细胞凋亡（强制回收）**！</div>
+            <div style="font-size: 13px; color: #aaa;" id="tipMsg">提示：点击部署细胞；点击已部署的细胞可进行**细胞凋亡（强制回收）**！</div>
             <div class="operator-list" id="operatorList"></div>
             <div class="controls-row">
-                <button class="btn-secondary" onclick="resetGame()">重置关卡</button>
+                <button class="btn-secondary" onclick="resetGame()">重置当前关卡</button>
                 <button class="btn-primary" onclick="startWave()">🚀 开始防线战</button>
             </div>
         </div>
@@ -80,38 +75,60 @@
 
     <div class="sidebar">
         <div class="card-box">
-            <div class="card-title">🗺 人体关卡选择</div>
+            <div class="card-title">🗺 人体生命周期关卡 (20关)</div>
             <div class="level-list" id="levelList"></div>
-        </div>
-
-        <div class="card-box">
-            <div class="card-title">🧬 模块化架构说明</div>
-            <div style="font-size: 11px; color: #aaa; line-height: 1.6;">
-                • 干员由 <b>cells/operators.js</b> 动态管理。<br>
-                • 关卡与高密度敌人在 <b>data.js</b> 中统筹。<br>
-                • 敌军数量已显著增加，考验持续防线构筑！
-            </div>
         </div>
     </div>
 </div>
 
 <script>
-    // 兼容外部引入（若外部文件未加载则提供默认保底）
-    const masterPool = window.ImmuneOperators || [
-        { id: 'neutrophil', name: "中性粒细胞", unlockLevel: 1, cost: 4, maxCount: 6, rangeType: 'front2', atk: 14, maxLifeSec: 12, desc: "前方2格急性穿透" },
-        { id: 'rbc', name: "红细胞", unlockLevel: 1, cost: 3, maxCount: 8, rangeType: 'front1', atk: 8, maxLifeSec: 25, desc: "前方1格，长寿稳固" }
+    // 1. 免疫细胞配置（数值平衡、范围修正）
+    const playerOperators = [
+        { id: 'neutrophil', name: "中性粒细胞", cost: 5, maxCount: 5, rangeType: 'front1', atk: 9, maxLifeSec: 10, desc: "正前方1格近战点射" },
+        { id: 'rbc', name: "红细胞", cost: 3, maxCount: 7, rangeType: 'front1', atk: 4, maxLifeSec: 22, desc: "正前方1格，坚固抗伤" },
+        { id: 'macrophage', name: "巨噬细胞", cost: 10, maxCount: 3, rangeType: 'cross1', atk: 18, maxLifeSec: 14, desc: "十字相邻1格吞噬" },
+        { id: 'lysozyme', name: "溶菌酶细胞", cost: 15, maxCount: 2, rangeType: 'front2', atk: 25, maxLifeSec: 8, desc: "前方2格精准高伤" },
+        { id: 'tcell', name: "T淋巴细胞", cost: 12, maxCount: 3, rangeType: 'circle1', atk: 12, maxLifeSec: 12, desc: "周围3x3小范围协同" }
     ];
 
-    const levels = window.GameLevelsExtended || [
-        { id: 1, name: "第 1 关: 末梢微循环", enemyCount: 12, enemyHp: 30, rewardNut: 25, baseHp: 12 },
-        { id: 2, name: "第 2 关: 扁桃体防线", enemyCount: 16, enemyHp: 48, rewardNut: 30, baseHp: 12 }
+    // 2. 病原体（敌人）类型与速度差异化配置
+    const EnemyTypes = {
+        influenza: { name: "流感病毒", speed: 0.8, color: '#e74c3c' },
+        rhinovirus: { name: "急性鼻病毒", speed: 1.3, color: '#f1c40f' },
+        streptococcus: { name: "耐药链球菌", speed: 0.5, color: '#9b59b6' },
+        mycoplasma: { name: "肺炎支原体", speed: 0.7, color: '#e67e22' },
+        rotavirus: { name: "轮状病毒", speed: 0.9, color: '#1abc9c' },
+        tubercle: { name: "结核杆菌", speed: 0.4, color: '#34495e' },
+        hepatitisBoss: { name: "变异Boss", speed: 0.4, color: '#c0392b' }
+    };
+
+    // 3. 20 个完整生命周期关卡
+    const levels = [
+        { id: 1, ageGroup: '幼儿期', name: "第 1 关: 脐带残端初阶", enemyCount: 9, enemyHp: 28, rewardNut: 20, baseHp: 12, enemyType: 'influenza' },
+        { id: 2, ageGroup: '幼儿期', name: "第 2 关: 乳牙期微循环", enemyCount: 12, enemyHp: 36, rewardNut: 25, baseHp: 12, enemyType: 'rhinovirus' },
+        { id: 3, ageGroup: '幼儿期', name: "第 3 关: 肠道菌群建立", enemyCount: 15, enemyHp: 44, rewardNut: 28, baseHp: 12, enemyType: 'rotavirus' },
+        { id: 4, ageGroup: '幼儿期', name: "第 4 关: 扁桃体初战", enemyCount: 18, enemyHp: 52, rewardNut: 30, baseHp: 10, enemyType: 'streptococcus' },
+        { id: 5, ageGroup: '儿童期', name: "第 5 关: 校园流感大暴发", enemyCount: 22, enemyHp: 62, rewardNut: 35, baseHp: 10, enemyType: 'influenza' },
+        { id: 6, ageGroup: '儿童期', name: "第 6 关: 换牙期牙龈微环境", enemyCount: 25, enemyHp: 72, rewardNut: 38, baseHp: 10, enemyType: 'streptococcus' },
+        { id: 7, ageGroup: '儿童期', name: "第 7 关: 呼吸道黏膜防御", enemyCount: 28, enemyHp: 84, rewardNut: 42, baseHp: 8, enemyType: 'mycoplasma' },
+        { id: 8, ageGroup: '儿童期', name: "第 8 关: 淋巴结总动员", enemyCount: 32, enemyHp: 96, rewardNut: 45, baseHp: 8, enemyType: 'rhinovirus' },
+        { id: 9, ageGroup: '青少年', name: "第 9 关: 青春期皮脂腺突围", enemyCount: 36, enemyHp: 110, rewardNut: 48, baseHp: 8, enemyType: 'tubercle' },
+        { id: 10, ageGroup: '青少年', name: "第 10 关: 剧烈运动代谢抗压", enemyCount: 40, enemyHp: 125, rewardNut: 52, baseHp: 8, enemyType: 'influenza' },
+        { id: 11, ageGroup: '青少年', name: "第 11 关: 免疫适应性特训", enemyCount: 44, enemyHp: 140, rewardNut: 55, baseHp: 8, enemyType: 'mycoplasma' },
+        { id: 12, ageGroup: '青少年', name: "第 12 关: 青少年核心防线", enemyCount: 48, enemyHp: 158, rewardNut: 60, baseHp: 6, enemyType: 'hepatitisBoss' },
+        { id: 13, ageGroup: '成年期', name: "第 13 关: 职场高压微环境", enemyCount: 52, enemyHp: 178, rewardNut: 65, baseHp: 6, enemyType: 'tubercle' },
+        { id: 14, ageGroup: '成年期', name: "第 14 关: 熬夜免疫力低谷", enemyCount: 56, enemyHp: 200, rewardNut: 70, baseHp: 6, enemyType: 'streptococcus' },
+        { id: 15, ageGroup: '成年期', name: "第 15 关: 肝脏解毒与代谢重压", enemyCount: 60, enemyHp: 225, rewardNut: 75, baseHp: 6, enemyType: 'hepatitisBoss' },
+        { id: 16, ageGroup: '成年期', name: "第 16 关: 全身免疫大交锋", enemyCount: 65, enemyHp: 250, rewardNut: 80, baseHp: 5, enemyType: 'influenza' },
+        { id: 17, ageGroup: '老年期', name: "第 17 关: 胸腺自然退化期", enemyCount: 70, enemyHp: 280, rewardNut: 85, baseHp: 5, enemyType: 'tubercle' },
+        { id: 18, ageGroup: '老年期', name: "第 18 关: 微循环减缓慢性侵蚀", enemyCount: 75, enemyHp: 310, rewardNut: 90, baseHp: 5, enemyType: 'mycoplasma' },
+        { id: 19, ageGroup: '老年期', name: "第 19 关: 晚年机体全面告急", enemyCount: 80, enemyHp: 345, rewardNut: 95, baseHp: 5, enemyType: 'hepatitisBoss' },
+        { id: 20, ageGroup: '老年期', name: "第 20 关: 百岁长寿终极决战", enemyCount: 90, enemyHp: 390, rewardNut: 150, baseHp: 4, enemyType: 'hepatitisBoss' }
     ];
 
-    let playerOperators = [ ...masterPool ];
     let nutrients = 100;
     let atp = 30;
     let currentLevel = 1;
-
     let baseHp = levels[0].baseHp;
     let selectedOp = playerOperators[0];
     let waveInProgress = false;
@@ -131,7 +148,7 @@
         if(!list) return;
         list.innerHTML = levels.map(lvl => `
             <div class="level-item ${currentLevel === lvl.id ? 'active' : ''}" onclick="selectLevel(${lvl.id})">
-                <div><b>${lvl.name}</b></div>
+                <div><b>[${lvl.ageGroup}]</b> ${lvl.name}</div>
                 <div style="color: #f39c12;">🧪${lvl.rewardNut}</div>
             </div>
         `).join('');
@@ -142,7 +159,7 @@
         currentLevel = lvlId;
         let lvl = levels[lvlId-1];
         baseHp = lvl.baseHp;
-        document.getElementById('levelTitleDisplay').innerText = `当前关卡：${lvl.name}`;
+        document.getElementById('levelTitleDisplay').innerText = `当前关卡：${lvl.name} (${lvl.ageGroup})`;
         renderLevelList();
         resetGame();
     }
@@ -161,7 +178,7 @@
 
     function selectOperator(idx) {
         selectedOp = playerOperators[idx];
-        document.getElementById('tipMsg').innerText = `已选择: ${selectedOp.name} (${selectedOp.desc})`;
+        document.getElementById('tipMsg').innerText = `已选择: ${selectedOp.name} - ${selectedOp.desc}`;
         renderOperators();
     }
 
@@ -171,9 +188,8 @@
             for(let c = 0; c < cols; c++) {
                 if(rangeType === 'front1' && r === opR && c === opC + 1) list.push({r, c});
                 if(rangeType === 'front2' && r === opR && (c === opC + 1 || c === opC + 2)) list.push({r, c});
-                if(rangeType === 'cross2' && ((r === opR && Math.abs(c - opC) <= 2) || (c === opC && Math.abs(r - opR) <= 2))) list.push({r, c});
+                if(rangeType === 'cross1' && ((r === opR && Math.abs(c - opC) === 1) || (c === opC && Math.abs(r - opR) === 1))) list.push({r, c});
                 if(rangeType === 'circle1' && Math.abs(r - opR) <= 1 && Math.abs(c - opC) <= 1) list.push({r, c});
-                if(rangeType === 'allRow' && r === opR && c > opC) list.push({r, c});
             }
         }
         return list;
@@ -208,7 +224,7 @@
 
             let deployedCount = grid.flat().filter(cell => cell && cell.id === selectedOp.id).length;
             if(deployedCount >= selectedOp.maxCount) {
-                alert(`该细胞部署数量已达到比例上限 (${selectedOp.maxCount})！`);
+                alert(`该细胞部署数量已达到上限 (${selectedOp.maxCount})！`);
                 return;
             }
 
@@ -224,6 +240,7 @@
         waveInProgress = true;
         let lvlData = levels[currentLevel - 1];
         let spawned = 0;
+        let tConfig = EnemyTypes[lvlData.enemyType] || EnemyTypes.influenza;
 
         let spawnTimer = setInterval(() => {
             if(spawned < lvlData.enemyCount) {
@@ -233,7 +250,9 @@
                     y: targetRow * tileSize + tileSize / 2,
                     hp: lvlData.enemyHp,
                     maxHp: lvlData.enemyHp,
-                    speed: 0.45 + currentLevel * 0.015,
+                    speed: tConfig.speed * (0.85 + currentLevel * 0.01),
+                    color: tConfig.color,
+                    name: tConfig.name,
                     currentR: targetRow,
                     currentC: cols - 1
                 });
@@ -241,7 +260,7 @@
             } else {
                 clearInterval(spawnTimer);
             }
-        }, 1100); // 缩短刷怪间隔，让敌人更密集
+        }, 950);
     }
 
     function updateGame() {
@@ -260,7 +279,7 @@
                     let targetGrids = getAttackedGrids(r, c, op.rangeType);
                     for(let en of enemies) {
                         if(targetGrids.some(tg => tg.r === en.currentR && tg.c === en.currentC)) {
-                            en.hp -= (op.atk * 0.06);
+                            en.hp -= (op.atk * 0.055);
                         }
                     }
                 }
@@ -276,7 +295,7 @@
             let cell = grid[en.currentR][en.currentC];
             if(cell) {
                 en.x += en.speed * 0.8;
-                cell.lifeTimer -= 1.5;
+                cell.lifeTimer -= 1.8;
             }
 
             if(en.hp <= 0) {
@@ -285,13 +304,13 @@
                     waveInProgress = false;
                     let lvlData = levels[currentLevel - 1];
                     nutrients += lvlData.rewardNut;
-                    alert(`🎉 恭喜通关！获得营养 🧪+${lvlData.rewardNut}`);
+                    alert(`🎉 恭喜通关 ${lvlData.name}！获得营养 🧪+${lvlData.rewardNut}`);
                     
                     if(currentLevel < levels.length) {
                         currentLevel++;
                         let nextLvl = levels[currentLevel-1];
                         baseHp = nextLvl.baseHp;
-                        document.getElementById('levelTitleDisplay').innerText = `当前关卡：${nextLvl.name}`;
+                        document.getElementById('levelTitleDisplay').innerText = `当前关卡：${nextLvl.name} (${nextLvl.ageGroup})`;
                         renderLevelList();
                     }
                     updateUI();
@@ -301,7 +320,7 @@
                 enemies.splice(i, 1);
                 updateUI();
                 if(baseHp <= 0) {
-                    alert("防线崩溃！游戏失败。");
+                    alert("防线崩溃！宿主生命耗尽。");
                     resetGame();
                 }
             }
@@ -317,7 +336,7 @@
 
         if(selectedOp && isValidHover && grid[hoverR][hoverC] === null) {
             let rangeGrids = getAttackedGrids(hoverR, hoverC, selectedOp.rangeType);
-            ctx.fillStyle = 'rgba(79, 172, 254, 0.25)';
+            ctx.fillStyle = 'rgba(79, 172, 254, 0.22)';
             for(let tg of rangeGrids) {
                 if(tg.r >= 0 && tg.r < rows && tg.c >= 0 && tg.c < cols) {
                     ctx.fillRect(tg.c * tileSize + 1, tg.r * tileSize + 1, tileSize - 2, tileSize - 2);
@@ -350,19 +369,19 @@
         }
 
         for(let en of enemies) {
-            ctx.fillStyle = '#e74c3c';
+            ctx.fillStyle = en.color || '#e74c3c';
             ctx.beginPath();
-            ctx.arc(en.x, en.y, 14, 0, Math.PI * 2);
-            ctx.fill();
+            ctx.arc(en.x, en.y, 13, 0, Math.PI * 2);
+            ctx.file();
 
             ctx.fillStyle = '#fff';
             ctx.font = '9px sans-serif';
-            ctx.fillText("病原", en.x - 10, en.y - 18);
+            ctx.fillText(en.name.slice(0, 3), en.x - 12, en.y - 17);
 
             ctx.fillStyle = '#444';
-            ctx.fillRect(en.x - 16, en.y - 24, 32, 4);
+            ctx.fillRect(en.x - 16, en.y - 23, 32, 4);
             ctx.fillStyle = '#e67e22';
-            ctx.fillRect(en.x - 16, en.y - 24, 32 * (en.hp / en.maxHp), 4);
+            ctx.fillRect(en.x - 16, en.y - 23, 32 * (en.hp / en.maxHp), 4);
         }
     }
 
@@ -386,9 +405,4 @@
         drawGame();
     }, 1000 / 60);
 
-    renderLevelList();
-    renderOperators();
-    updateUI();
-</script>
-</body>
-</html>
+    re
