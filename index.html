@@ -2,9 +2,13 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <script src="data.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>细胞防线 - 终极稳定版</title>
+    <title>细胞防线 - 模块化整合版</title>
+    
+    <!-- 引入你独立分类管理的干员与关卡/敌人外部文件 -->
+    <script src="cells/operators.js"></script>
+    <script src="data.js"></script>
+
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: #121216; color: #d4d4d4; display: flex; height: 100vh; overflow: hidden; }
@@ -53,7 +57,7 @@
     <div class="main-panel">
         <div class="top-bar">
             <div><span class="hp-badge">❤ 宿主生命: <span id="baseHp">12</span></span></div>
-            <div style="font-weight: bold; color: #f39c12;" id="levelTitleDisplay">当前关卡：第 1 关 (儿童期)</div>
+            <div style="font-weight: bold; color: #f39c12;" id="levelTitleDisplay">当前关卡：第 1 关</div>
             <div style="display:flex; gap:12px;">
                 <div class="res-badge nut-badge">🧪 营养: <span id="nutVal">100</span></div>
                 <div class="res-badge">⚡ ATP: <span id="atpVal">30</span></div>
@@ -65,7 +69,7 @@
         </div>
 
         <div class="dock-area">
-            <div style="font-size: 13px; color: #aaa;" id="tipMsg">提示：点击干员部署；点击**已部署的细胞**可触发细胞凋亡（强制回收）！</div>
+            <div style="font-size: 13px; color: #aaa;" id="tipMsg">提示：点击部署；点击已部署细胞可触发**细胞凋亡（强制回收）**！</div>
             <div class="operator-list" id="operatorList"></div>
             <div class="controls-row">
                 <button class="btn-secondary" onclick="resetGame()">重置关卡</button>
@@ -76,54 +80,37 @@
 
     <div class="sidebar">
         <div class="card-box">
-            <div class="card-title">🗺️️ 人体关卡选择 (1-10关)</div>
+            <div class="card-title">🗺 人体关卡选择</div>
             <div class="level-list" id="levelList"></div>
         </div>
 
         <div class="card-box">
-            <div class="card-title">🧬 核心玩法说明</div>
+            <div class="card-title">🧬 模块化架构说明</div>
             <div style="font-size: 11px; color: #aaa; line-height: 1.6;">
-                • <b>细胞凋亡</b>：点击格子上已有细胞可直接回收返还50% ATP。<br>
-                • <b>攻击范围</b>：不同细胞大小对应不同攻击范围（如巨噬细胞十字广域，中性粒细胞前方2格）。<br>
-                • <b>对策卡</b>：随关卡自动解锁专属高费对策卡（如第2关解锁溶菌酶分泌细胞，专克链球菌）。
+                • 干员由 <b>cells/operators.js</b> 动态管理。<br>
+                • 关卡与高密度敌人在 <b>data.js</b> 中统筹。<br>
+                • 敌军数量已显著增加，考验持续防线构筑！
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // 细胞干员池
-    const masterPool = [
+    // 兼容外部引入（若外部文件未加载则提供默认保底）
+    const masterPool = window.ImmuneOperators || [
         { id: 'neutrophil', name: "中性粒细胞", unlockLevel: 1, cost: 4, maxCount: 6, rangeType: 'front2', atk: 14, maxLifeSec: 12, desc: "前方2格急性穿透" },
-        { id: 'rbc', name: "红细胞", unlockLevel: 1, cost: 3, maxCount: 8, rangeType: 'front1', atk: 8, maxLifeSec: 25, desc: "前方1格，长寿稳固" },
-        { id: 'macrophage', name: "巨噬细胞", unlockLevel: 1, cost: 8, maxCount: 4, rangeType: 'cross2', atk: 32, maxLifeSec: 15, desc: "十字广域大范围吞噬" },
-        { id: 'lysozyme', name: "溶菌酶分泌细胞", unlockLevel: 2, cost: 14, maxCount: 2, rangeType: 'allRow', atk: 65, maxLifeSec: 10, desc: "第2关特供：整行高伤克链球菌" },
-        { id: 'tcell', name: "成熟T淋巴细胞", unlockLevel: 4, cost: 10, maxCount: 3, rangeType: 'circle1', atk: 28, maxLifeSec: 12, desc: "周围3x3范围群攻" },
-        { id: 'nkcell', name: "NK杀手细胞", unlockLevel: 6, cost: 12, maxCount: 2, rangeType: 'cross3', atk: 50, maxLifeSec: 10, desc: "超大十字广谱打击" }
+        { id: 'rbc', name: "红细胞", unlockLevel: 1, cost: 3, maxCount: 8, rangeType: 'front1', atk: 8, maxLifeSec: 25, desc: "前方1格，长寿稳固" }
     ];
 
-    let playerOperators = [
-        { ...masterPool[0] },
-        { ...masterPool[1] },
-        { ...masterPool[2] }
+    const levels = window.GameLevelsExtended || [
+        { id: 1, name: "第 1 关: 末梢微循环", enemyCount: 12, enemyHp: 30, rewardNut: 25, baseHp: 12 },
+        { id: 2, name: "第 2 关: 扁桃体防线", enemyCount: 16, enemyHp: 48, rewardNut: 30, baseHp: 12 }
     ];
 
+    let playerOperators = [ ...masterPool ];
     let nutrients = 100;
     let atp = 30;
     let currentLevel = 1;
-
-    const levels = [
-        { id: 1, ageGroup: '儿童期', name: "第 1 关: 末梢微循环 (流感入侵)", enemyHp: 30, enemyCount: 6, rewardNut: 25, baseHp: 12 },
-        { id: 2, ageGroup: '儿童期', name: "第 2 关: 扁桃体防线 (链球菌)", enemyHp: 48, enemyCount: 7, rewardNut: 30, baseHp: 12 },
-        { id: 3, ageGroup: '儿童期', name: "第 3 关: 气道黏膜 (支原体)", enemyHp: 65, enemyCount: 9, rewardNut: 35, baseHp: 12 },
-        { id: 4, ageGroup: '青少年期', name: "第 4 关: 淋巴结阵地 (腺病毒)", enemyHp: 80, enemyCount: 10, rewardNut: 40, baseHp: 15 },
-        { id: 5, ageGroup: '青少年期', name: "第 5 关: 肝脏解毒区 (乙肝突袭)", enemyHp: 95, enemyCount: 11, rewardNut: 45, baseHp: 15 },
-        { id: 6, ageGroup: '成年期', name: "第 6 关: 脾脏免疫过滤网", enemyHp: 120, enemyCount: 12, rewardNut: 50, baseHp: 20 },
-        { id: 7, ageGroup: '成年期', name: "第 7 关: 血脑屏障防线", enemyHp: 145, enemyCount: 14, rewardNut: 60, baseHp: 20 },
-        { id: 8, ageGroup: '老年期', name: "第 8 关: 胃酸防御衰退圈", enemyHp: 170, enemyCount: 15, rewardNut: 70, baseHp: 10 },
-        { id: 9, ageGroup: '老年期', name: "第 9 关: 冠状动脉硬化险地", enemyHp: 200, enemyCount: 16, rewardNut: 80, baseHp: 10 },
-        { id: 10, ageGroup: '老年期', name: "第 10 关: 全身免疫总决战", enemyHp: 240, enemyCount: 20, rewardNut: 100, baseHp: 10 }
-    ];
 
     let baseHp = levels[0].baseHp;
     let selectedOp = playerOperators[0];
@@ -138,19 +125,6 @@
     const tileSize = 70;
     let grid = Array(rows).fill().map(() => Array(cols).fill(null));
     let enemies = [];
-
-    function checkUnlockByLevel() {
-        for(let master of masterPool) {
-            if(currentLevel >= master.unlockLevel) {
-                let exists = playerOperators.find(op => op.id === master.id);
-                if(!exists) {
-                    playerOperators.push({ ...master });
-                    alert(`🎉 免疫系统随关卡推进解锁新专精卡：【${master.name}】！`);
-                }
-            }
-        }
-        renderOperators();
-    }
 
     function renderLevelList() {
         const list = document.getElementById('levelList');
@@ -168,9 +142,7 @@
         currentLevel = lvlId;
         let lvl = levels[lvlId-1];
         baseHp = lvl.baseHp;
-        document.getElementById('levelTitleDisplay').innerText = `当前关卡：第 ${lvl.id} 关 (${lvl.ageGroup})`;
-        
-        checkUnlockByLevel();
+        document.getElementById('levelTitleDisplay').innerText = `当前关卡：${lvl.name}`;
         renderLevelList();
         resetGame();
     }
@@ -200,7 +172,6 @@
                 if(rangeType === 'front1' && r === opR && c === opC + 1) list.push({r, c});
                 if(rangeType === 'front2' && r === opR && (c === opC + 1 || c === opC + 2)) list.push({r, c});
                 if(rangeType === 'cross2' && ((r === opR && Math.abs(c - opC) <= 2) || (c === opC && Math.abs(r - opR) <= 2))) list.push({r, c});
-                if(rangeType === 'cross3' && ((r === opR && Math.abs(c - opC) <= 3) || (c === opC && Math.abs(r - opR) <= 3))) list.push({r, c});
                 if(rangeType === 'circle1' && Math.abs(r - opR) <= 1 && Math.abs(c - opC) <= 1) list.push({r, c});
                 if(rangeType === 'allRow' && r === opR && c > opC) list.push({r, c});
             }
@@ -222,13 +193,12 @@
         const r = Math.floor((e.clientY - rect.top) / tileSize);
 
         if(r >= 0 && r < rows && c >= 0 && c < cols) {
-            // 细胞凋亡（点击已有细胞回收）
             if(grid[r][c] !== null) {
                 let cell = grid[r][c];
                 let refund = Math.floor(cell.cost * 0.5);
                 atp = Math.min(60, atp + refund);
                 grid[r][c] = null;
-                document.getElementById('tipMsg').innerText = `已诱导 ${cell.name} 细胞凋亡，回收 ATP ⚡+${refund}`;
+                document.getElementById('tipMsg').innerText = `细胞凋亡回收成功，ATP ⚡+${refund}`;
                 updateUI();
                 return;
             }
@@ -271,7 +241,7 @@
             } else {
                 clearInterval(spawnTimer);
             }
-        }, 1500);
+        }, 1100); // 缩短刷怪间隔，让敌人更密集
     }
 
     function updateGame() {
@@ -315,14 +285,13 @@
                     waveInProgress = false;
                     let lvlData = levels[currentLevel - 1];
                     nutrients += lvlData.rewardNut;
-                    alert(`🎉 恭喜通关 ${lvlData.name}！获得营养奖励 🧪+${lvlData.rewardNut}`);
+                    alert(`🎉 恭喜通关！获得营养 🧪+${lvlData.rewardNut}`);
                     
                     if(currentLevel < levels.length) {
                         currentLevel++;
-                        checkUnlockByLevel();
                         let nextLvl = levels[currentLevel-1];
                         baseHp = nextLvl.baseHp;
-                        document.getElementById('levelTitleDisplay').innerText = `当前关卡：第 ${nextLvl.id} 关 (${nextLvl.ageGroup})`;
+                        document.getElementById('levelTitleDisplay').innerText = `当前关卡：${nextLvl.name}`;
                         renderLevelList();
                     }
                     updateUI();
@@ -332,7 +301,7 @@
                 enemies.splice(i, 1);
                 updateUI();
                 if(baseHp <= 0) {
-                    alert("宿主防线崩溃！游戏失败。");
+                    alert("防线崩溃！游戏失败。");
                     resetGame();
                 }
             }
@@ -364,7 +333,7 @@
 
                 let op = grid[r][c];
                 if(op) {
-                    ctx.fillStyle = op.id === 'lysozyme' ? '#d35400' : (op.id.includes('cell') && op.id !== 'neutrophil' ? '#8e44ad' : '#27ae60');
+                    ctx.fillStyle = op.id === 'lysozyme' ? '#d35400' : (op.id.includes('cell') ? '#8e44ad' : '#27ae60');
                     ctx.fillRect(c * tileSize + 6, r * tileSize + 6, tileSize - 12, tileSize - 12);
                     
                     ctx.fillStyle = '#fff';
