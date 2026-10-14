@@ -47,6 +47,71 @@
 
         .bestiary-entry { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; font-size: 11px; line-height: 1.5; }
         .bestiary-color { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; margin-top: 3px; }
+
+        /* ===== 抽卡与编队弹窗 ===== */
+        .marrow-badge { color: #ff6ec7; font-weight: bold; background: #2a1f2a; border-color: #5a2a4a; }
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.72);
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal {
+            background: #1c1c24; border: 1px solid #38384d; border-radius: 14px;
+            width: 580px; max-width: 94vw; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 18px; border-bottom: 1px solid #2d2d3b; font-weight: bold; color: #4facfe; font-size: 15px;
+        }
+        .modal-header button { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; line-height: 1; }
+        .modal-header button:hover { color: #fff; }
+        .modal-body { padding: 16px; overflow-y: auto; }
+
+        .gacha-buttons { display: flex; gap: 12px; margin: 14px 0; }
+        .gacha-buttons button { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .btn-gacha-single { background: #2a2a38; color: #ccc; }
+        .btn-gacha-single:hover { background: #38384d; color: #fff; }
+        .btn-gacha-ten { background: #4facfe; color: #fff; }
+        .btn-gacha-ten:hover { background: #3598db; }
+        .prob-info { font-size: 11px; color: #888; text-align: center; margin: 4px 0 10px; }
+
+        .gacha-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        .gacha-card {
+            width: 96px; padding: 12px 6px; text-align: center; border-radius: 10px;
+            border: 2px solid #555; background: #22222e; margin: 2px;
+            animation: cardReveal 0.6s ease;
+        }
+        .gacha-card.legendary { animation: cardReveal 0.6s ease, goldenPulse 1.3s ease infinite; }
+        @keyframes cardReveal {
+            0% { transform: scale(0) rotateY(90deg); opacity: 0; }
+            60% { transform: scale(1.12); opacity: 1; }
+            100% { transform: scale(1) rotateY(0); opacity: 1; }
+        }
+        @keyframes goldenPulse {
+            0%,100% { box-shadow: 0 0 10px #ffd700; }
+            50% { box-shadow: 0 0 30px #ffd700; }
+        }
+        .rarity-label { font-size: 10px; font-weight: bold; }
+        .card-name { font-size: 12px; color: #fff; font-weight: bold; margin: 4px 0 2px; }
+        .card-star { font-size: 11px; color: #ffb142; }
+        .card-note { font-size: 9px; color: #888; }
+
+        .pool-list { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+        .pool-chip { font-size: 10px; padding: 2px 8px; border-radius: 12px; border: 1px solid; }
+        .exchange-row { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+        .exchange-row button { padding: 6px 12px; border: none; border-radius: 8px; cursor: pointer; background: #2a2a38; color: #ccc; font-size: 12px; }
+        .exchange-row button:hover { background: #38384d; color: #fff; }
+
+        .collection-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+        .collection-item { background: #16161a; border-radius: 8px; padding: 10px; border: 1px solid #2a2a38; }
+        .ci-top { display: flex; justify-content: space-between; align-items: center; }
+        .rarity-tag { font-size: 10px; font-weight: bold; }
+        .ci-stars { font-size: 13px; color: #ffb142; margin: 2px 0; }
+        .ci-info { font-size: 11px; color: #aaa; }
+        .ci-actions { display: flex; gap: 8px; margin-top: 6px; }
+        .ci-actions button { padding: 4px 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; background: #2a2a38; color: #ccc; }
+        .ci-actions button:hover { background: #38384d; color: #fff; }
+        .ci-actions button.on { background: #4facfe; color: #fff; }
+        .ci-actions .full-star { font-size: 11px; color: #ffb142; padding: 4px 0; }
     </style>
 </head>
 <body>
@@ -59,6 +124,7 @@
             <div style="display:flex; gap:12px;">
                 <div class="res-badge nut-badge">🧪 营养: <span id="nutVal">100</span></div>
                 <div class="res-badge">⚡ ATP: <span id="atpVal">30</span></div>
+                <div class="res-badge marrow-badge">🦴 原液: <span id="marrowVal">5</span></div>
             </div>
         </div>
 
@@ -83,6 +149,15 @@
         </div>
 
         <div class="card-box">
+            <div class="card-title">🦴 免疫干员招募</div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn-primary" onclick="openGacha()">🦴 骨髓招募所（抽卡）</button>
+                <button class="btn-secondary" onclick="openDeck()">🧬 编队管理</button>
+            </div>
+            <div style="font-size:10px; color:#888; margin-top:8px; line-height:1.5;">通关+2原液，击杀Boss+1原液；重复卡转信物用于升星（攻+15%/寿命+2秒）。</div>
+        </div>
+
+        <div class="card-box">
             <div class="card-title">🧬 核心玩法说明</div>
             <div style="font-size: 11px; color: #aaa; line-height: 1.6;">
                 • <b>细胞凋亡</b>：点击格子上已有细胞可直接回收返还50% ATP。<br>
@@ -96,6 +171,44 @@
         <div class="card-box">
             <div class="card-title">🦠 病原体图鉴</div>
             <div id="enemyBestiary" style="font-size: 11px; color: #aaa; line-height: 1.5;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 骨髓招募所（抽卡）弹窗 ===== -->
+<div class="modal-overlay" id="gachaModal" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <span>🦴 骨髓招募所</span>
+            <button onclick="closeGacha()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div style="font-size:12px; color:#aaa;">骨髓造血原液：<b style="color:#ff6ec7;" id="gachaMarrow">0</b></div>
+            <div class="gacha-buttons">
+                <button class="btn-gacha-single" onclick="doGacha(1)">单抽<br><small>1 原液</small></button>
+                <button class="btn-gacha-ten" onclick="doGacha(10)">十连抽<br><small>9 原液 · 保底精英+</small></button>
+            </div>
+            <div class="prob-info">概率：普通55% · 精英30% · 史诗12% · 传奇3%</div>
+            <div class="pool-list" id="gachaPoolList"></div>
+            <div class="exchange-row">
+                <span style="font-size:11px; color:#aaa;">营养兑换：</span>
+                <button onclick="exchangeNutrients()">20🧪营养 → 1🦴原液</button>
+            </div>
+            <div id="gachaResult" style="margin-top:14px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 编队管理弹窗 ===== -->
+<div class="modal-overlay" id="deckModal" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <span>🧬 编队管理</span>
+            <button onclick="closeDeck()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div style="font-size:12px; color:#aaa;">已编队：<b style="color:#4facfe;" id="deckCount">0</b> / 5（3~5名干员，星级加成生效）</div>
+            <div class="collection-list" id="collectionList"></div>
         </div>
     </div>
 </div>
@@ -190,17 +303,25 @@
     };
 
     const masterPool = [
-        { id: 'neutrophil', name: "中性粒细胞", unlockLevel: 1, cost: 4, maxCount: 6, rangeType: 'front1', atk: 10, maxLifeSec: 10, desc: "前方1格，急性首发响应" },
-        { id: 'rbc', name: "红细胞", unlockLevel: 1, cost: 3, maxCount: 8, rangeType: 'front1', atk: 5, maxLifeSec: 25, desc: "前方1格，长寿抗伤肉盾" },
-        { id: 'macrophage', name: "巨噬细胞", unlockLevel: 1, cost: 8, maxCount: 4, rangeType: 'cross2', atk: 25, maxLifeSec: 15, desc: "十字2格广域吞噬" },
-        { id: 'lysozyme', name: "溶菌酶分泌细胞", unlockLevel: 2, cost: 14, maxCount: 2, rangeType: 'front2', atk: 40, maxLifeSec: 8, desc: "前方2格，专克细菌(+50%)" },
-        { id: 'tcell', name: "T淋巴细胞", unlockLevel: 3, cost: 10, maxCount: 3, rangeType: 'circle1', atk: 18, maxLifeSec: 12, desc: "周围3x3协同群攻" },
-        { id: 'nkcell', name: "NK杀手细胞", unlockLevel: 4, cost: 12, maxCount: 2, rangeType: 'cross3', atk: 35, maxLifeSec: 10, desc: "超大十字广谱猎杀" },
-        { id: 'bcell', name: "B淋巴细胞", unlockLevel: 5, cost: 11, maxCount: 3, rangeType: 'allRow', atk: 12, maxLifeSec: 20, desc: "整行抗体远程打击" },
-        { id: 'dendritic', name: "树突状细胞", unlockLevel: 6, cost: 9, maxCount: 3, rangeType: 'buff1', atk: 0, maxLifeSec: 18, desc: "激活周围细胞+50%攻击" },
-        { id: 'eosinophil', name: "嗜酸性粒细胞", unlockLevel: 7, cost: 8, maxCount: 4, rangeType: 'front3', atk: 20, maxLifeSec: 14, desc: "前方3格远程穿刺" },
-        { id: 'memoryT', name: "记忆T细胞", unlockLevel: 8, cost: 15, maxCount: 2, rangeType: 'circle2', atk: 8, maxLifeSec: 40, desc: "5x5超长寿命(40秒)" }
+        { id: 'neutrophil', name: "中性粒细胞", rarity: 'common', unlockLevel: 1, cost: 4, maxCount: 6, rangeType: 'front1', atk: 10, maxLifeSec: 10, desc: "前方1格，急性首发响应" },
+        { id: 'rbc', name: "红细胞", rarity: 'common', unlockLevel: 1, cost: 3, maxCount: 8, rangeType: 'front1', atk: 5, maxLifeSec: 25, desc: "前方1格，长寿抗伤肉盾" },
+        { id: 'macrophage', name: "巨噬细胞", rarity: 'rare', unlockLevel: 1, cost: 8, maxCount: 4, rangeType: 'cross2', atk: 25, maxLifeSec: 15, desc: "十字2格广域吞噬" },
+        { id: 'lysozyme', name: "溶菌酶分泌细胞", rarity: 'epic', unlockLevel: 2, cost: 14, maxCount: 2, rangeType: 'front2', atk: 40, maxLifeSec: 8, desc: "前方2格，专克细菌(+50%)" },
+        { id: 'tcell', name: "T淋巴细胞", rarity: 'rare', unlockLevel: 3, cost: 10, maxCount: 3, rangeType: 'circle1', atk: 18, maxLifeSec: 12, desc: "周围3x3协同群攻" },
+        { id: 'nkcell', name: "NK杀手细胞", rarity: 'epic', unlockLevel: 4, cost: 12, maxCount: 2, rangeType: 'cross3', atk: 35, maxLifeSec: 10, desc: "超大十字广谱猎杀" },
+        { id: 'bcell', name: "B淋巴细胞", rarity: 'rare', unlockLevel: 5, cost: 11, maxCount: 3, rangeType: 'allRow', atk: 12, maxLifeSec: 20, desc: "整行抗体远程打击" },
+        { id: 'dendritic', name: "树突状细胞", rarity: 'legendary', unlockLevel: 6, cost: 9, maxCount: 3, rangeType: 'buff1', atk: 0, maxLifeSec: 18, desc: "激活周围细胞+50%攻击" },
+        { id: 'eosinophil', name: "嗜酸性粒细胞", rarity: 'common', unlockLevel: 7, cost: 8, maxCount: 4, rangeType: 'front3', atk: 20, maxLifeSec: 14, desc: "前方3格远程穿刺" },
+        { id: 'memoryT', name: "记忆T细胞", rarity: 'legendary', unlockLevel: 8, cost: 15, maxCount: 2, rangeType: 'circle2', atk: 8, maxLifeSec: 40, desc: "5x5超长寿命(40秒)" }
     ];
+
+    // 稀有度配置：概率、颜色、重复转化信物数量
+    const rarityConfig = {
+        common:    { label: '普通', color: '#7f8c8d', glow: '#27ae60', prob: 55, fragReward: 1 },
+        rare:      { label: '精英', color: '#3498db', glow: '#4facfe', prob: 30, fragReward: 2 },
+        epic:      { label: '史诗', color: '#9b59b6', glow: '#c39bd3', prob: 12, fragReward: 5 },
+        legendary: { label: '传奇', color: '#f39c12', glow: '#ffd700', prob: 3,  fragReward: 10 }
+    };
 
     // ==================== 关卡配置（15关生命周期） ====================
     const levels = [
@@ -222,19 +343,26 @@
     ];
 
     // ==================== 游戏状态 ====================
-    let playerOperators = [
-        { ...masterPool[0] },
-        { ...masterPool[1] },
-        { ...masterPool[2] }
-    ];
-
     let nutrients = 100;
     let atp = 30;
     let currentLevel = 1;
     let baseHp = levels[0].baseHp;
-    let selectedOp = playerOperators[0];
     let waveInProgress = false;
     let waveSpawningDone = false;
+
+    // 抽卡系统状态
+    let marrow = 5;                                    // 骨髓造血原液（抽卡代币）
+    let collection = {};                               // { opId: { stars, fragments } }
+    let deck = ['neutrophil', 'rbc', 'macrophage'];    // 编队（3~5名）
+
+    // 初始赠送3名初始干员（1星）
+    for(let starterId of deck) {
+        collection[starterId] = { stars: 1, fragments: 0 };
+    }
+
+    let playerOperators = [];                          // 由编队+星级动态生成的出战列表
+    let selectedOp = null;
+    refreshDeckOperators();
 
     let mouseX = -1, mouseY = -1;
     const canvas = document.getElementById('gameCanvas');
@@ -384,17 +512,205 @@
     }
 
     // ==================== UI 渲染 ====================
-    function checkUnlockByLevel() {
-        for(let master of masterPool) {
-            if(currentLevel >= master.unlockLevel) {
-                let exists = playerOperators.find(op => op.id === master.id);
-                if(!exists) {
-                    playerOperators.push({ ...master });
-                    alert(`🎉 免疫系统随关卡推进解锁新专精卡：【${master.name}】！`);
+    // 根据星级计算强化后的干员属性
+    function getUpgradedStats(op, stars) {
+        let atkBonus = (stars - 1) * 0.15;      // 每星 +15% 攻击
+        let lifeBonus = (stars - 1) * 2;        // 每星 +2 秒寿命
+        return {
+            ...op,
+            atk: Math.round(op.atk * (1 + atkBonus)),
+            maxLifeSec: op.maxLifeSec + lifeBonus,
+            stars: stars
+        };
+    }
+
+    // 由编队 + 收藏重新生成出战干员列表
+    function refreshDeckOperators() {
+        playerOperators = deck
+            .filter(id => collection[id])
+            .map(id => getUpgradedStats(masterPool.find(m => m.id === id), collection[id].stars));
+        let currentId = selectedOp ? selectedOp.id : null;
+        selectedOp = playerOperators.find(o => o.id === currentId) || playerOperators[0] || null;
+        renderOperators();
+    }
+
+    // ==================== 抽卡系统 ====================
+    function rollRarity() {
+        let r = Math.random() * 100;
+        if (r < 55) return 'common';
+        if (r < 85) return 'rare';
+        if (r < 97) return 'epic';
+        return 'legendary';
+    }
+
+    // 当前卡池：仅包含已解锁（unlockLevel <= currentLevel）的干员
+    function getAvailablePool() {
+        return masterPool.filter(op => op.unlockLevel <= currentLevel);
+    }
+
+    function rollOne(pool) {
+        let rarity = rollRarity();
+        let candidates = pool.filter(op => op.rarity === rarity);
+        if (candidates.length === 0) candidates = pool; // 该稀有度暂无已解锁干员时回退
+        return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
+    function doGacha(count) {
+        let cost = count === 10 ? 9 : 1;   // 十连九折
+        if (marrow < cost) { alert('骨髓造血原液不足！可通关或击杀Boss获取，或用营养兑换。'); return; }
+        let pool = getAvailablePool();
+        if (pool.length === 0) { alert('当前卡池暂无可用干员！'); return; }
+
+        marrow -= cost;
+        let results = [];
+        for (let i = 0; i < count; i++) results.push(rollOne(pool));
+
+        // 十连保底：至少1张精英级及以上
+        if (count === 10) {
+            let hasRarePlus = results.some(op => op.rarity !== 'common');
+            if (!hasRarePlus) {
+                let rarePlus = pool.filter(op => op.rarity !== 'common');
+                if (rarePlus.length > 0) {
+                    results[0] = rarePlus[Math.floor(Math.random() * rarePlus.length)];
                 }
             }
         }
-        renderOperators();
+
+        // 结算：新卡入藏，重复卡转信物
+        let summary = [];
+        for (let op of results) {
+            if (collection[op.id]) {
+                let frag = rarityConfig[op.rarity].fragReward;
+                collection[op.id].fragments += frag;
+                summary.push({ op, isNew: false, frag });
+            } else {
+                collection[op.id] = { stars: 1, fragments: 0 };
+                summary.push({ op, isNew: true, frag: 0 });
+            }
+        }
+
+        refreshDeckOperators();
+        updateUI();
+        renderGachaResult(summary);
+    }
+
+    function renderGachaResult(summary) {
+        const div = document.getElementById('gachaResult');
+        if (!div) return;
+        let html = '<div class="gacha-cards">';
+        for (let s of summary) {
+            let op = s.op;
+            let rc = rarityConfig[op.rarity];
+            let note = s.isNew ? '<div class="card-note">NEW 入藏!</div>' : `<div class="card-note">重复 +${s.frag} 信物</div>`;
+            html += `<div class="gacha-card ${op.rarity}" style="border-color:${rc.color}; box-shadow:0 0 14px ${rc.glow};">
+                <div class="rarity-label" style="color:${rc.color};">${rc.label}</div>
+                <div class="card-name">${op.name}</div>
+                <div class="card-star">${'★'.repeat(collection[op.id].stars)}</div>
+                ${note}
+            </div>`;
+        }
+        html += '</div>';
+        div.innerHTML = html;
+    }
+
+    function renderGachaPool() {
+        const div = document.getElementById('gachaPoolList');
+        if (!div) return;
+        let pool = getAvailablePool();
+        div.innerHTML = pool.map(op => {
+            let rc = rarityConfig[op.rarity];
+            return `<span class="pool-chip" style="color:${rc.color}; border-color:${rc.color};">${op.name}</span>`;
+        }).join('');
+    }
+
+    function exchangeNutrients() {
+        if (nutrients < 20) { alert('营养不足（需20营养）！'); return; }
+        nutrients -= 20;
+        marrow += 1;
+        updateUI();
+        refreshGachaUI();
+    }
+
+    function refreshGachaUI() {
+        document.getElementById('gachaMarrow').innerText = marrow;
+        renderGachaPool();
+    }
+
+    function openGacha() {
+        refreshGachaUI();
+        document.getElementById('gachaModal').style.display = 'flex';
+    }
+    function closeGacha() {
+        document.getElementById('gachaModal').style.display = 'none';
+    }
+
+    // ==================== 编队系统 ====================
+    function toggleDeck(opId) {
+        let idx = deck.indexOf(opId);
+        if (idx >= 0) {
+            if (deck.length <= 3) { alert('至少需要3名干员编队！'); return; }
+            deck.splice(idx, 1);
+        } else {
+            if (deck.length >= 5) { alert('最多只能编队5名干员！'); return; }
+            deck.push(opId);
+        }
+        refreshDeckOperators();
+        renderCollectionUI();
+    }
+
+    function upgradeStar(opId) {
+        let c = collection[opId];
+        if (!c) return;
+        if (c.stars >= 5) { alert('已达最高星级！'); return; }
+        let cost = 5 * c.stars;   // 2星5、3星10、4星15、5星20
+        if (c.fragments < cost) { alert(`信物不足，升星需 ${cost} 个信物！`); return; }
+        c.fragments -= cost;
+        c.stars++;
+        refreshDeckOperators();
+        renderCollectionUI();
+        alert(`🎉 ${masterPool.find(m => m.id === opId).name} 升星成功！攻击+15%、寿命+2秒。`);
+    }
+
+    function renderCollectionUI() {
+        const div = document.getElementById('collectionList');
+        if (!div) return;
+        const entries = Object.keys(collection);
+        if (entries.length === 0) {
+            div.innerHTML = '<div style="color:#888;">暂无干员，前往骨髓招募所抽卡吧！</div>';
+            document.getElementById('deckCount').innerText = deck.length;
+            return;
+        }
+        div.innerHTML = entries.map(id => {
+            let op = masterPool.find(m => m.id === id);
+            let c = collection[id];
+            let rc = rarityConfig[op.rarity];
+            let inDeck = deck.includes(id);
+            let upCost = c.stars >= 5 ? null : 5 * c.stars;
+            let actionHtml = upCost
+                ? `<button onclick="upgradeStar('${id}')">升星(${upCost}信物)</button>`
+                : '<span class="full-star">满星 ★</span>';
+            return `<div class="collection-item" style="border-left:3px solid ${rc.color};">
+                <div class="ci-top">
+                    <b style="color:${rc.color};">${op.name}</b>
+                    <span class="rarity-tag" style="color:${rc.color};">${rc.label}</span>
+                </div>
+                <div class="ci-stars">${'★'.repeat(c.stars)}${'☆'.repeat(5 - c.stars)}</div>
+                <div class="ci-info">信物 ${c.fragments} · ${op.desc}</div>
+                <div class="ci-actions">
+                    ${actionHtml}
+                    <button class="${inDeck ? 'on' : ''}" onclick="toggleDeck('${id}')">${inDeck ? '移出编队' : '加入编队'}</button>
+                </div>
+            </div>`;
+        }).join('');
+        document.getElementById('deckCount').innerText = deck.length;
+    }
+
+    function openDeck() {
+        renderCollectionUI();
+        document.getElementById('deckModal').style.display = 'flex';
+    }
+    function closeDeck() {
+        document.getElementById('deckModal').style.display = 'none';
     }
 
     function renderLevelList() {
@@ -426,7 +742,7 @@
         baseHp = lvl.baseHp;
         document.getElementById('levelTitleDisplay').innerText = `当前关卡：第 ${lvl.id} 关 (${lvl.ageGroup})`;
 
-        checkUnlockByLevel();
+        refreshDeckOperators();
         renderLevelList();
         resetGame();
     }
@@ -437,7 +753,7 @@
         list.innerHTML = playerOperators.map((op, idx) => `
             <div class="operator-card ${selectedOp === op ? 'selected' : ''}" onclick="selectOperator(${idx})">
                 <div class="name">${op.name}</div>
-                <div class="cost">⚡ ${op.cost} ATP</div>
+                <div class="cost">⚡ ${op.cost} ATP · ${'★'.repeat(op.stars)}</div>
                 <div class="desc">${op.desc}</div>
             </div>
         `).join('');
@@ -674,6 +990,12 @@
 
             // 敌人死亡处理
             if(en.hp <= 0) {
+                // Boss掉落：击杀核心变异Boss额外奖励骨髓造血原液
+                if(en.type === 'hepatitisBoss') {
+                    marrow += 1;
+                    spawnFloatingText(en.x, en.y - 30, "原液+1!", '#ff6ec7');
+                }
+
                 // 分裂能力：轮状病毒死亡时生成2个子体
                 if(en.ability === 'split' && !en.isSplit) {
                     let td = en.typeData;
@@ -715,11 +1037,12 @@
                     waveInProgress = false;
                     let lvlData = levels[currentLevel - 1];
                     nutrients += lvlData.rewardNut;
-                    alert(`🎉 恭喜通关 ${lvlData.name}！获得营养奖励 🧪+${lvlData.rewardNut}`);
+                    marrow += 2;   // 通关固定奖励2个骨髓造血原液
+                    alert(`🎉 恭喜通关 ${lvlData.name}！\n获得营养 🧪+${lvlData.rewardNut}，骨髓造血原液 🦴+2`);
 
                     if(currentLevel < levels.length) {
                         currentLevel++;
-                        checkUnlockByLevel();
+                        refreshDeckOperators();
                         let nextLvl = levels[currentLevel-1];
                         baseHp = nextLvl.baseHp;
                         document.getElementById('levelTitleDisplay').innerText = `当前关卡：第 ${nextLvl.id} 关 (${nextLvl.ageGroup})`;
@@ -1200,6 +1523,7 @@
         document.getElementById('baseHp').innerText = baseHp;
         document.getElementById('atpVal').innerText = atp;
         document.getElementById('nutVal').innerText = nutrients;
+        document.getElementById('marrowVal').innerText = marrow;
     }
 
     function resetGame() {
