@@ -67,29 +67,62 @@
         .modal-body { padding: 16px; overflow-y: auto; }
 
         .gacha-buttons { display: flex; gap: 12px; margin: 14px 0; }
-        .gacha-buttons button { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .gacha-buttons button { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; transition: transform 0.1s, filter 0.15s; }
+        .gacha-buttons button:active { transform: scale(0.96); filter: brightness(1.2); }
         .btn-gacha-single { background: #2a2a38; color: #ccc; }
         .btn-gacha-single:hover { background: #38384d; color: #fff; }
         .btn-gacha-ten { background: #4facfe; color: #fff; }
         .btn-gacha-ten:hover { background: #3598db; }
         .prob-info { font-size: 11px; color: #888; text-align: center; margin: 4px 0 10px; }
 
-        .gacha-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        .gacha-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; perspective: 900px; }
         .gacha-card {
-            width: 96px; padding: 12px 6px; text-align: center; border-radius: 10px;
-            border: 2px solid #555; background: #22222e; margin: 2px;
-            animation: cardReveal 0.6s ease;
+            width: 96px; padding: 12px 6px; text-align: center; border-radius: 12px;
+            border: 2px solid #555; background: linear-gradient(165deg, #292938, #1f1f2a); margin: 2px;
+            position: relative; overflow: hidden;
+            animation: cardFlip 0.55s cubic-bezier(0.2, 0.7, 0.3, 1.25) backwards;
+            animation-delay: var(--d, 0s);
+            transition: transform 0.18s;
         }
-        .gacha-card.legendary { animation: cardReveal 0.6s ease, goldenPulse 1.3s ease infinite; }
-        @keyframes cardReveal {
-            0% { transform: scale(0) rotateY(90deg); opacity: 0; }
-            60% { transform: scale(1.12); opacity: 1; }
-            100% { transform: scale(1) rotateY(0); opacity: 1; }
+        .gacha-card:hover { transform: translateY(-4px) scale(1.05); z-index: 2; }
+        .gacha-card.single { width: 150px; padding: 18px 10px; }
+        .gacha-card.epic {
+            animation: cardFlip 0.55s cubic-bezier(0.2, 0.7, 0.3, 1.25) backwards, epicGlow 1.6s ease infinite;
+            animation-delay: var(--d, 0s), calc(var(--d, 0s) + 0.55s);
+        }
+        .gacha-card.legendary {
+            animation: cardFlip 0.55s cubic-bezier(0.2, 0.7, 0.3, 1.25) backwards, goldenPulse 1.3s ease infinite;
+            animation-delay: var(--d, 0s), calc(var(--d, 0s) + 0.55s);
+        }
+        @keyframes cardFlip {
+            0% { transform: rotateY(100deg) scale(0.55); opacity: 0; }
+            60% { transform: rotateY(-14deg) scale(1.09); opacity: 1; }
+            100% { transform: rotateY(0deg) scale(1); opacity: 1; }
         }
         @keyframes goldenPulse {
-            0%,100% { box-shadow: 0 0 10px #ffd700; }
-            50% { box-shadow: 0 0 30px #ffd700; }
+            0%,100% { box-shadow: 0 0 12px #ffd700; }
+            50% { box-shadow: 0 0 34px #ffd700; }
         }
+        @keyframes epicGlow {
+            0%,100% { box-shadow: 0 0 8px #c39bd3; }
+            50% { box-shadow: 0 0 26px #c39bd3; }
+        }
+        .gacha-card.epic::after, .gacha-card.legendary::after {
+            content: ''; position: absolute; top: 0; left: -80%; width: 55%; height: 100%;
+            background: linear-gradient(105deg, transparent, rgba(255,255,255,0.3), transparent);
+            transform: skewX(-18deg);
+            animation: cardShine 2.4s ease infinite;
+            animation-delay: calc(var(--d, 0s) + 0.6s);
+            pointer-events: none;
+        }
+        @keyframes cardShine { 0% { left: -80%; } 55% { left: 135%; } 100% { left: 135%; } }
+        .gacha-card.legendary .card-avatar { filter: drop-shadow(0 0 7px #ffd700); }
+        .gacha-summary { display: flex; justify-content: center; gap: 8px; margin: 4px 0 8px; flex-wrap: wrap; }
+        .gacha-summary .chip { font-size: 10px; padding: 2px 10px; border-radius: 10px; border: 1px solid #38384d; color: #aaa; background: #16161a; }
+        .gacha-summary .chip.new { color: #2ecc71; border-color: #2ecc71; }
+        .legend-flash { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 35%, rgba(255,215,0,0.4), transparent 65%); animation: legendFlash 1.1s ease forwards; }
+        @keyframes legendFlash { 0% { opacity: 0; } 25% { opacity: 1; } 100% { opacity: 0; } }
+        #gachaResult { position: relative; }
         .rarity-label { font-size: 10px; font-weight: bold; }
         .card-name { font-size: 12px; color: #fff; font-weight: bold; margin: 4px 0 2px; }
         .card-star { font-size: 11px; color: #ffb142; }
@@ -153,10 +186,11 @@
         <div class="top-bar">
             <div><span class="hp-badge">❤ 宿主生命: <span id="baseHp">12</span></span></div>
             <div style="font-weight: bold; color: #f39c12;" id="levelTitleDisplay">当前关卡：第 1 关 (幼儿期)</div>
-            <div style="display:flex; gap:12px;">
+            <div style="display:flex; gap:12px; align-items:center;">
                 <div class="res-badge nut-badge">🧪 营养: <span id="nutVal">100</span></div>
                 <div class="res-badge">⚡ ATP: <span id="atpVal">30</span></div>
                 <div class="res-badge marrow-badge">🦴 原液: <span id="marrowVal">5</span></div>
+                <button id="sfxToggle" onclick="toggleSfx()" title="音效开关" style="background:#252533; border:1px solid #38384d; color:#d4d4d4; border-radius:20px; width:36px; height:28px; cursor:pointer; font-size:13px; line-height:1;">🔊</button>
             </div>
         </div>
 
@@ -460,6 +494,108 @@
         }
     ];
 
+    // ==================== 音效系统（Web Audio 实时合成，离线可用，无外部资源） ====================
+    const SFX = (() => {
+        let ac = null, master = null;
+        let enabled = (() => { try { return localStorage.getItem('sfxOn') !== '0'; } catch(e) { return true; } })();
+        let lastHit = 0;
+
+        function ensure() {
+            if(!ac) {
+                const AC = window.AudioContext || window.webkitAudioContext;
+                if(!AC) return null;
+                ac = new AC();
+                master = ac.createGain();
+                master.gain.value = 0.32;
+                master.connect(ac.destination);
+            }
+            if(ac.state === 'suspended') ac.resume();
+            return ac;
+        }
+
+        // 通用音符：波形 / 起止频率 / 时长 / 音量 / 延迟
+        function tone(type, f0, f1, dur, vol, delay) {
+            if(!enabled || !ensure()) return;
+            let t = ac.currentTime + (delay || 0);
+            let osc = ac.createOscillator();
+            let g = ac.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(f0, t);
+            if(f1 && f1 !== f0) osc.frequency.exponentialRampToValueAtTime(f1, t + dur);
+            g.gain.setValueAtTime(0.0001, t);
+            g.gain.exponentialRampToValueAtTime(vol, t + 0.012);
+            g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+            osc.connect(g);
+            g.connect(master);
+            osc.start(t);
+            osc.stop(t + dur + 0.05);
+        }
+
+        // 噪声爆发（打击感）
+        function noise(dur, vol, delay) {
+            if(!enabled || !ensure()) return;
+            let t = ac.currentTime + (delay || 0);
+            let len = Math.max(1, Math.floor(ac.sampleRate * dur));
+            let buf = ac.createBuffer(1, len, ac.sampleRate);
+            let data = buf.getChannelData(0);
+            for(let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+            let src = ac.createBufferSource();
+            src.buffer = buf;
+            let g = ac.createGain();
+            g.gain.value = vol;
+            src.connect(g);
+            g.connect(master);
+            src.start(t);
+        }
+
+        const lib = {
+            tap:       () => tone('sine', 660, 660, 0.06, 0.22),
+            deploy:    () => { tone('sine', 320, 620, 0.12, 0.3); tone('triangle', 500, 900, 0.1, 0.15, 0.03); },
+            recycle:   () => tone('sine', 600, 220, 0.16, 0.24),
+            hit:       () => {  // 敌人死亡（节流防刷屏）
+                let now = performance.now();
+                if(now - lastHit < 70) return;
+                lastHit = now;
+                noise(0.08, 0.2);
+                tone('square', 180, 90, 0.08, 0.1);
+            },
+            boss:      () => { tone('sawtooth', 80, 160, 0.5, 0.24); tone('sawtooth', 80, 160, 0.5, 0.24, 0.55); },
+            leak:      () => { tone('sawtooth', 220, 110, 0.25, 0.3); tone('sawtooth', 220, 110, 0.25, 0.3, 0.3); },
+            win:       () => [523, 659, 784, 1047].forEach((f, i) => tone('triangle', f, f, 0.16, 0.3, i * 0.13)),
+            lose:      () => [392, 311, 262, 196].forEach((f, i) => tone('sawtooth', f, f * 0.97, 0.22, 0.2, i * 0.18)),
+            upgrade:   () => [880, 1175, 1568].forEach((f, i) => tone('sine', f, f, 0.1, 0.2, i * 0.07)),
+            gacha:     () => { tone('sine', 300, 900, 0.25, 0.24); noise(0.18, 0.08); },
+            reveal:    () => tone('sine', 740, 990, 0.09, 0.2),
+            epic:      () => [523, 622, 784].forEach((f, i) => tone('triangle', f, f, 0.14, 0.24, i * 0.09)),
+            legendary: () => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone('triangle', f, f, 0.2, 0.28, i * 0.1)); tone('sine', 1568, 1568, 0.5, 0.18, 0.55); noise(0.35, 0.1, 0.55); }
+        };
+
+        return {
+            play(name) { if(lib[name]) { ensure(); lib[name](); } },
+            toggle() {
+                enabled = !enabled;
+                try { localStorage.setItem('sfxOn', enabled ? '1' : '0'); } catch(e) {}
+                if(enabled) { ensure(); lib.tap(); }
+                return enabled;
+            },
+            isOn: () => enabled,
+            unlock: ensure
+        };
+    })();
+
+    function toggleSfx() {
+        let on = SFX.toggle();
+        let btn = document.getElementById('sfxToggle');
+        if(btn) btn.textContent = on ? '🔊' : '🔇';
+    }
+    // 首次交互解锁音频上下文（Android WebView 兼容）
+    document.addEventListener('touchstart', () => SFX.unlock(), { once: true, passive: true });
+    document.addEventListener('mousedown', () => SFX.unlock(), { once: true });
+    // 按钮点击音（事件委托，统一反馈）
+    document.addEventListener('click', (e) => {
+        if(e.target && e.target.closest && e.target.closest('button')) SFX.play('tap');
+    }, true);
+
     // ==================== 游戏状态 ====================
     let nutrients = 100;
     let atp = 30;
@@ -505,6 +641,7 @@
     let enemies = [];
     let particles = [];
     let skillEffects = [];
+    let leakFlash = 0;   // 敌人突破防线的红闪计时（帧）
 
     // ==================== 辅助函数 ====================
     function getAttackedGrids(opR, opC, rangeType) {
@@ -706,6 +843,7 @@
         }
 
         marrow -= cost;
+        SFX.play('gacha');
         let upOps = stage ? stage.upOps : null;
         let upRate = stage ? stage.upRate : 0;
         let results = [];
@@ -748,21 +886,45 @@
         const div = document.getElementById('gachaResult');
         if (!div) return;
         let poolTitle = currentPoolType === 'standard' ? '常驻·骨髓分化池' : (ageStagePools.find(p => p.id === currentPoolType).name + '（UP池）');
-        let html = `<div style="font-size:11px; color:#888; text-align:center; margin-bottom:6px;">— ${poolTitle} 招募结果 —</div><div class="gacha-cards">`;
-        for (let s of summary) {
+        let rarityOrder = { common: 0, rare: 1, epic: 2, legendary: 3 };
+        let best = summary.reduce((a, b) => rarityOrder[a.op.rarity] >= rarityOrder[b.op.rarity] ? a : b);
+        let bestRc = rarityConfig[best.op.rarity];
+        let newCount = summary.filter(s => s.isNew).length;
+        let hasLegendary = summary.some(s => s.op.rarity === 'legendary');
+        let isSingle = summary.length === 1;
+
+        let html = '';
+        if (hasLegendary) html += '<div class="legend-flash"></div>';   // 出金全屏金光一闪
+        html += `<div style="font-size:11px; color:#888; text-align:center; margin-bottom:6px;">— ${poolTitle} · 最高 <b style="color:${bestRc.color};">${bestRc.label}</b> —</div>`;
+        html += `<div class="gacha-summary">
+            <span class="chip">共 ${summary.length} 张</span>
+            ${newCount > 0 ? `<span class="chip new">NEW ×${newCount}</span>` : ''}
+            ${hasLegendary ? '<span class="chip" style="color:#ffd700; border-color:#ffd700;">✨ 出金了！</span>' : ''}
+        </div>`;
+        html += '<div class="gacha-cards">';
+        summary.forEach((s, i) => {
             let op = s.op;
             let rc = rarityConfig[op.rarity];
             let note = s.isNew ? '<div class="card-note">NEW 入藏!</div>' : `<div class="card-note">重复 +${s.frag} 信物</div>`;
-            html += `<div class="gacha-card ${op.rarity}" style="border-color:${rc.color}; box-shadow:0 0 14px ${rc.glow};">
-                <div class="card-avatar">${avatarImg(op.id, 56, 'border-color:' + rc.color)}</div>
+            html += `<div class="gacha-card ${op.rarity}${isSingle ? ' single' : ''}" style="--d:${(i * 0.13).toFixed(2)}s; border-color:${rc.color}; box-shadow:0 0 14px ${rc.glow};">
+                <div class="card-avatar">${avatarImg(op.id, isSingle ? 84 : 56, 'border-color:' + rc.color)}</div>
                 <div class="rarity-label" style="color:${rc.color};">${rc.label}</div>
                 <div class="card-name">${op.name}</div>
                 <div class="card-star">${'★'.repeat(collection[op.id].stars)}</div>
                 ${note}
             </div>`;
-        }
+        });
         html += '</div>';
         div.innerHTML = html;
+
+        // 逐张翻牌音效：随卡片揭示节奏播放，稀有度越高音效越华丽
+        summary.forEach((s, i) => {
+            setTimeout(() => {
+                if (s.op.rarity === 'legendary') SFX.play('legendary');
+                else if (s.op.rarity === 'epic') SFX.play('epic');
+                else SFX.play('reveal');
+            }, 350 + i * 130);
+        });
     }
 
     function renderGachaPool() {
@@ -781,6 +943,7 @@
         if (nutrients < 20) { alert('营养不足（需20营养）！'); return; }
         nutrients -= 20;
         marrow += 1;
+        SFX.play('reveal');
         updateUI();
         refreshGachaUI();
     }
@@ -824,6 +987,7 @@
             }
         }
         currentPoolType = type;
+        SFX.play('tap');
         renderPoolTabs();
         renderPoolScience();
         renderGachaPool();
@@ -879,6 +1043,7 @@
         if (c.fragments < cost) { alert(`信物不足，升星需 ${cost} 个信物！`); return; }
         c.fragments -= cost;
         c.stars++;
+        SFX.play('upgrade');
         refreshDeckOperators();
         renderCollectionUI();
         alert(`🎉 ${masterPool.find(m => m.id === opId).name} 升星成功！攻击+15%、寿命+2秒。`);
@@ -955,6 +1120,7 @@
 
     function selectLevel(lvlId) {
         if(waveInProgress) { alert("战斗中无法切换关卡！"); return; }
+        SFX.play('tap');
         currentLevel = lvlId;
         let lvl = levels[lvlId-1];
         baseHp = lvl.baseHp;
@@ -980,6 +1146,7 @@
 
     function selectOperator(idx) {
         selectedOp = playerOperators[idx];
+        SFX.play('tap');
         document.getElementById('tipMsg').innerText = `已选择: ${selectedOp.name} (${selectedOp.desc})`;
         renderOperators();
     }
@@ -1014,6 +1181,7 @@
                 let refund = Math.floor(cell.cost * 0.5);
                 atp = Math.min(60, atp + refund);
                 grid[r][c] = null;
+                SFX.play('recycle');
                 document.getElementById('tipMsg').innerText = `已诱导 ${cell.name} 细胞凋亡，回收 ATP ⚡+${refund}`;
                 updateUI();
                 return;
@@ -1031,6 +1199,7 @@
             atp -= selectedOp.cost;
             let totalFrames = selectedOp.maxLifeSec * 60;
             grid[r][c] = { ...selectedOp, r, c, lifeTimer: totalFrames, maxLifeTimer: totalFrames, infected: false, infectTimer: 0 };
+            SFX.play('deploy');
             updateUI();
         }
     }
@@ -1055,6 +1224,7 @@
     }, { passive: false });
 
     // ==================== 敌人生成 ====================
+    let waveSpawnTimer = null;   // 刷怪定时器（全局持有，重置时可清除，防止泄漏导致无限刷怪）
     function startWave() {
         if(waveInProgress) return;
         waveInProgress = true;
@@ -1064,7 +1234,7 @@
         let allowed = lvlData.allowedEnemies || ['influenza'];
         let spawnInterval = currentLevel <= 5 ? 1500 : (currentLevel <= 10 ? 1200 : 1000);
 
-        let spawnTimer = setInterval(() => {
+        waveSpawnTimer = setInterval(() => {
             if(spawned < lvlData.enemyCount) {
                 let typeKey = allowed[Math.floor(Math.random() * allowed.length)];
                 let td = enemyTypes[typeKey];
@@ -1091,9 +1261,11 @@
                     spawnCount: 0,
                     size: td.size
                 });
+                if(typeKey === 'hepatitisBoss') SFX.play('boss');
                 spawned++;
             } else {
-                clearInterval(spawnTimer);
+                clearInterval(waveSpawnTimer);
+                waveSpawnTimer = null;
                 waveSpawningDone = true;
             }
         }, spawnInterval);
@@ -1103,9 +1275,11 @@
     function completeWave() {
         waveInProgress = false;
         waveSpawningDone = false;
+        if(waveSpawnTimer) { clearInterval(waveSpawnTimer); waveSpawnTimer = null; }
         let lvlData = levels[currentLevel - 1];
         nutrients += lvlData.rewardNut;
         marrow += 2;   // 通关固定奖励2个骨髓造血原液
+        SFX.play('win');
         alert(`🎉 恭喜通关 ${lvlData.name}！\n获得营养 🧪+${lvlData.rewardNut}，骨髓造血原液 🦴+2`);
 
         if(currentLevel < levels.length) {
@@ -1261,6 +1435,9 @@
                 if(en.type === 'hepatitisBoss') {
                     marrow += 1;
                     spawnFloatingText(en.x, en.y - 30, "原液+1!", '#ff6ec7');
+                    SFX.play('boss');
+                } else {
+                    SFX.play('hit');
                 }
 
                 // 分裂能力：轮状病毒死亡时生成2个子体
@@ -1306,10 +1483,13 @@
             } else if(en.x <= 0) {
                 // 敌人突破防线
                 baseHp -= 1;
+                leakFlash = 14;
+                SFX.play('leak');
                 spawnDeathParticles(5, en.y, '#ff0000');
                 enemies.splice(i, 1);
                 updateUI();
                 if(baseHp <= 0) {
+                    SFX.play('lose');
                     alert("宿主防线崩溃！游戏失败。");
                     resetGame();
                     return;
@@ -1801,6 +1981,13 @@
             }
         }
         ctx.globalAlpha = 1;
+
+        // 敌人突破防线：红色警示闪光
+        if(leakFlash > 0) {
+            ctx.fillStyle = `rgba(231, 76, 60, ${(leakFlash / 14 * 0.28).toFixed(3)})`;
+            ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+            leakFlash--;
+        }
     }
 
     // ==================== UI 更新 ====================
@@ -1812,12 +1999,14 @@
     }
 
     function resetGame() {
+        if(waveSpawnTimer) { clearInterval(waveSpawnTimer); waveSpawnTimer = null; }   // 关键修复：清除残留刷怪定时器
         waveInProgress = false;
         waveSpawningDone = false;
         grid = Array(rows).fill().map(() => Array(cols).fill(null));
         enemies = [];
         particles = [];
         skillEffects = [];
+        leakFlash = 0;
         baseHp = levels[currentLevel - 1].baseHp;
         atp = 30;
         updateUI();
@@ -1833,6 +2022,10 @@
     renderLevelList();
     renderOperators();
     renderEnemyBestiary();
+    (function initSfxToggle() {
+        let btn = document.getElementById('sfxToggle');
+        if(btn) btn.textContent = SFX.isOn() ? '🔊' : '🔇';
+    })();
     updateUI();
 </script>
 </body>
