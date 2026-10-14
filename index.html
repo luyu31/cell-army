@@ -246,6 +246,7 @@
     let grid = Array(rows).fill().map(() => Array(cols).fill(null));
     let enemies = [];
     let particles = [];
+    let skillEffects = [];
 
     // ==================== 辅助函数 ====================
     function getAttackedGrids(opR, opC, rangeType) {
@@ -285,6 +286,101 @@
             life: 50, maxLife: 50,
             text: text, color: color, isText: true
         });
+    }
+
+    // ==================== 免疫细胞技能特效系统 ====================
+    // 每种免疫细胞有专属攻击视觉特效
+    function triggerSkillEffect(cellId, cellX, cellY, targetX, targetY) {
+        let cx = cellX + tileSize / 2;
+        let cy = cellY + tileSize / 2;
+
+        switch(cellId) {
+            case 'neutrophil':
+                // 中性粒细胞：绿色NETs弹道，从细胞射向敌人
+                skillEffects.push({
+                    type: 'projectile', x: cx, y: cy,
+                    tx: targetX, ty: targetY,
+                    vx: (targetX - cx) * 0.15, vy: (targetY - cy) * 0.15,
+                    life: 15, maxLife: 15, color: '#27ae60', size: 5, cellId: cellId
+                });
+                break;
+
+            case 'rbc':
+                // 红细胞：红色氧气脉冲圈，温和扩散
+                skillEffects.push({
+                    type: 'pulse', x: cx, y: cy,
+                    life: 20, maxLife: 20, color: '#e74c3c', maxRadius: 22, cellId: cellId
+                });
+                break;
+
+            case 'macrophage':
+                // 巨噬细胞：蓝色吞噬漩涡，旋转扩散环
+                skillEffects.push({
+                    type: 'vortex', x: cx, y: cy,
+                    life: 25, maxLife: 25, color: '#3498db', maxRadius: 45, rotation: 0, cellId: cellId
+                });
+                break;
+
+            case 'lysozyme':
+                // 溶菌酶分泌细胞：橙色溶解波，向前推进的弧形波
+                skillEffects.push({
+                    type: 'wave', x: cx, y: cy,
+                    tx: targetX, ty: targetY,
+                    life: 18, maxLife: 18, color: '#d35400', cellId: cellId
+                });
+                break;
+
+            case 'tcell':
+                // T淋巴细胞：紫色辐射光环，从中心向外扩散
+                skillEffects.push({
+                    type: 'ring', x: cx, y: cy,
+                    life: 22, maxLife: 22, color: '#9b59b6', maxRadius: 50, cellId: cellId
+                });
+                break;
+
+            case 'nkcell':
+                // NK杀手细胞：暗红色十字激光束，瞬间十字光束
+                skillEffects.push({
+                    type: 'beam', x: cx, y: cy,
+                    life: 12, maxLife: 12, color: '#8b0000', length: 210, cellId: cellId
+                });
+                break;
+
+            case 'bcell':
+                // B淋巴细胞：青色抗体弹幕，多个小弹珠飞向整行
+                for(let i = 0; i < 3; i++) {
+                    skillEffects.push({
+                        type: 'antibody', x: cx, y: cy + (i - 1) * 8,
+                        vx: 6 + i * 0.5, vy: 0,
+                        life: 25, maxLife: 25, color: '#00bcd4', size: 4, cellId: cellId
+                    });
+                }
+                break;
+
+            case 'dendritic':
+                // 树突状细胞：金色信号脉冲波，持续向外扩散的信号
+                skillEffects.push({
+                    type: 'signal', x: cx, y: cy,
+                    life: 30, maxLife: 30, color: '#ffd700', maxRadius: 55, cellId: cellId
+                });
+                break;
+
+            case 'eosinophil':
+                // 嗜酸性粒细胞：粉色穿透箭矢，长条形穿刺特效
+                skillEffects.push({
+                    type: 'arrow', x: cx, y: cy,
+                    life: 16, maxLife: 16, color: '#e91e63', length: 100, cellId: cellId
+                });
+                break;
+
+            case 'memoryT':
+                // 记忆T细胞：青绿色记忆涟漪，缓慢扩散的大圆环
+                skillEffects.push({
+                    type: 'ripple', x: cx, y: cy,
+                    life: 35, maxLife: 35, color: '#009688', maxRadius: 75, cellId: cellId
+                });
+                break;
+        }
     }
 
     // ==================== UI 渲染 ====================
@@ -481,6 +577,7 @@
 
                     let targetGrids = getAttackedGrids(r, c, op.rangeType);
                     let buffMult = buffedCells.has(r + ',' + c) ? 1.5 : 1;
+                    let cellX = c * tileSize, cellY = r * tileSize;
 
                     for(let en of enemies) {
                         if(targetGrids.some(tg => tg.r === en.currentR && tg.c === en.currentC)) {
@@ -491,8 +588,16 @@
                             // 溶菌酶对细菌加伤
                             if(op.id === 'lysozyme' && en.isBacteria) damage *= 1.5;
                             en.hp -= damage;
+
+                            // 触发专属技能特效（节流：每8帧触发一次避免过密）
+                            if(!op.skillCD || op.skillCD <= 0) {
+                                triggerSkillEffect(op.id, cellX, cellY, en.x, en.y);
+                                op.skillCD = 8;
+                            }
                         }
                     }
+                    // 技能冷却递减
+                    if(op.skillCD > 0) op.skillCD--;
                 }
             }
         }
@@ -643,6 +748,20 @@
             p.life--;
             if(p.life <= 0) particles.splice(i, 1);
         }
+
+        // 更新技能特效
+        for(let i = skillEffects.length - 1; i >= 0; i--) {
+            let s = skillEffects[i];
+            if(s.type === 'projectile') {
+                s.x += s.vx;
+                s.y += s.vy;
+            } else if(s.type === 'antibody') {
+                s.x += s.vx;
+                s.y += s.vy;
+            }
+            s.life--;
+            if(s.life <= 0) skillEffects.splice(i, 1);
+        }
     }
 
     // ==================== 敌人绘制 ====================
@@ -784,6 +903,197 @@
         ctx.fillText(td.name, en.x - size, en.y - size - 12);
     }
 
+    // ==================== 技能特效绘制 ====================
+    function drawSkillEffects() {
+        for(let s of skillEffects) {
+            let progress = 1 - s.life / s.maxLife;
+            let alpha = s.life / s.maxLife;
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+
+            switch(s.type) {
+                case 'projectile':
+                    // 中性粒细胞：绿色NETs弹道，带拖尾
+                    ctx.fillStyle = s.color;
+                    ctx.shadowColor = s.color;
+                    ctx.shadowBlur = 8;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    // 拖尾
+                    ctx.globalAlpha = alpha * 0.4;
+                    ctx.beginPath();
+                    ctx.arc(s.x - s.vx, s.y - s.vy, s.size * 0.6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    break;
+
+                case 'pulse':
+                    // 红细胞：红色氧气脉冲圈
+                    let pulseR = s.maxRadius * progress;
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, pulseR, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = alpha * 0.3;
+                    ctx.fillStyle = s.color;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, pulseR * 0.6, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+
+                case 'vortex':
+                    // 巨噬细胞：蓝色吞噬漩涡，旋转的双环
+                    let vortexR = s.maxRadius * progress;
+                    s.rotation += 0.3;
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = 3;
+                    for(let ring = 0; ring < 2; ring++) {
+                        ctx.beginPath();
+                        let r = vortexR * (1 - ring * 0.3);
+                        for(let i = 0; i <= 6; i++) {
+                            let angle = (i / 6) * Math.PI * 1.5 + s.rotation + ring * Math.PI;
+                            let px = s.x + Math.cos(angle) * r;
+                            let py = s.y + Math.sin(angle) * r;
+                            if(i === 0) ctx.moveTo(px, py);
+                            else ctx.lineTo(px, py);
+                        }
+                        ctx.stroke();
+                    }
+                    break;
+
+                case 'wave':
+                    // 溶菌酶分泌细胞：橙色溶解波，弧形向前推进
+                    let waveX = s.x + (s.tx - s.x) * progress;
+                    let waveY = s.y + (s.ty - s.y) * progress;
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = s.color;
+                    ctx.shadowBlur = 6;
+                    ctx.beginPath();
+                    ctx.arc(waveX, waveY, 15 + progress * 10, -Math.PI / 3, Math.PI / 3);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                    break;
+
+                case 'ring':
+                    // T淋巴细胞：紫色辐射光环，多层扩散
+                    for(let ring = 0; ring < 3; ring++) {
+                        let ringP = Math.min(1, progress + ring * 0.2);
+                        let ringR = s.maxRadius * ringP;
+                        ctx.globalAlpha = alpha * (1 - ring * 0.25);
+                        ctx.strokeStyle = s.color;
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(s.x, s.y, ringR, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    break;
+
+                case 'beam':
+                    // NK杀手细胞：暗红色十字激光束
+                    let beamW = 4 + (1 - alpha) * 3;
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = beamW;
+                    ctx.shadowColor = s.color;
+                    ctx.shadowBlur = 12;
+                    // 水平
+                    ctx.beginPath();
+                    ctx.moveTo(s.x - s.length, s.y);
+                    ctx.lineTo(s.x + s.length, s.y);
+                    ctx.stroke();
+                    // 垂直
+                    ctx.beginPath();
+                    ctx.moveTo(s.x, s.y - s.length);
+                    ctx.lineTo(s.x, s.y + s.length);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                    break;
+
+                case 'antibody':
+                    // B淋巴细胞：青色Y形抗体弹珠飞行
+                    ctx.fillStyle = s.color;
+                    ctx.shadowColor = s.color;
+                    ctx.shadowBlur = 6;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Y形尾迹
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(s.x - 6, s.y - 3);
+                    ctx.lineTo(s.x, s.y);
+                    ctx.lineTo(s.x - 6, s.y + 3);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                    break;
+
+                case 'signal':
+                    // 树突状细胞：金色信号脉冲波，星形扩散
+                    let signalR = s.maxRadius * progress;
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = 2;
+                    let points = 5;
+                    ctx.beginPath();
+                    for(let i = 0; i <= points * 2; i++) {
+                        let angle = (i / (points * 2)) * Math.PI * 2;
+                        let r = i % 2 === 0 ? signalR : signalR * 0.5;
+                        let px = s.x + Math.cos(angle) * r;
+                        let py = s.y + Math.sin(angle) * r;
+                        if(i === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    }
+                    ctx.closePath();
+                    ctx.stroke();
+                    break;
+
+                case 'arrow':
+                    // 嗜酸性粒细胞：粉色穿透箭矢
+                    let arrowLen = s.length * progress;
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = s.color;
+                    ctx.shadowBlur = 8;
+                    // 箭杆
+                    ctx.beginPath();
+                    ctx.moveTo(s.x, s.y);
+                    ctx.lineTo(s.x + arrowLen, s.y);
+                    ctx.stroke();
+                    // 箭头
+                    if(progress > 0.5) {
+                        ctx.beginPath();
+                        ctx.moveTo(s.x + arrowLen, s.y);
+                        ctx.lineTo(s.x + arrowLen - 8, s.y - 5);
+                        ctx.moveTo(s.x + arrowLen, s.y);
+                        ctx.lineTo(s.x + arrowLen - 8, s.y + 5);
+                        ctx.stroke();
+                    }
+                    ctx.shadowBlur = 0;
+                    break;
+
+                case 'ripple':
+                    // 记忆T细胞：青绿色记忆涟漪，多层缓慢扩散
+                    for(let ring = 0; ring < 4; ring++) {
+                        let ringP = Math.min(1, progress + ring * 0.15);
+                        let ringR = s.maxRadius * ringP;
+                        ctx.globalAlpha = alpha * (1 - ring * 0.2);
+                        ctx.strokeStyle = s.color;
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.arc(s.x, s.y, ringR, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    break;
+            }
+
+            ctx.restore();
+        }
+        ctx.globalAlpha = 1;
+    }
+
     // ==================== 游戏绘制 ====================
     function drawGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -864,6 +1174,9 @@
             drawEnemy(en);
         }
 
+        // 绘制免疫细胞技能特效
+        drawSkillEffects();
+
         // 绘制粒子效果
         for(let p of particles) {
             if(p.isText) {
@@ -895,6 +1208,7 @@
         grid = Array(rows).fill().map(() => Array(cols).fill(null));
         enemies = [];
         particles = [];
+        skillEffects = [];
         baseHp = levels[currentLevel - 1].baseHp;
         atp = 30;
         updateUI();
