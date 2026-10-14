@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>细胞防线 - 免疫系统增强版</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #121216; color: #d4d4d4; display: flex; height: 100vh; overflow: hidden; }
+
+        .pc-container { display: flex; width: 100vw; height: 100vh; }
+
+        .main-panel { flex: 3; display: flex; flex-direction: column; border-right: 1px solid #2d2d3b; background: #16161a; }
+        .top-bar { background: #1c1c24; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d2d3b; font-size: 14px; }
+        .res-badge { background: #252533; padding: 5px 12px; border-radius: 20px; color: #4facfe; font-weight: bold; border: 1px solid #38384d; display: flex; align-items: center; gap: 6px; }
+        .nut-badge { color: #f39c12; font-weight: bold; background: #2a251c; border-color: #523e1a; }
+        .hp-badge { color: #ff5252; font-weight: bold; }
+
+        .canvas-area { flex: 1; display: flex; justify-content: center; align-items: center; background: #141418; position: relative; }
+        canvas { background: #1a1a24; border: 2px solid #38384d; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: crosshair; display: block; touch-action: none; max-width: 100%; height: auto; }
+
+        .dock-area { background: #1c1c24; padding: 15px 20px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #2d2d3b; }
+        .operator-list { display: flex; gap: 10px; overflow-x: auto; min-height: 85px; align-items: center; }
+        .operator-card {
+            min-width: 135px; background: #22222e; border: 2px solid #38384d; border-radius: 10px;
+            padding: 8px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; flex-shrink: 0;
+        }
+        .operator-card:hover { border-color: #4facfe; transform: translateY(-2px); }
+        .operator-card.selected { border-color: #4facfe; background: #1f304a; box-shadow: 0 0 10px rgba(79,172,254,0.3); }
+        .operator-card .cost { font-size: 11px; color: #ffb142; margin-top: 2px; font-weight: bold; }
+        .operator-card .name { font-size: 12px; color: #fff; font-weight: bold; }
+        .operator-card .desc { font-size: 9px; color: #888; margin-top: 2px; }
+
+        .controls-row { display: flex; justify-content: space-between; align-items: center; }
+        .btn-primary { background: #4facfe; color: #fff; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .btn-primary:hover { background: #3598db; }
+        .btn-secondary { background: #2a2a38; color: #ccc; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; cursor: pointer; }
+        .btn-secondary:hover { background: #38384d; color: #fff; }
+
+        .sidebar { flex: 1.3; background: #1a1a22; display: flex; flex-direction: column; padding: 20px; gap: 15px; overflow-y: auto; }
+        .card-box { background: #22222e; border: 1px solid #333342; border-radius: 12px; padding: 16px; }
+        .card-title { font-size: 14px; font-weight: bold; color: #4facfe; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+
+        .level-list { display: flex; flex-direction: column; gap: 6px; max-height: 250px; overflow-y: auto; }
+        .level-item { background: #16161a; padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; border: 1px solid #2a2a38; cursor: pointer; }
+        .level-item.active { border-color: #4facfe; background: #1f304a; }
+
+        .bestiary-entry { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; font-size: 11px; line-height: 1.5; }
+        .bestiary-color { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; margin-top: 3px; }
+
+        /* ===== 抽卡与编队弹窗 ===== */
+        .marrow-badge { color: #ff6ec7; font-weight: bold; background: #2a1f2a; border-color: #5a2a4a; }
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.72);
+            display: flex; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal {
+            background: #1c1c24; border: 1px solid #38384d; border-radius: 14px;
+            width: 580px; max-width: 94vw; max-height: 88vh; display: flex; flex-direction: column; overflow: hidden;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 14px 18px; border-bottom: 1px solid #2d2d3b; font-weight: bold; color: #4facfe; font-size: 15px;
+        }
+        .modal-header button { background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; line-height: 1; }
+        .modal-header button:hover { color: #fff; }
+        .modal-body { padding: 16px; overflow-y: auto; }
+
+        .gacha-buttons { display: flex; gap: 12px; margin: 14px 0; }
+        .gacha-buttons button { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .btn-gacha-single { background: #2a2a38; color: #ccc; }
+        .btn-gacha-single:hover { background: #38384d; color: #fff; }
+        .btn-gacha-ten { background: #4facfe; color: #fff; }
+        .btn-gacha-ten:hover { background: #3598db; }
+        .prob-info { font-size: 11px; color: #888; text-align: center; margin: 4px 0 10px; }
+
+        .gacha-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+        .gacha-card {
+            width: 96px; padding: 12px 6px; text-align: center; border-radius: 10px;
+            border: 2px solid #555; background: #22222e; margin: 2px;
+            animation: cardReveal 0.6s ease;
+        }
+        .gacha-card.legendary { animation: cardReveal 0.6s ease, goldenPulse 1.3s ease infinite; }
+        @keyframes cardReveal {
+            0% { transform: scale(0) rotateY(90deg); opacity: 0; }
+            60% { transform: scale(1.12); opacity: 1; }
+            100% { transform: scale(1) rotateY(0); opacity: 1; }
+        }
+        @keyframes goldenPulse {
+            0%,100% { box-shadow: 0 0 10px #ffd700; }
+            50% { box-shadow: 0 0 30px #ffd700; }
+        }
+        .rarity-label { font-size: 10px; font-weight: bold; }
+        .card-name { font-size: 12px; color: #fff; font-weight: bold; margin: 4px 0 2px; }
+        .card-star { font-size: 11px; color: #ffb142; }
+        .card-note { font-size: 9px; color: #888; }
+
+        .pool-list { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
+        .pool-chip { font-size: 10px; padding: 2px 8px; border-radius: 12px; border: 1px solid; }
+        .exchange-row { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+        .exchange-row button { padding: 6px 12px; border: none; border-radius: 8px; cursor: pointer; background: #2a2a38; color: #ccc; font-size: 12px; }
+        .exchange-row button:hover { background: #38384d; color: #fff; }
+
+        .collection-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+        .collection-item { background: #16161a; border-radius: 8px; padding: 10px; border: 1px solid #2a2a38; }
+        .ci-top { display: flex; justify-content: space-between; align-items: center; }
+        .rarity-tag { font-size: 10px; font-weight: bold; }
+        .ci-stars { font-size: 13px; color: #ffb142; margin: 2px 0; }
+        .ci-info { font-size: 11px; color: #aaa; }
+        .ci-actions { display: flex; gap: 8px; margin-top: 6px; }
+        .ci-actions button { padding: 4px 10px; border: none; border-radius: 6px; cursor: pointer; font-size: 11px; background: #2a2a38; color: #ccc; }
+        .ci-actions button:hover { background: #38384d; color: #fff; }
+        .ci-actions button.on { background: #4facfe; color: #fff; }
+        .ci-actions .full-star { font-size: 11px; color: #ffb142; padding: 4px 0; }
+
+        /* ===== 年龄阶段UP池 ===== */
+        .pool-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 6px; }
+        .pool-tab { flex: 1 1 30%; min-width: 150px; background: #22222e; border: 1px solid #333342; border-radius: 8px; padding: 6px 10px; cursor: pointer; transition: all 0.15s; }
+        .pool-tab:hover { border-color: #4facfe; }
+        .pool-tab.active { border-color: #4facfe; background: #1f304a; box-shadow: 0 0 8px rgba(79,172,254,0.35); }
+        .pool-tab.locked { opacity: 0.45; }
+        .pool-tab .pt-name { font-size: 11px; font-weight: bold; color: #fff; }
+        .pool-tab .pt-sub { font-size: 9px; color: #888; margin-top: 2px; }
+        .pool-tab .pt-up { color: #ffb142; }
+        .pool-science { background: #16161a; border: 1px solid #2a2a38; border-radius: 8px; padding: 10px; font-size: 11px; color: #aaa; line-height: 1.7; margin: 8px 0; display: flex; gap: 12px; align-items: flex-start; }
+        .pool-up-ops { display: flex; gap: 8px; flex-shrink: 0; }
+        .up-badge { font-size: 9px; color: #ffb142; border: 1px solid #ffb142; border-radius: 8px; padding: 0 6px; margin-left: 4px; }
+
+        /* ===== 卡通头像 ===== */
+        .card-avatar { display: flex; justify-content: center; margin-bottom: 4px; }
+        .op-avatar { display: flex; justify-content: center; margin-bottom: 4px; }
+        .ci-row { display: flex; gap: 10px; align-items: center; }
+        .ci-main { flex: 1; min-width: 0; }
+
+        /* ===== 移动端适配（小屏堆叠布局+触控友好） ===== */
+        @media (max-width: 900px) {
+            body, .pc-container { flex-direction: column; height: auto; min-height: 100vh; overflow: auto; }
+            .main-panel { border-right: none; border-bottom: 1px solid #2d2d3b; }
+            .top-bar { flex-wrap: wrap; gap: 6px; padding: 8px 10px; font-size: 12px; }
+            .canvas-area { padding: 6px; }
+            .dock-area { padding: 10px 12px; }
+            .operator-card { min-width: 110px; }
+            .sidebar { padding: 12px; }
+            .level-list { max-height: 180px; }
+            .modal { max-height: 92vh; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="pc-container">
+    <div class="main-panel">
+        <div class="top-bar">
+            <div><span class="hp-badge">❤ 宿主生命: <span id="baseHp">12</span></span></div>
+            <div style="font-weight: bold; color: #f39c12;" id="levelTitleDisplay">当前关卡：第 1 关 (幼儿期)</div>
+            <div style="display:flex; gap:12px;">
+                <div class="res-badge nut-badge">🧪 营养: <span id="nutVal">100</span></div>
+                <div class="res-badge">⚡ ATP: <span id="atpVal">30</span></div>
+                <div class="res-badge marrow-badge">🦴 原液: <span id="marrowVal">5</span></div>
+            </div>
+        </div>
+
+        <div class="canvas-area">
+            <canvas id="gameCanvas" width="770" height="350"></canvas>
+        </div>
+
+        <div class="dock-area">
+            <div style="font-size: 13px; color: #aaa;" id="tipMsg">提示：点击干员部署；点击已部署的细胞可触发细胞凋亡（强制回收）！</div>
+            <div class="operator-list" id="operatorList"></div>
+            <div class="controls-row">
+                <button class="btn-secondary" onclick="resetGame()">重置关卡</button>
+                <button class="btn-primary" onclick="startWave()">🚀 开始防线战</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <div class="card-box">
+            <div class="card-title">🗺️ 人体关卡选择 (1-15关)</div>
+            <div class="level-list" id="levelList"></div>
+        </div>
+
+        <div class="card-box">
+            <div class="card-title">🦴 免疫干员招募</div>
+            <div style="display:flex; flex-direction:column; gap:8px;">
+                <button class="btn-primary" onclick="openGacha()">🦴 骨髓招募所（抽卡）</button>
+                <button class="btn-secondary" onclick="openDeck()">🧬 编队管理</button>
+            </div>
+            <div style="font-size:10px; color:#888; margin-top:8px; line-height:1.5;">通关+2原液，击杀Boss+1原液；重复卡转信物用于升星（攻+15%/寿命+2秒）。</div>
+        </div>
+
+        <div class="card-box">
+            <div class="card-title">🧬 核心玩法说明</div>
+            <div style="font-size: 11px; color: #aaa; line-height: 1.6;">
+                • <b>细胞凋亡</b>：点击格子上已有细胞可直接回收返还50% ATP。<br>
+                • <b>攻击范围</b>：不同细胞有不同攻击范围（前方1-3格、十字、圆形、整行等）。<br>
+                • <b>寿命差异</b>：中性粒细胞10秒短命速攻，红细胞25秒长寿肉盾，记忆T细胞40秒超长待机。<br>
+                • <b>增益机制</b>：树突状细胞可激活周围细胞+50%攻击力。<br>
+                • <b>敌人特性</b>：不同病原体有减伤、闪避、毒素、分裂、自愈、感染等独特能力。
+            </div>
+        </div>
+
+        <div class="card-box">
+            <div class="card-title">🦠 病原体图鉴</div>
+            <div id="enemyBestiary" style="font-size: 11px; color: #aaa; line-height: 1.5;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 骨髓招募所（抽卡）弹窗 ===== -->
+<div class="modal-overlay" id="gachaModal" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <span>🦴 骨髓招募所</span>
+            <button onclick="closeGacha()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div style="font-size:12px; color:#aaa;">骨髓造血原液：<b style="color:#ff6ec7;" id="gachaMarrow">0</b>　<span style="color:#666;">｜随生命周期关卡解锁各年龄阶段主题UP池（依据真实免疫发育）</span></div>
+            <div class="pool-tabs" id="poolTabs"></div>
+            <div class="pool-science" id="poolScience"></div>
+            <div class="gacha-buttons">
+                <button class="btn-gacha-single" onclick="doGacha(1)">单抽<br><small>1 原液</small></button>
+                <button class="btn-gacha-ten" onclick="doGacha(10)">十连抽<br><small>9 原液 · 保底精英+</small></button>
+            </div>
+            <div class="prob-info">基础概率：普通55% · 精英30% · 史诗12% · 传奇3% ｜UP池：命中UP干员稀有度时，按UP率倾向出UP干员</div>
+            <div class="pool-list" id="gachaPoolList"></div>
+            <div class="exchange-row">
+                <span style="font-size:11px; color:#aaa;">营养兑换：</span>
+                <button onclick="exchangeNutrients()">20🧪营养 → 1🦴原液</button>
+            </div>
+            <div id="gachaResult" style="margin-top:14px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 编队管理弹窗 ===== -->
+<div class="modal-overlay" id="deckModal" style="display:none;">
+    <div class="modal">
+        <div class="modal-header">
+            <span>🧬 编队管理</span>
+            <button onclick="closeDeck()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div style="font-size:12px; color:#aaa;">已编队：<b style="color:#4facfe;" id="deckCount">0</b> / 5（3~5名干员，星级加成生效）</div>
+            <div class="collection-list" id="collectionList"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ==================== 敌人（病原体）配置 ====================
+    const enemyTypes = {
+        influenza: {
+            name: "流感病毒", color: '#e74c3c', shape: 'circle',
+            hpMult: 1.0, speedMult: 1.0, size: 14,
+            damageReduction: 0, evasion: 0,
+            ability: 'none', isBacteria: false,
+            desc: "标准流感，成群出现无特殊能力"
+        },
+        rhinovirus: {
+            name: "鼻病毒", color: '#f1c40f', shape: 'diamond',
+            hpMult: 0.7, speedMult: 1.7, size: 12,
+            damageReduction: 0, evasion: 0.2,
+            ability: 'none', isBacteria: false,
+            desc: "速度极快，20%概率闪避攻击"
+        },
+        streptococcus: {
+            name: "链球菌", color: '#9b59b6', shape: 'chain',
+            hpMult: 2.0, speedMult: 0.5, size: 16,
+            damageReduction: 0.3, evasion: 0,
+            ability: 'corrode', isBacteria: true,
+            desc: "30%减伤，腐蚀免疫细胞(3倍损耗)"
+        },
+        mycoplasma: {
+            name: "肺炎支原体", color: '#e67e22', shape: 'blob',
+            hpMult: 1.5, speedMult: 0.7, size: 15,
+            damageReduction: 0.1, evasion: 0,
+            ability: 'toxin', isBacteria: true,
+            desc: "释放毒素持续损伤周围细胞"
+        },
+        rotavirus: {
+            name: "轮状病毒", color: '#1abc9c', shape: 'gear',
+            hpMult: 1.0, speedMult: 1.1, size: 13,
+            damageReduction: 0, evasion: 0,
+            ability: 'split', isBacteria: false,
+            desc: "死亡时分裂为2个小型子体"
+        },
+        tubercle: {
+            name: "结核杆菌", color: '#34495e', shape: 'rod',
+            hpMult: 3.0, speedMult: 0.4, size: 18,
+            damageReduction: 0.5, evasion: 0,
+            ability: 'regen', isBacteria: true,
+            desc: "50%减伤，持续自愈+6HP/秒"
+        },
+        coronavirus: {
+            name: "冠状病毒", color: '#e84393', shape: 'spike',
+            hpMult: 1.8, speedMult: 0.8, size: 16,
+            damageReduction: 0.15, evasion: 0,
+            ability: 'infect', isBacteria: false,
+            desc: "感染免疫细胞使其3秒内瘫痪"
+        },
+        ecoli: {
+            name: "大肠杆菌", color: '#2ecc71', shape: 'rod',
+            hpMult: 1.3, speedMult: 0.9, size: 14,
+            damageReduction: 0.1, evasion: 0,
+            ability: 'toxin', isBacteria: true,
+            desc: "分泌肠毒素腐蚀周围免疫细胞"
+        },
+        staph: {
+            name: "金黄色葡萄球菌", color: '#f39c12', shape: 'cluster',
+            hpMult: 1.6, speedMult: 0.6, size: 15,
+            damageReduction: 0.2, evasion: 0,
+            ability: 'death_toxin', isBacteria: true,
+            desc: "20%减伤，死亡时释放毒素爆发"
+        },
+        hepatitisBoss: {
+            name: "肝炎病毒Boss", color: '#c0392b', shape: 'boss',
+            hpMult: 5.0, speedMult: 0.35, size: 22,
+            damageReduction: 0.3, evasion: 0,
+            ability: 'spawn', isBacteria: false,
+            desc: "Boss级，在肝细胞内复制后释放子代病毒(最多3次)"
+        }
+    };
+
+    // ==================== 免疫细胞配置 ====================
+    const cellColors = {
+        neutrophil: '#27ae60',
+        rbc: '#e74c3c',
+        macrophage: '#3498db',
+        lysozyme: '#d35400',
+        tcell: '#9b59b6',
+        nkcell: '#8b0000',
+        bcell: '#00bcd4',
+        dendritic: '#ffd700',
+        eosinophil: '#e91e63',
+        memoryT: '#009688'
+    };
+
+    const masterPool = [
+        { id: 'neutrophil', name: "中性粒细胞", rarity: 'common', unlockLevel: 1, cost: 4, maxCount: 6, rangeType: 'front1', atk: 10, maxLifeSec: 10, desc: "前方1格，急性首发响应" },
+        { id: 'rbc', name: "红细胞", rarity: 'common', unlockLevel: 1, cost: 3, maxCount: 8, rangeType: 'front1', atk: 5, maxLifeSec: 25, desc: "前方1格，携氧供能辅助氧化杀菌，长寿肉盾" },
+        { id: 'macrophage', name: "巨噬细胞", rarity: 'rare', unlockLevel: 1, cost: 8, maxCount: 4, rangeType: 'cross2', atk: 25, maxLifeSec: 15, desc: "十字2格广域吞噬" },
+        { id: 'lysozyme', name: "溶菌酶分泌细胞", rarity: 'epic', unlockLevel: 2, cost: 14, maxCount: 2, rangeType: 'front2', atk: 40, maxLifeSec: 8, desc: "前方2格，水解细菌肽聚糖细胞壁(+50%)" },
+        { id: 'tcell', name: "T淋巴细胞", rarity: 'rare', unlockLevel: 3, cost: 10, maxCount: 3, rangeType: 'circle1', atk: 18, maxLifeSec: 12, desc: "周围3x3协同群攻" },
+        { id: 'nkcell', name: "NK自然杀伤细胞", rarity: 'epic', unlockLevel: 4, cost: 12, maxCount: 2, rangeType: 'cross3', atk: 35, maxLifeSec: 10, desc: "超大十字范围，杀伤病毒感染细胞" },
+        { id: 'bcell', name: "B淋巴细胞", rarity: 'rare', unlockLevel: 5, cost: 11, maxCount: 3, rangeType: 'allRow', atk: 12, maxLifeSec: 20, desc: "整行抗体远程打击" },
+        { id: 'dendritic', name: "树突状细胞", rarity: 'legendary', unlockLevel: 6, cost: 9, maxCount: 3, rangeType: 'buff1', atk: 0, maxLifeSec: 18, desc: "激活周围细胞+50%攻击" },
+        { id: 'eosinophil', name: "嗜酸性粒细胞", rarity: 'common', unlockLevel: 7, cost: 8, maxCount: 4, rangeType: 'front3', atk: 20, maxLifeSec: 14, desc: "前方3格脱颗粒远程杀伤" },
+        { id: 'memoryT', name: "记忆T细胞", rarity: 'legendary', unlockLevel: 8, cost: 15, maxCount: 2, rangeType: 'circle2', atk: 8, maxLifeSec: 40, desc: "5x5超长寿命(40秒)" }
+    ];
+
+    // 稀有度配置：概率、颜色、重复转化信物数量
+    const rarityConfig = {
+        common:    { label: '普通', color: '#7f8c8d', glow: '#27ae60', prob: 55, fragReward: 1 },
+        rare:      { label: '精英', color: '#3498db', glow: '#4facfe', prob: 30, fragReward: 2 },
+        epic:      { label: '史诗', color: '#9b59b6', glow: '#c39bd3', prob: 12, fragReward: 5 },
+        legendary: { label: '传奇', color: '#f39c12', glow: '#ffd700', prob: 3,  fragReward: 10 }
+    };
+
+    // ==================== 免疫细胞卡通头像（依据真实细胞形态卡通化） ====================
+    // 红细胞双凹无核、中性粒细胞三叶核+NETs、巨噬细胞皱褶吞噬、树突状细胞星状树突等均按真实形态设计
+    const AVATAR_LOCAL = 'assets/avatars/';
+    const AVATAR_API = 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=';
+    const avatarPrompts = {
+        rbc: "cute cartoon mascot of a red blood cell, bright red round biconcave disc with lighter center dimple like a donut, no nucleus, tiny kawaii happy face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        neutrophil: "cute cartoon mascot of a neutrophil white blood cell, round pale lilac cell with a purple three-lobed nucleus visible inside and fine pink granules, brave face, throwing a small green capture net, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        macrophage: "cute cartoon mascot of a macrophage white blood cell, big round teal-blue cell with wavy ruffled membrane edges, engulfing a tiny purple bacterium, big friendly eyes, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        lysozyme: "cute cartoon mascot of a lysozyme secreting cell, round golden-yellow cell spraying tiny enzyme droplets that dissolve small green bacteria, cheerful kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        tcell: "cute cartoon mascot of a T lymphocyte white blood cell, small round sky-blue cell covered with tiny Y-shaped T-cell receptors on its surface, heroic determined kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        nkcell: "cute cartoon mascot of a natural killer cell, large round crimson-red granular lymphocyte with dark purple killer granules inside and spiky receptors on its surface, cool confident kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        bcell: "cute cartoon mascot of a B lymphocyte white blood cell, round mint-green cell studded with Y-shaped antibody receptors, holding up a small glowing Y-shaped antibody, friendly kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        dendritic: "cute cartoon mascot of a dendritic cell, golden-yellow star-shaped cell with many branching dendrite arms like a little sun, wise calm kawaii face, waving one dendrite arm, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        eosinophil: "cute cartoon mascot of an eosinophil white blood cell, round coral-pink cell with bright red-orange granules and a two-lobed nucleus, aiming at a tiny worm parasite, playful kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        memoryT: "cute cartoon mascot of a memory T cell, teal round lymphocyte with Y-shaped receptors and a small glowing golden star medal on its chest, calm veteran kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon"
+    };
+    const avatarEmoji = { rbc: '🔴', neutrophil: '⚡', macrophage: '🌀', lysozyme: '💧', tcell: '🎯', nkcell: '🗡️', bcell: '🛡️', dendritic: '☀️', eosinophil: '🏹', memoryT: '📚' };
+    const cellAvatars = {};      // Image对象（Canvas绘制用）
+    const avatarURLs = {};       // URL（UI <img>用）
+    const avatarStatus = {};     // loading / ok / fail
+    (function initCellAvatars() {
+        const svgFallback = (id) => 'data:image/svg+xml;utf8,' + encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="49" fill="#22222e"/><text x="50" y="64" font-size="42" text-anchor="middle">${avatarEmoji[id] || '🦠'}</text></svg>`
+        );
+        for (let id in avatarPrompts) {
+            const localURL = AVATAR_LOCAL + id + '.svg';
+            const onlineURL = AVATAR_API + encodeURIComponent(avatarPrompts[id]) + '&image_size=square_hd';
+            avatarURLs[id] = localURL;
+            avatarStatus[id] = 'loading';
+            let img = new Image();
+            cellAvatars[id] = img;
+            img.onload = () => { avatarStatus[id] = 'ok'; };
+            img.onerror = () => {
+                if(avatarURLs[id] === localURL) {
+                    avatarURLs[id] = onlineURL;
+                    img.onerror = () => {
+                        avatarStatus[id] = 'fail';
+                        avatarURLs[id] = svgFallback(id);
+                    };
+                    img.src = onlineURL;
+                } else {
+                    avatarStatus[id] = 'fail';
+                    avatarURLs[id] = svgFallback(id);
+                }
+            };
+            img.src = localURL;
+        }
+    })();
+    // UI圆形头像（稀有度描边可选）
+    function avatarImg(id, size, extraStyle) {
+        return `<img src="${avatarURLs[id]}" width="${size}" height="${size}" style="border-radius:50%; object-fit:cover; border:2px solid #38384d; background:#fff; display:block; ${extraStyle || ''}">`;
+    }
+
+    // ==================== 关卡配置（15关生命周期） ====================
+    const levels = [
+        { id: 1, ageGroup: '幼儿期', name: "第1关: 脐带残端初阶防线", enemyHp: 25, enemyCount: 8, rewardNut: 20, baseHp: 12, allowedEnemies: ['influenza'] },
+        { id: 2, ageGroup: '幼儿期', name: "第2关: 乳牙期微循环突袭", enemyHp: 35, enemyCount: 10, rewardNut: 25, baseHp: 12, allowedEnemies: ['influenza', 'rhinovirus'] },
+        { id: 3, ageGroup: '幼儿期', name: "第3关: 幼儿肠道菌群建立", enemyHp: 42, enemyCount: 12, rewardNut: 28, baseHp: 12, allowedEnemies: ['rotavirus', 'ecoli'] },
+        { id: 4, ageGroup: '儿童期', name: "第4关: 扁桃体初战链球菌", enemyHp: 50, enemyCount: 14, rewardNut: 30, baseHp: 10, allowedEnemies: ['influenza', 'streptococcus'] },
+        { id: 5, ageGroup: '儿童期', name: "第5关: 校园流感大暴发", enemyHp: 60, enemyCount: 16, rewardNut: 35, baseHp: 10, allowedEnemies: ['influenza', 'rhinovirus', 'rotavirus'] },
+        { id: 6, ageGroup: '儿童期', name: "第6关: 呼吸道黏膜防御战", enemyHp: 72, enemyCount: 18, rewardNut: 38, baseHp: 10, allowedEnemies: ['rhinovirus', 'mycoplasma'] },
+        { id: 7, ageGroup: '青少年', name: "第7关: 青春期皮脂腺突围", enemyHp: 85, enemyCount: 20, rewardNut: 42, baseHp: 8, allowedEnemies: ['staph', 'streptococcus'] },
+        { id: 8, ageGroup: '青少年', name: "第8关: 淋巴结总动员", enemyHp: 100, enemyCount: 22, rewardNut: 45, baseHp: 8, allowedEnemies: ['influenza', 'streptococcus', 'mycoplasma', 'ecoli'] },
+        { id: 9, ageGroup: '青少年', name: "第9关: 免疫特训场", enemyHp: 115, enemyCount: 24, rewardNut: 50, baseHp: 8, allowedEnemies: ['rotavirus', 'tubercle', 'coronavirus'] },
+        { id: 10, ageGroup: '成年期', name: "第10关: 职场高压微环境", enemyHp: 135, enemyCount: 26, rewardNut: 55, baseHp: 6, allowedEnemies: ['rhinovirus', 'mycoplasma', 'tubercle'] },
+        { id: 11, ageGroup: '成年期', name: "第11关: 熬夜免疫低谷突袭", enemyHp: 155, enemyCount: 28, rewardNut: 60, baseHp: 6, allowedEnemies: ['influenza', 'coronavirus', 'staph'] },
+        { id: 12, ageGroup: '成年期', name: "第12关: 肝脏解毒重压区", enemyHp: 180, enemyCount: 30, rewardNut: 65, baseHp: 6, allowedEnemies: ['tubercle', 'hepatitisBoss'] },
+        { id: 13, ageGroup: '老年期', name: "第13关: 胸腺退化期防线", enemyHp: 210, enemyCount: 32, rewardNut: 75, baseHp: 5, allowedEnemies: ['streptococcus', 'tubercle', 'coronavirus'] },
+        { id: 14, ageGroup: '老年期', name: "第14关: 慢性侵蚀全面告急", enemyHp: 240, enemyCount: 35, rewardNut: 85, baseHp: 5, allowedEnemies: ['mycoplasma', 'tubercle', 'staph', 'ecoli'] },
+        { id: 15, ageGroup: '老年期', name: "第15关: 终极免疫决战", enemyHp: 280, enemyCount: 40, rewardNut: 120, baseHp: 4, allowedEnemies: ['influenza', 'streptococcus', 'coronavirus', 'tubercle', 'hepatitisBoss'] }
+    ];
+
+    // ==================== 年龄阶段UP池（依据真实免疫发育规律） ====================
+    // 幼儿期(第1-3关) → 儿童期(第4-6关) → 青少年(第7-9关) → 成年期(第10-12关) → 老年期(第13-15关)
+    // UP机制：命中UP干员稀有度时，按upRate概率选中UP干员；解锁条件：推进到对应生命周期阶段
+    const ageStagePools = [
+        {
+            id: 'toddler', name: '先天防线池', ageGroup: '幼儿期', ageRange: '0-6岁', unlockLevel: 1,
+            upOps: ['neutrophil', 'nkcell'], upRate: 0.6,
+            science: '真实依据：幼儿的适应性免疫尚未发育成熟，主要依靠先天免疫首当其冲——中性粒细胞在出生时即大量投入战斗，NK细胞出生时就具备杀伤活性；同时母体IgG经胎盘传递、母乳sIgA提供被动保护，如同"先天防线"。'
+        },
+        {
+            id: 'child', name: '疫苗筑忆池', ageGroup: '儿童期', ageRange: '7-12岁', unlockLevel: 4,
+            upOps: ['bcell', 'macrophage'], upRate: 0.6,
+            science: '真实依据：儿童期按免疫规划接种疫苗，B细胞受抗原刺激后分化为浆细胞产生抗体，并建立长效的记忆B细胞；巨噬细胞负责吞噬病原、提呈抗原，是启动适应性免疫的"清道夫"。'
+        },
+        {
+            id: 'teen', name: '胸腺特训池', ageGroup: '青少年', ageRange: '13-18岁', unlockLevel: 7,
+            upOps: ['tcell', 'lysozyme'], upRate: 0.6,
+            science: '真实依据：胸腺是T细胞发育成熟的"军校"，其体积在青春期达到一生中的峰值，T细胞库最为丰富多样，此后才逐渐退化；黏膜分泌的溶菌酶也是这一阶段抵御呼吸道病原的重要化学屏障。'
+        },
+        {
+            id: 'adult', name: '巅峰免疫池', ageGroup: '成年期', ageRange: '19-59岁', unlockLevel: 10,
+            upOps: ['dendritic', 'eosinophil'], upRate: 0.6,
+            science: '真实依据：成年期免疫功能达到一生巅峰，树突状细胞是体内最强的抗原提呈细胞（专业APC），像"指挥官"一样激活T细胞；嗜酸性粒细胞主导抗寄生虫免疫，也与成年期高发的过敏反应相关。'
+        },
+        {
+            id: 'elder', name: '记忆传承池', ageGroup: '老年期', ageRange: '60岁+', unlockLevel: 13,
+            upOps: ['memoryT'], upRate: 0.7,
+            science: '真实依据：免疫衰老（immunosenescence）——胸腺退化后新T细胞锐减，老年人对新病原体的应答变弱；但一生积累的记忆T细胞库庞大且持久，是老年免疫的最后堡垒（这也是既往疫苗对老年人仍有效的原因）。'
+        }
+    ];
+
+    // ==================== 游戏状态 ====================
+    let nutrients = 100;
+    let atp = 30;
+    let currentLevel = 1;
+    let baseHp = levels[0].baseHp;
+    let waveInProgress = false;
+    let waveSpawningDone = false;
+
+    // 抽卡系统状态
+    let marrow = 5;                                    // 骨髓造血原液（抽卡代币）
+    let collection = {};                               // { opId: { stars, fragments } }
+    let deck = ['neutrophil', 'rbc', 'macrophage'];    // 编队（3~5名）
+    let currentPoolType = 'standard';                  // 当前卡池：standard=常驻池，否则为 ageStagePools.id
+
+    // 初始赠送3名初始干员（1星）
+    for(let starterId of deck) {
+        collection[starterId] = { stars: 1, fragments: 0 };
+    }
+
+    let playerOperators = [];                          // 由编队+星级动态生成的出战列表
+    let selectedOp = null;
+    refreshDeckOperators();
+
+    let mouseX = -1, mouseY = -1;
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const CANVAS_W = 770, CANVAS_H = 350;
+
+    // 高DPI屏幕清晰化：按设备像素比放大画布物理分辨率
+    (function setupHiDPI() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        if(dpr > 1) {
+            canvas.width = CANVAS_W * dpr;
+            canvas.height = CANVAS_H * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+    })();
+
+    const cols = 11;
+    const rows = 5;
+    const tileSize = 70;
+    let grid = Array(rows).fill().map(() => Array(cols).fill(null));
+    let enemies = [];
+    let particles = [];
+    let skillEffects = [];
+
+    // ==================== 辅助函数 ====================
+    function getAttackedGrids(opR, opC, rangeType) {
+        let list = [];
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                if(rangeType === 'front1' && r === opR && c === opC + 1) list.push({r, c});
+                if(rangeType === 'front2' && r === opR && (c === opC + 1 || c === opC + 2)) list.push({r, c});
+                if(rangeType === 'front3' && r === opR && (c === opC + 1 || c === opC + 2 || c === opC + 3)) list.push({r, c});
+                if(rangeType === 'cross2' && ((r === opR && Math.abs(c - opC) <= 2) || (c === opC && Math.abs(r - opR) <= 2))) list.push({r, c});
+                if(rangeType === 'cross3' && ((r === opR && Math.abs(c - opC) <= 3) || (c === opC && Math.abs(r - opR) <= 3))) list.push({r, c});
+                if(rangeType === 'circle1' && Math.abs(r - opR) <= 1 && Math.abs(c - opC) <= 1) list.push({r, c});
+                if(rangeType === 'circle2' && Math.abs(r - opR) <= 2 && Math.abs(c - opC) <= 2) list.push({r, c});
+                if(rangeType === 'buff1' && Math.abs(r - opR) <= 1 && Math.abs(c - opC) <= 1 && !(r === opR && c === opC)) list.push({r, c});
+                if(rangeType === 'allRow' && r === opR && c > opC) list.push({r, c});
+            }
+        }
+        return list;
+    }
+
+    function spawnDeathParticles(x, y, color) {
+        for(let i = 0; i < 10; i++) {
+            particles.push({
+                x: x, y: y,
+                vx: (Math.random() - 0.5) * 5,
+                vy: (Math.random() - 0.5) * 5,
+                life: 30, maxLife: 30,
+                color: color, size: 2 + Math.random() * 3
+            });
+        }
+    }
+
+    function spawnFloatingText(x, y, text, color) {
+        particles.push({
+            x: x, y: y,
+            vx: 0, vy: -0.8,
+            life: 50, maxLife: 50,
+            text: text, color: color, isText: true
+        });
+    }
+
+    // ==================== 免疫细胞技能特效系统 ====================
+    // 每种免疫细胞有专属攻击视觉特效
+    function triggerSkillEffect(cellId, cellX, cellY, targetX, targetY) {
+        let cx = cellX + tileSize / 2;
+        let cy = cellY + tileSize / 2;
+
+        switch(cellId) {
+            case 'neutrophil':
+                // 中性粒细胞：绿色NETs弹道，从细胞射向敌人
+                skillEffects.push({
+                    type: 'projectile', x: cx, y: cy,
+                    tx: targetX, ty: targetY,
+                    vx: (targetX - cx) * 0.15, vy: (targetY - cy) * 0.15,
+                    life: 15, maxLife: 15, color: '#27ae60', size: 5, cellId: cellId
+                });
+                break;
+
+            case 'rbc':
+                // 红细胞：红色氧气脉冲圈，温和扩散
+                skillEffects.push({
+                    type: 'pulse', x: cx, y: cy,
+                    life: 20, maxLife: 20, color: '#e74c3c', maxRadius: 22, cellId: cellId
+                });
+                break;
+
+            case 'macrophage':
+                // 巨噬细胞：蓝色吞噬漩涡，旋转扩散环
+                skillEffects.push({
+                    type: 'vortex', x: cx, y: cy,
+                    life: 25, maxLife: 25, color: '#3498db', maxRadius: 45, rotation: 0, cellId: cellId
+                });
+                break;
+
+            case 'lysozyme':
+                // 溶菌酶分泌细胞：橙色溶解波，向前推进的弧形波
+                skillEffects.push({
+                    type: 'wave', x: cx, y: cy,
+                    tx: targetX, ty: targetY,
+                    life: 18, maxLife: 18, color: '#d35400', cellId: cellId
+                });
+                break;
+
+            case 'tcell':
+                // T淋巴细胞：紫色辐射光环，从中心向外扩散
+                skillEffects.push({
+                    type: 'ring', x: cx, y: cy,
+                    life: 22, maxLife: 22, color: '#9b59b6', maxRadius: 50, cellId: cellId
+                });
+                break;
+
+            case 'nkcell':
+                // NK杀手细胞：暗红色十字激光束，瞬间十字光束
+                skillEffects.push({
+                    type: 'beam', x: cx, y: cy,
+                    life: 12, maxLife: 12, color: '#8b0000', length: 210, cellId: cellId
+                });
+                break;
+
+            case 'bcell':
+                // B淋巴细胞：青色抗体弹幕，多个小弹珠飞向整行
+                for(let i = 0; i < 3; i++) {
+                    skillEffects.push({
+                        type: 'antibody', x: cx, y: cy + (i - 1) * 8,
+                        vx: 6 + i * 0.5, vy: 0,
+                        life: 25, maxLife: 25, color: '#00bcd4', size: 4, cellId: cellId
+                    });
+                }
+                break;
+
+            case 'dendritic':
+                // 树突状细胞：金色信号脉冲波，持续向外扩散的信号
+                skillEffects.push({
+                    type: 'signal', x: cx, y: cy,
+                    life: 30, maxLife: 30, color: '#ffd700', maxRadius: 55, cellId: cellId
+                });
+                break;
+
+            case 'eosinophil':
+                // 嗜酸性粒细胞：粉色穿透箭矢，长条形穿刺特效
+                skillEffects.push({
+                    type: 'arrow', x: cx, y: cy,
+                    life: 16, maxLife: 16, color: '#e91e63', length: 100, cellId: cellId
+                });
+                break;
+
+            case 'memoryT':
+                // 记忆T细胞：青绿色记忆涟漪，缓慢扩散的大圆环
+                skillEffects.push({
+                    type: 'ripple', x: cx, y: cy,
+                    life: 35, maxLife: 35, color: '#009688', maxRadius: 75, cellId: cellId
+                });
+                break;
+        }
+    }
+
+    // ==================== UI 渲染 ====================
+    // 根据星级计算强化后的干员属性
+    function getUpgradedStats(op, stars) {
+        let atkBonus = (stars - 1) * 0.15;      // 每星 +15% 攻击
+        let lifeBonus = (stars - 1) * 2;        // 每星 +2 秒寿命
+        return {
+            ...op,
+            atk: Math.round(op.atk * (1 + atkBonus)),
+            maxLifeSec: op.maxLifeSec + lifeBonus,
+            stars: stars
+        };
+    }
+
+    // 由编队 + 收藏重新生成出战干员列表
+    function refreshDeckOperators() {
+        playerOperators = deck
+            .filter(id => collection[id])
+            .map(id => getUpgradedStats(masterPool.find(m => m.id === id), collection[id].stars));
+        let currentId = selectedOp ? selectedOp.id : null;
+        selectedOp = playerOperators.find(o => o.id === currentId) || playerOperators[0] || null;
+        renderOperators();
+    }
+
+    // ==================== 抽卡系统 ====================
+    function rollRarity() {
+        let r = Math.random() * 100;
+        if (r < 55) return 'common';
+        if (r < 85) return 'rare';
+        if (r < 97) return 'epic';
+        return 'legendary';
+    }
+
+    // 当前卡池：仅包含已解锁（unlockLevel <= currentLevel）的干员
+    function getAvailablePool() {
+        return masterPool.filter(op => op.unlockLevel <= currentLevel);
+    }
+
+    function rollOne(pool, upOps, upRate) {
+        let rarity = rollRarity();
+        let candidates = pool.filter(op => op.rarity === rarity);
+        if (candidates.length === 0) candidates = pool; // 该稀有度暂无已解锁干员时回退
+        // UP池：命中UP干员稀有度时，按UP率倾向选中UP干员
+        if (upOps && upOps.length > 0 && upRate > 0) {
+            let upInRarity = candidates.filter(op => upOps.includes(op.id));
+            if (upInRarity.length > 0 && Math.random() < upRate) {
+                return upInRarity[Math.floor(Math.random() * upInRarity.length)];
+            }
+        }
+        return candidates[Math.floor(Math.random() * candidates.length)];
+    }
+
+    function doGacha(count) {
+        let cost = count === 10 ? 9 : 1;   // 十连九折
+        if (marrow < cost) { alert('骨髓造血原液不足！可通关或击杀Boss获取，或用营养兑换。'); return; }
+        let pool = getAvailablePool();
+        if (pool.length === 0) { alert('当前卡池暂无可用干员！'); return; }
+
+        // 年龄阶段UP池校验
+        let stage = currentPoolType !== 'standard' ? ageStagePools.find(p => p.id === currentPoolType) : null;
+        if (stage && currentLevel < stage.unlockLevel) {
+            alert(`「${stage.name}」尚未解锁：需推进到「${stage.ageGroup}」阶段（第${stage.unlockLevel}关起）。`);
+            return;
+        }
+
+        marrow -= cost;
+        let upOps = stage ? stage.upOps : null;
+        let upRate = stage ? stage.upRate : 0;
+        let results = [];
+        for (let i = 0; i < count; i++) results.push(rollOne(pool, upOps, upRate));
+
+        // 十连保底：至少1张精英级及以上（UP池保底同样倾向UP干员）
+        if (count === 10) {
+            let hasRarePlus = results.some(op => op.rarity !== 'common');
+            if (!hasRarePlus) {
+                let rarePlus = pool.filter(op => op.rarity !== 'common');
+                if (stage) {
+                    let upRarePlus = rarePlus.filter(op => stage.upOps.includes(op.id));
+                    if (upRarePlus.length > 0 && Math.random() < upRate) rarePlus = upRarePlus;
+                }
+                if (rarePlus.length > 0) {
+                    results[0] = rarePlus[Math.floor(Math.random() * rarePlus.length)];
+                }
+            }
+        }
+
+        // 结算：新卡入藏，重复卡转信物
+        let summary = [];
+        for (let op of results) {
+            if (collection[op.id]) {
+                let frag = rarityConfig[op.rarity].fragReward;
+                collection[op.id].fragments += frag;
+                summary.push({ op, isNew: false, frag });
+            } else {
+                collection[op.id] = { stars: 1, fragments: 0 };
+                summary.push({ op, isNew: true, frag: 0 });
+            }
+        }
+
+        refreshDeckOperators();
+        updateUI();
+        renderGachaResult(summary);
+    }
+
+    function renderGachaResult(summary) {
+        const div = document.getElementById('gachaResult');
+        if (!div) return;
+        let poolTitle = currentPoolType === 'standard' ? '常驻·骨髓分化池' : (ageStagePools.find(p => p.id === currentPoolType).name + '（UP池）');
+        let html = `<div style="font-size:11px; color:#888; text-align:center; margin-bottom:6px;">— ${poolTitle} 招募结果 —</div><div class="gacha-cards">`;
+        for (let s of summary) {
+            let op = s.op;
+            let rc = rarityConfig[op.rarity];
+            let note = s.isNew ? '<div class="card-note">NEW 入藏!</div>' : `<div class="card-note">重复 +${s.frag} 信物</div>`;
+            html += `<div class="gacha-card ${op.rarity}" style="border-color:${rc.color}; box-shadow:0 0 14px ${rc.glow};">
+                <div class="card-avatar">${avatarImg(op.id, 56, 'border-color:' + rc.color)}</div>
+                <div class="rarity-label" style="color:${rc.color};">${rc.label}</div>
+                <div class="card-name">${op.name}</div>
+                <div class="card-star">${'★'.repeat(collection[op.id].stars)}</div>
+                ${note}
+            </div>`;
+        }
+        html += '</div>';
+        div.innerHTML = html;
+    }
+
+    function renderGachaPool() {
+        const div = document.getElementById('gachaPoolList');
+        if (!div) return;
+        let pool = getAvailablePool();
+        let stage = currentPoolType !== 'standard' ? ageStagePools.find(p => p.id === currentPoolType) : null;
+        div.innerHTML = pool.map(op => {
+            let rc = rarityConfig[op.rarity];
+            let isUp = stage && stage.upOps.includes(op.id);
+            return `<span class="pool-chip" style="color:${rc.color}; border-color:${rc.color}; ${isUp ? 'background:#3a2f14; box-shadow:0 0 6px rgba(255,177,66,0.4);' : ''}">${isUp ? '⭐' : ''}${op.name}${isUp ? ' UP' : ''}</span>`;
+        }).join('');
+    }
+
+    function exchangeNutrients() {
+        if (nutrients < 20) { alert('营养不足（需20营养）！'); return; }
+        nutrients -= 20;
+        marrow += 1;
+        updateUI();
+        refreshGachaUI();
+    }
+
+    function refreshGachaUI() {
+        document.getElementById('gachaMarrow').innerText = marrow;
+        renderPoolTabs();
+        renderPoolScience();
+        renderGachaPool();
+    }
+
+    // ==================== 年龄阶段UP池 UI ====================
+    function opNameById(id) { let op = masterPool.find(m => m.id === id); return op ? op.name : id; }
+
+    function renderPoolTabs() {
+        const div = document.getElementById('poolTabs');
+        if (!div) return;
+        let html = `<div class="pool-tab ${currentPoolType === 'standard' ? 'active' : ''}" onclick="switchPool('standard')">
+            <div class="pt-name">🦴 常驻·骨髓分化池</div>
+            <div class="pt-sub">全谱系均衡招募</div>
+        </div>`;
+        for (let stage of ageStagePools) {
+            let unlocked = currentLevel >= stage.unlockLevel;
+            let sub = unlocked
+                ? `<span class="pt-up">UP: ${stage.upOps.map(opNameById).join(' / ')}</span> · UP率${Math.round(stage.upRate * 100)}%`
+                : `🔒 进入${stage.ageGroup}（第${stage.unlockLevel}关起）解锁`;
+            html += `<div class="pool-tab ${currentPoolType === stage.id ? 'active' : ''} ${unlocked ? '' : 'locked'}" onclick="switchPool('${stage.id}')">
+                <div class="pt-name">${stage.name} <span style="font-size:9px; color:#888;">${stage.ageGroup} ${stage.ageRange}</span></div>
+                <div class="pt-sub">${sub}</div>
+            </div>`;
+        }
+        div.innerHTML = html;
+    }
+
+    function switchPool(type) {
+        if (type !== 'standard') {
+            let stage = ageStagePools.find(p => p.id === type);
+            if (stage && currentLevel < stage.unlockLevel) {
+                alert(`「${stage.name}」尚未解锁：需推进到「${stage.ageGroup}」阶段（第${stage.unlockLevel}关起）。`);
+                return;
+            }
+        }
+        currentPoolType = type;
+        renderPoolTabs();
+        renderPoolScience();
+        renderGachaPool();
+    }
+
+    function renderPoolScience() {
+        const div = document.getElementById('poolScience');
+        if (!div) return;
+        if (currentPoolType === 'standard') {
+            div.innerHTML = `<div style="flex:1;"><b style="color:#4facfe;">常驻·骨髓分化池</b><br>真实依据：骨髓是免疫细胞的"摇篮"——红细胞、粒细胞、单核巨噬细胞均由骨髓造血干细胞分化，T/B淋巴细胞也在此产生后再到外周免疫器官成熟。全谱系均衡招募。</div>`;
+            return;
+        }
+        let stage = ageStagePools.find(p => p.id === currentPoolType);
+        let upHtml = stage.upOps.map(id => {
+            let op = masterPool.find(m => m.id === id);
+            let rc = rarityConfig[op.rarity];
+            return `<div style="text-align:center;">
+                ${avatarImg(id, 44, 'border-color:' + rc.color)}
+                <div style="font-size:10px; color:${rc.color}; margin-top:2px;">${op.name}</div>
+            </div>`;
+        }).join('');
+        div.innerHTML = `<div class="pool-up-ops">${upHtml}</div>
+            <div style="flex:1;"><b style="color:#ffb142;">🎯 UP干员（UP率${Math.round(stage.upRate * 100)}%）</b> · ${stage.ageGroup} ${stage.ageRange} · 第${stage.unlockLevel}关起开放<br>${stage.science}</div>`;
+    }
+
+    function openGacha() {
+        refreshGachaUI();
+        document.getElementById('gachaModal').style.display = 'flex';
+    }
+    function closeGacha() {
+        document.getElementById('gachaModal').style.display = 'none';
+    }
+
+    // ==================== 编队系统 ====================
+    function toggleDeck(opId) {
+        let idx = deck.indexOf(opId);
+        if (idx >= 0) {
+            if (deck.length <= 3) { alert('至少需要3名干员编队！'); return; }
+            deck.splice(idx, 1);
+        } else {
+            if (deck.length >= 5) { alert('最多只能编队5名干员！'); return; }
+            deck.push(opId);
+        }
+        refreshDeckOperators();
+        renderCollectionUI();
+    }
+
+    function upgradeStar(opId) {
+        let c = collection[opId];
+        if (!c) return;
+        if (c.stars >= 5) { alert('已达最高星级！'); return; }
+        let cost = 5 * c.stars;   // 2星5、3星10、4星15、5星20
+        if (c.fragments < cost) { alert(`信物不足，升星需 ${cost} 个信物！`); return; }
+        c.fragments -= cost;
+        c.stars++;
+        refreshDeckOperators();
+        renderCollectionUI();
+        alert(`🎉 ${masterPool.find(m => m.id === opId).name} 升星成功！攻击+15%、寿命+2秒。`);
+    }
+
+    function renderCollectionUI() {
+        const div = document.getElementById('collectionList');
+        if (!div) return;
+        const entries = Object.keys(collection);
+        if (entries.length === 0) {
+            div.innerHTML = '<div style="color:#888;">暂无干员，前往骨髓招募所抽卡吧！</div>';
+            document.getElementById('deckCount').innerText = deck.length;
+            return;
+        }
+        div.innerHTML = entries.map(id => {
+            let op = masterPool.find(m => m.id === id);
+            let c = collection[id];
+            let rc = rarityConfig[op.rarity];
+            let inDeck = deck.includes(id);
+            let upCost = c.stars >= 5 ? null : 5 * c.stars;
+            let actionHtml = upCost
+                ? `<button onclick="upgradeStar('${id}')">升星(${upCost}信物)</button>`
+                : '<span class="full-star">满星 ★</span>';
+            return `<div class="collection-item" style="border-left:3px solid ${rc.color};">
+                <div class="ci-row">
+                    ${avatarImg(id, 38, 'border-color:' + rc.color)}
+                    <div class="ci-main">
+                        <div class="ci-top">
+                            <b style="color:${rc.color};">${op.name}${deck.includes(id) ? '<span class="up-badge">编队中</span>' : ''}</b>
+                            <span class="rarity-tag" style="color:${rc.color};">${rc.label}</span>
+                        </div>
+                        <div class="ci-stars">${'★'.repeat(c.stars)}${'☆'.repeat(5 - c.stars)}</div>
+                        <div class="ci-info">信物 ${c.fragments} · ${op.desc}</div>
+                    </div>
+                </div>
+                <div class="ci-actions">
+                    ${actionHtml}
+                    <button class="${inDeck ? 'on' : ''}" onclick="toggleDeck('${id}')">${inDeck ? '移出编队' : '加入编队'}</button>
+                </div>
+            </div>`;
+        }).join('');
+        document.getElementById('deckCount').innerText = deck.length;
+    }
+
+    function openDeck() {
+        renderCollectionUI();
+        document.getElementById('deckModal').style.display = 'flex';
+    }
+    function closeDeck() {
+        document.getElementById('deckModal').style.display = 'none';
+    }
+
+    function renderLevelList() {
+        const list = document.getElementById('levelList');
+        if(!list) return;
+        list.innerHTML = levels.map(lvl => `
+            <div class="level-item ${currentLevel === lvl.id ? 'active' : ''}" onclick="selectLevel(${lvl.id})">
+                <div><b>${lvl.name}</b></div>
+                <div style="color: #f39c12;">🧪${lvl.rewardNut}</div>
+            </div>
+        `).join('');
+    }
+
+    function renderEnemyBestiary() {
+        const div = document.getElementById('enemyBestiary');
+        if(!div) return;
+        div.innerHTML = Object.values(enemyTypes).map(e => `
+            <div class="bestiary-entry">
+                <div class="bestiary-color" style="background:${e.color};"></div>
+                <div><b style="color:${e.color};">${e.name}</b> — ${e.desc}</div>
+            </div>
+        `).join('');
+    }
+
+    function selectLevel(lvlId) {
+        if(waveInProgress) { alert("战斗中无法切换关卡！"); return; }
+        currentLevel = lvlId;
+        let lvl = levels[lvlId-1];
+        baseHp = lvl.baseHp;
+        document.getElementById('levelTitleDisplay').innerText = `当前关卡：第 ${lvl.id} 关 (${lvl.ageGroup})`;
+
+        refreshDeckOperators();
+        renderLevelList();
+        resetGame();
+    }
+
+    function renderOperators() {
+        const list = document.getElementById('operatorList');
+        if(!list) return;
+        list.innerHTML = playerOperators.map((op, idx) => `
+            <div class="operator-card ${selectedOp === op ? 'selected' : ''}" onclick="selectOperator(${idx})">
+                <div class="op-avatar">${avatarImg(op.id, 34, 'border-color:' + (rarityConfig[op.rarity] ? rarityConfig[op.rarity].color : '#38384d'))}</div>
+                <div class="name">${op.name}</div>
+                <div class="cost">⚡ ${op.cost} ATP · ${'★'.repeat(op.stars)}</div>
+                <div class="desc">${op.desc}</div>
+            </div>
+        `).join('');
+    }
+
+    function selectOperator(idx) {
+        selectedOp = playerOperators[idx];
+        document.getElementById('tipMsg').innerText = `已选择: ${selectedOp.name} (${selectedOp.desc})`;
+        renderOperators();
+    }
+
+    // ==================== 事件监听 ====================
+    // 逻辑坐标换算：兼容CSS缩放与移动端触控
+    function toLogicalCoords(clientX, clientY) {
+        const rect = canvas.getBoundingClientRect();
+        return {
+            x: (clientX - rect.left) * (CANVAS_W / rect.width),
+            y: (clientY - rect.top) * (CANVAS_H / rect.height)
+        };
+    }
+
+    canvas.addEventListener('mousemove', (e) => {
+        const p = toLogicalCoords(e.clientX, e.clientY);
+        mouseX = p.x;
+        mouseY = p.y;
+    });
+
+    canvas.addEventListener('mouseleave', () => { mouseX = -1; mouseY = -1; });
+
+    function handleBoardTap(clientX, clientY) {
+        const p = toLogicalCoords(clientX, clientY);
+        const c = Math.floor(p.x / tileSize);
+        const r = Math.floor(p.y / tileSize);
+
+        if(r >= 0 && r < rows && c >= 0 && c < cols) {
+            // 细胞凋亡（点击已有细胞回收）
+            if(grid[r][c] !== null) {
+                let cell = grid[r][c];
+                let refund = Math.floor(cell.cost * 0.5);
+                atp = Math.min(60, atp + refund);
+                grid[r][c] = null;
+                document.getElementById('tipMsg').innerText = `已诱导 ${cell.name} 细胞凋亡，回收 ATP ⚡+${refund}`;
+                updateUI();
+                return;
+            }
+
+            if(!selectedOp) { alert("请先选择细胞！"); return; }
+            if(atp < selectedOp.cost) { alert("ATP 能量不足！"); return; }
+
+            let deployedCount = grid.flat().filter(cell => cell && cell.id === selectedOp.id).length;
+            if(deployedCount >= selectedOp.maxCount) {
+                alert(`该细胞部署数量已达到比例上限 (${selectedOp.maxCount})！`);
+                return;
+            }
+
+            atp -= selectedOp.cost;
+            let totalFrames = selectedOp.maxLifeSec * 60;
+            grid[r][c] = { ...selectedOp, r, c, lifeTimer: totalFrames, maxLifeTimer: totalFrames, infected: false, infectTimer: 0 };
+            updateUI();
+        }
+    }
+
+    canvas.addEventListener('click', (e) => handleBoardTap(e.clientX, e.clientY));
+
+    // 移动端触控支持（touchend落子，touchstart预览高亮）
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const t = e.changedTouches[0];
+        const p = toLogicalCoords(t.clientX, t.clientY);
+        mouseX = p.x;
+        mouseY = p.y;
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        const t = e.changedTouches[0];
+        handleBoardTap(t.clientX, t.clientY);
+        mouseX = -1;
+        mouseY = -1;
+    }, { passive: false });
+
+    // ==================== 敌人生成 ====================
+    function startWave() {
+        if(waveInProgress) return;
+        waveInProgress = true;
+        waveSpawningDone = false;
+        let lvlData = levels[currentLevel - 1];
+        let spawned = 0;
+        let allowed = lvlData.allowedEnemies || ['influenza'];
+        let spawnInterval = currentLevel <= 5 ? 1500 : (currentLevel <= 10 ? 1200 : 1000);
+
+        let spawnTimer = setInterval(() => {
+            if(spawned < lvlData.enemyCount) {
+                let typeKey = allowed[Math.floor(Math.random() * allowed.length)];
+                let td = enemyTypes[typeKey];
+                let targetRow = Math.floor(Math.random() * rows);
+                let hp = Math.floor(lvlData.enemyHp * td.hpMult);
+
+                enemies.push({
+                    x: cols * tileSize - 15,
+                    y: targetRow * tileSize + tileSize / 2,
+                    hp: hp,
+                    maxHp: hp,
+                    speed: (0.45 + currentLevel * 0.012) * td.speedMult,
+                    currentR: targetRow,
+                    currentC: cols - 1,
+                    type: typeKey,
+                    typeData: td,
+                    ability: td.ability,
+                    damageReduction: td.damageReduction,
+                    evasion: td.evasion,
+                    isBacteria: td.isBacteria,
+                    isSplit: false,
+                    toxinTimer: 0,
+                    spawnTimer: 0,
+                    spawnCount: 0,
+                    size: td.size
+                });
+                spawned++;
+            } else {
+                clearInterval(spawnTimer);
+                waveSpawningDone = true;
+            }
+        }, spawnInterval);
+    }
+
+    // ==================== 波次结算 ====================
+    function completeWave() {
+        waveInProgress = false;
+        waveSpawningDone = false;
+        let lvlData = levels[currentLevel - 1];
+        nutrients += lvlData.rewardNut;
+        marrow += 2;   // 通关固定奖励2个骨髓造血原液
+        alert(`🎉 恭喜通关 ${lvlData.name}！\n获得营养 🧪+${lvlData.rewardNut}，骨髓造血原液 🦴+2`);
+
+        if(currentLevel < levels.length) {
+            currentLevel++;
+            refreshDeckOperators();
+            let nextLvl = levels[currentLevel-1];
+            baseHp = nextLvl.baseHp;
+            document.getElementById('levelTitleDisplay').innerText = `当前关卡：第 ${nextLvl.id} 关 (${nextLvl.ageGroup})`;
+            renderLevelList();
+        }
+        updateUI();
+    }
+
+    // ==================== 游戏逻辑更新 ====================
+    function updateGame() {
+        // ATP 自然恢复
+        if(Math.random() < 0.035) {
+            atp = Math.min(60, atp + 1);
+            updateUI();
+        }
+
+        // 计算树突状细胞增益范围
+        let buffedCells = new Set();
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                let op = grid[r][c];
+                if(op && op.id === 'dendritic' && !op.infected) {
+                    let buffGrids = getAttackedGrids(r, c, 'buff1');
+                    for(let bg of buffGrids) {
+                        buffedCells.add(bg.r + ',' + bg.c);
+                    }
+                }
+            }
+        }
+
+        // 免疫细胞攻击逻辑
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                let op = grid[r][c];
+                if(op) {
+                    // 寿命倒计时
+                    op.lifeTimer -= 1;
+                    if(op.infected) {
+                        op.infectTimer--;
+                        op.lifeTimer -= 1; // 感染时额外损耗
+                        if(op.infectTimer <= 0) op.infected = false;
+                    }
+                    if(op.lifeTimer <= 0) { grid[r][c] = null; continue; }
+
+                    // 感染状态不攻击，树突状细胞不攻击（仅增益）
+                    if(op.infected || op.id === 'dendritic') continue;
+
+                    let targetGrids = getAttackedGrids(r, c, op.rangeType);
+                    let buffMult = buffedCells.has(r + ',' + c) ? 1.5 : 1;
+                    let cellX = c * tileSize, cellY = r * tileSize;
+
+                    for(let en of enemies) {
+                        if(targetGrids.some(tg => tg.r === en.currentR && tg.c === en.currentC)) {
+                            // 闪避判定
+                            if(Math.random() < (en.evasion || 0)) continue;
+                            // 基础伤害
+                            let damage = op.atk * 0.06 * buffMult * (1 - (en.damageReduction || 0));
+                            // 溶菌酶对细菌加伤
+                            if(op.id === 'lysozyme' && en.isBacteria) damage *= 1.5;
+                            en.hp -= damage;
+
+                            // 触发专属技能特效（节流：每8帧触发一次避免过密）
+                            if(!op.skillCD || op.skillCD <= 0) {
+                                triggerSkillEffect(op.id, cellX, cellY, en.x, en.y);
+                                op.skillCD = 8;
+                            }
+                        }
+                    }
+                    // 技能冷却递减
+                    if(op.skillCD > 0) op.skillCD--;
+                }
+            }
+        }
+
+        // 敌人移动与能力触发
+        for(let i = enemies.length - 1; i >= 0; i--) {
+            let en = enemies[i];
+            en.x -= en.speed;
+            en.currentC = Math.max(0, Math.min(cols - 1, Math.floor(en.x / tileSize)));
+            en.currentR = Math.max(0, Math.min(rows - 1, Math.floor(en.y / tileSize)));
+
+            // 与免疫细胞碰撞
+            let cell = grid[en.currentR][en.currentC];
+            if(cell) {
+                en.x += en.speed * 0.8;
+                // 腐蚀能力：链球菌对细胞造成3倍损耗
+                let corrodeMult = en.ability === 'corrode' ? 3 : 1.5;
+                cell.lifeTimer -= corrodeMult;
+
+                // 感染能力：冠状病毒使细胞瘫痪
+                if(en.ability === 'infect' && !cell.infected) {
+                    cell.infected = true;
+                    cell.infectTimer = 180; // 3秒
+                    spawnFloatingText(en.x, en.y - 20, "感染!", '#e84393');
+                }
+            }
+
+            // 毒素能力：支原体/大肠杆菌定期损伤周围细胞
+            if(en.ability === 'toxin') {
+                en.toxinTimer++;
+                if(en.toxinTimer >= 120) { // 每2秒
+                    en.toxinTimer = 0;
+                    for(let dr = -1; dr <= 1; dr++) {
+                        for(let dc = -1; dc <= 1; dc++) {
+                            let nr = en.currentR + dr, nc = en.currentC + dc;
+                            if(nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc]) {
+                                grid[nr][nc].lifeTimer -= 30;
+                            }
+                        }
+                    }
+                    spawnFloatingText(en.x, en.y - 20, "毒素!", en.typeData.color);
+                }
+            }
+
+            // 自愈能力：结核杆菌持续回血
+            if(en.ability === 'regen') {
+                en.hp = Math.min(en.maxHp, en.hp + 0.1);
+            }
+
+            // 召唤能力：肝炎病毒Boss在肝细胞内复制后定期释放子代病毒
+            if(en.ability === 'spawn' && en.spawnCount < 3) {
+                en.spawnTimer++;
+                if(en.spawnTimer >= 300) { // 每5秒
+                    en.spawnTimer = 0;
+                    en.spawnCount++;
+                    let td = enemyTypes['influenza'];
+                    for(let j = 0; j < 2; j++) {
+                        let row = Math.max(0, Math.min(rows - 1, en.currentR + (j === 0 ? -1 : 1)));
+                        enemies.push({
+                            x: en.x, y: row * tileSize + tileSize / 2,
+                            hp: Math.floor(en.maxHp * 0.12), maxHp: Math.floor(en.maxHp * 0.12),
+                            speed: en.speed * 1.8,
+                            currentR: row, currentC: en.currentC,
+                            type: 'influenza', typeData: td,
+                            ability: 'none', damageReduction: 0, evasion: 0,
+                            isBacteria: false, isSplit: true,
+                            toxinTimer: 0, spawnTimer: 0, spawnCount: 99,
+                            size: 12
+                        });
+                    }
+                    spawnFloatingText(en.x, en.y - 25, "释放子代病毒!", '#c0392b');
+                }
+            }
+
+            // 敌人死亡处理
+            if(en.hp <= 0) {
+                // Boss掉落：击杀肝炎病毒Boss额外奖励骨髓造血原液
+                if(en.type === 'hepatitisBoss') {
+                    marrow += 1;
+                    spawnFloatingText(en.x, en.y - 30, "原液+1!", '#ff6ec7');
+                }
+
+                // 分裂能力：轮状病毒死亡时生成2个子体
+                if(en.ability === 'split' && !en.isSplit) {
+                    let td = en.typeData;
+                    for(let j = 0; j < 2; j++) {
+                        let row = Math.max(0, Math.min(rows - 1, en.currentR + (j === 0 ? -1 : 1)));
+                        enemies.push({
+                            x: en.x, y: row * tileSize + tileSize / 2,
+                            hp: Math.floor(en.maxHp * 0.4), maxHp: Math.floor(en.maxHp * 0.4),
+                            speed: en.speed * 1.3,
+                            currentR: row, currentC: en.currentC,
+                            type: en.type, typeData: td,
+                            ability: 'none', damageReduction: 0, evasion: 0,
+                            isBacteria: td.isBacteria, isSplit: true,
+                            toxinTimer: 0, spawnTimer: 0, spawnCount: 99,
+                            size: td.size * 0.7
+                        });
+                    }
+                    spawnFloatingText(en.x, en.y - 20, "分裂!", '#1abc9c');
+                }
+
+                // 死亡毒素：葡萄球菌死亡时爆发
+                if(en.ability === 'death_toxin') {
+                    for(let dr = -1; dr <= 1; dr++) {
+                        for(let dc = -1; dc <= 1; dc++) {
+                            let nr = en.currentR + dr, nc = en.currentC + dc;
+                            if(nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc]) {
+                                grid[nr][nc].lifeTimer -= 60;
+                            }
+                        }
+                    }
+                    spawnFloatingText(en.x, en.y - 20, "毒素爆发!", '#f39c12');
+                }
+
+                spawnDeathParticles(en.x, en.y, en.typeData.color);
+                enemies.splice(i, 1);
+
+                // 通关判定
+                if(enemies.length === 0 && waveInProgress && waveSpawningDone) {
+                    completeWave();
+                }
+            } else if(en.x <= 0) {
+                // 敌人突破防线
+                baseHp -= 1;
+                spawnDeathParticles(5, en.y, '#ff0000');
+                enemies.splice(i, 1);
+                updateUI();
+                if(baseHp <= 0) {
+                    alert("宿主防线崩溃！游戏失败。");
+                    resetGame();
+                    return;
+                }
+                // 全部敌人突破防线后同样结算波次，防止卡死
+                if(enemies.length === 0 && waveInProgress && waveSpawningDone) {
+                    completeWave();
+                }
+            }
+        }
+
+        // 更新粒子
+        for(let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life--;
+            if(p.life <= 0) particles.splice(i, 1);
+        }
+
+        // 更新技能特效
+        for(let i = skillEffects.length - 1; i >= 0; i--) {
+            let s = skillEffects[i];
+            if(s.type === 'projectile') {
+                s.x += s.vx;
+                s.y += s.vy;
+            } else if(s.type === 'antibody') {
+                s.x += s.vx;
+                s.y += s.vy;
+            }
+            s.life--;
+            if(s.life <= 0) skillEffects.splice(i, 1);
+        }
+    }
+
+    // ==================== 敌人绘制 ====================
+    function drawEnemy(en) {
+        let td = en.typeData;
+        let color = td.color;
+        let size = en.size || 14;
+
+        ctx.save();
+        ctx.translate(en.x, en.y);
+
+        switch(td.shape) {
+            case 'circle':
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(0, 0, size, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+
+            case 'diamond':
+                ctx.fillStyle = color;
+                ctx.rotate(Math.PI / 4);
+                ctx.fillRect(-size * 0.8, -size * 0.8, size * 1.6, size * 1.6);
+                ctx.rotate(-Math.PI / 4);
+                break;
+
+            case 'chain':
+                ctx.fillStyle = color;
+                for(let i = -1; i <= 1; i++) {
+                    ctx.beginPath();
+                    ctx.arc(i * size * 0.7, 0, size * 0.55, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                break;
+
+            case 'blob':
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                let t = Date.now() / 300;
+                for(let i = 0; i <= 8; i++) {
+                    let angle = (i / 8) * Math.PI * 2;
+                    let r = size * (0.85 + Math.sin(t + i) * 0.15);
+                    if(i === 0) ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                    else ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                }
+                ctx.closePath();
+                ctx.fill();
+                break;
+
+            case 'gear':
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                let teeth = 8;
+                for(let i = 0; i < teeth * 2; i++) {
+                    let angle = (i / (teeth * 2)) * Math.PI * 2;
+                    let r = i % 2 === 0 ? size : size * 0.65;
+                    if(i === 0) ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                    else ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                }
+                ctx.closePath();
+                ctx.fill();
+                break;
+
+            case 'rod':
+                ctx.fillStyle = color;
+                ctx.fillRect(-size * 0.9, -size * 0.35, size * 1.8, size * 0.7);
+                ctx.beginPath();
+                ctx.arc(-size * 0.9, 0, size * 0.35, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(size * 0.9, 0, size * 0.35, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+
+            case 'spike':
+                // 刺突
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                let spikes = 12;
+                for(let i = 0; i < spikes; i++) {
+                    let angle = (i / spikes) * Math.PI * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(angle) * size * 0.9, Math.sin(angle) * size * 0.9);
+                    ctx.lineTo(Math.cos(angle) * size * 1.5, Math.sin(angle) * size * 1.5);
+                    ctx.stroke();
+                }
+                // 主体
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 0.9, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+
+            case 'cluster':
+                ctx.fillStyle = color;
+                let positions = [[-size*0.4, -size*0.3], [size*0.4, -size*0.3], [0, size*0.4], [-size*0.4, size*0.4], [size*0.4, size*0.3]];
+                for(let pos of positions) {
+                    ctx.beginPath();
+                    ctx.arc(pos[0], pos[1], size * 0.45, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                break;
+
+            case 'boss':
+                // 外层光环
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 1.15, 0, Math.PI * 2);
+                ctx.stroke();
+                // 主体
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(0, 0, size, 0, Math.PI * 2);
+                ctx.fill();
+                // 内部纹理
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 0.6, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
+                ctx.stroke();
+                break;
+        }
+
+        ctx.restore();
+
+        // HP 血条
+        ctx.fillStyle = '#444';
+        ctx.fillRect(en.x - size - 2, en.y - size - 8, (size + 2) * 2, 4);
+        ctx.fillStyle = '#e67e22';
+        ctx.fillRect(en.x - size - 2, en.y - size - 8, (size + 2) * 2 * Math.max(0, en.hp / en.maxHp), 4);
+
+        // 名称
+        ctx.fillStyle = '#fff';
+        ctx.font = '8px sans-serif';
+        ctx.fillText(td.name, en.x - size, en.y - size - 12);
+    }
+
+    // ==================== 技能特效绘制 ====================
+    function drawSkillEffects() {
+        for(let s of skillEffects) {
+            let progress = 1 - s.life / s.maxLife;
+            let alpha = s.life / s.maxLife;
+
+            ctx.save();
+            ctx.globalAlpha = alpha;
+
+            switch(s.type) {
+                case 'projectile':
+                    // 中性粒细胞：绿色NETs弹道，带拖尾
+                    ctx.fillStyle = s.color;
+                    ctx.shadowColor = s.color;
+                    ctx.shadowBlur = 8;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    // 拖尾
+                    ctx.globalAlpha = alpha * 0.4;
+                    ctx.beginPath();
+                    ctx.arc(s.x - s.vx, s.y - s.vy, s.size * 0.6, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                    break;
+
+                case 'pulse':
+                    // 红细胞：红色氧气脉冲圈
+                    let pulseR = s.maxRadius * progress;
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, pulseR, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = alpha * 0.3;
+                    ctx.fillStyle = s.color;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, pulseR * 0.6, 0, Math.PI * 2);
+                    ctx.fill();
+                    break;
+
+                case 'vortex':
+                    // 巨噬细胞：蓝色吞噬漩涡，旋转的双环
+                    let vortexR = s.maxRadius * progress;
+                    s.rotation += 0.3;
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = 3;
+                    for(let ring = 0; ring < 2; ring++) {
+                        ctx.beginPath();
+                        let r = vortexR * (1 - ring * 0.3);
+                        for(let i = 0; i <= 6; i++) {
+                            let angle = (i / 6) * Math.PI * 1.5 + s.rotation + ring * Math.PI;
+                            let px = s.x + Math.cos(angle) * r;
+                            let py = s.y + Math.sin(angle) * r;
+                            if(i === 0) ctx.moveTo(px, py);
+                            else ctx.lineTo(px, py);
+                        }
+                        ctx.stroke();
+                    }
+                    break;
+
+                case 'wave':
+                    // 溶菌酶分泌细胞：橙色溶解波，弧形向前推进
+                    let waveX = s.x + (s.tx - s.x) * progress;
+                    let waveY = s.y + (s.ty - s.y) * progress;
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = s.color;
+                    ctx.shadowBlur = 6;
+                    ctx.beginPath();
+                    ctx.arc(waveX, waveY, 15 + progress * 10, -Math.PI / 3, Math.PI / 3);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                    break;
+
+                case 'ring':
+                    // T淋巴细胞：紫色辐射光环，多层扩散
+                    for(let ring = 0; ring < 3; ring++) {
+                        let ringP = Math.min(1, progress + ring * 0.2);
+                        let ringR = s.maxRadius * ringP;
+                        ctx.globalAlpha = alpha * (1 - ring * 0.25);
+                        ctx.strokeStyle = s.color;
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(s.x, s.y, ringR, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    break;
+
+                case 'beam':
+                    // NK杀手细胞：暗红色十字激光束
+                    let beamW = 4 + (1 - alpha) * 3;
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = beamW;
+                    ctx.shadowColor = s.color;
+                    ctx.shadowBlur = 12;
+                    // 水平
+                    ctx.beginPath();
+                    ctx.moveTo(s.x - s.length, s.y);
+                    ctx.lineTo(s.x + s.length, s.y);
+                    ctx.stroke();
+                    // 垂直
+                    ctx.beginPath();
+                    ctx.moveTo(s.x, s.y - s.length);
+                    ctx.lineTo(s.x, s.y + s.length);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                    break;
+
+                case 'antibody':
+                    // B淋巴细胞：青色Y形抗体弹珠飞行
+                    ctx.fillStyle = s.color;
+                    ctx.shadowColor = s.color;
+                    ctx.shadowBlur = 6;
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+                    ctx.fill();
+                    // Y形尾迹
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(s.x - 6, s.y - 3);
+                    ctx.lineTo(s.x, s.y);
+                    ctx.lineTo(s.x - 6, s.y + 3);
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                    break;
+
+                case 'signal':
+                    // 树突状细胞：金色信号脉冲波，星形扩散
+                    let signalR = s.maxRadius * progress;
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = 2;
+                    let points = 5;
+                    ctx.beginPath();
+                    for(let i = 0; i <= points * 2; i++) {
+                        let angle = (i / (points * 2)) * Math.PI * 2;
+                        let r = i % 2 === 0 ? signalR : signalR * 0.5;
+                        let px = s.x + Math.cos(angle) * r;
+                        let py = s.y + Math.sin(angle) * r;
+                        if(i === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    }
+                    ctx.closePath();
+                    ctx.stroke();
+                    break;
+
+                case 'arrow':
+                    // 嗜酸性粒细胞：粉色穿透箭矢
+                    let arrowLen = s.length * progress;
+                    ctx.strokeStyle = s.color;
+                    ctx.lineWidth = 3;
+                    ctx.shadowColor = s.color;
+                    ctx.shadowBlur = 8;
+                    // 箭杆
+                    ctx.beginPath();
+                    ctx.moveTo(s.x, s.y);
+                    ctx.lineTo(s.x + arrowLen, s.y);
+                    ctx.stroke();
+                    // 箭头
+                    if(progress > 0.5) {
+                        ctx.beginPath();
+                        ctx.moveTo(s.x + arrowLen, s.y);
+                        ctx.lineTo(s.x + arrowLen - 8, s.y - 5);
+                        ctx.moveTo(s.x + arrowLen, s.y);
+                        ctx.lineTo(s.x + arrowLen - 8, s.y + 5);
+                        ctx.stroke();
+                    }
+                    ctx.shadowBlur = 0;
+                    break;
+
+                case 'ripple':
+                    // 记忆T细胞：青绿色记忆涟漪，多层缓慢扩散
+                    for(let ring = 0; ring < 4; ring++) {
+                        let ringP = Math.min(1, progress + ring * 0.15);
+                        let ringR = s.maxRadius * ringP;
+                        ctx.globalAlpha = alpha * (1 - ring * 0.2);
+                        ctx.strokeStyle = s.color;
+                        ctx.lineWidth = 1.5;
+                        ctx.beginPath();
+                        ctx.arc(s.x, s.y, ringR, 0, Math.PI * 2);
+                        ctx.stroke();
+                    }
+                    break;
+            }
+
+            ctx.restore();
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    // ==================== 游戏绘制 ====================
+    function drawGame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        let hoverC = Math.floor(mouseX / tileSize);
+        let hoverR = Math.floor(mouseY / tileSize);
+        let isValidHover = hoverR >= 0 && hoverR < rows && hoverC >= 0 && hoverC < cols;
+
+        // 部署预览范围
+        if(selectedOp && isValidHover && grid[hoverR][hoverC] === null) {
+            let rangeGrids = getAttackedGrids(hoverR, hoverC, selectedOp.rangeType);
+            ctx.fillStyle = selectedOp.id === 'dendritic' ? 'rgba(255, 215, 0, 0.2)' : 'rgba(79, 172, 254, 0.25)';
+            for(let tg of rangeGrids) {
+                if(tg.r >= 0 && tg.r < rows && tg.c >= 0 && tg.c < cols) {
+                    ctx.fillRect(tg.c * tileSize + 1, tg.r * tileSize + 1, tileSize - 2, tileSize - 2);
+                }
+            }
+        }
+
+        // 绘制网格和免疫细胞
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                ctx.strokeStyle = '#333346';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(c * tileSize, r * tileSize, tileSize, tileSize);
+
+                let op = grid[r][c];
+                if(op) {
+                    let cellColor = cellColors[op.id] || '#27ae60';
+                    let cx = c * tileSize + tileSize / 2;
+                    let cy = r * tileSize + tileSize / 2;
+                    let bodyR = tileSize / 2 - 5;
+
+                    // 细胞主体：卡通头像（圆形裁剪），未加载/失败时回退为色块
+                    if(avatarStatus[op.id] === 'ok') {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, bodyR, 0, Math.PI * 2);
+                        ctx.clip();
+                        let s = bodyR * 2;
+                        ctx.drawImage(cellAvatars[op.id], cx - bodyR, cy - bodyR, s, s);
+                        if(op.infected) {
+                            ctx.fillStyle = 'rgba(232, 67, 147, 0.35)';
+                            ctx.fillRect(cx - bodyR, cy - bodyR, s, s);
+                        }
+                        ctx.restore();
+                        ctx.strokeStyle = op.infected ? '#e84393' : cellColor;
+                        ctx.lineWidth = 2.5;
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, bodyR, 0, Math.PI * 2);
+                        ctx.stroke();
+                    } else {
+                        // 感染状态视觉（色块回退模式）
+                        if(op.infected) {
+                            ctx.fillStyle = 'rgba(232, 67, 147, 0.3)';
+                            ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
+                        }
+                        ctx.fillStyle = cellColor;
+                        ctx.fillRect(c * tileSize + 6, r * tileSize + 6, tileSize - 12, tileSize - 12);
+                    }
+
+                    // 增益边框
+                    if(op.id !== 'dendritic') {
+                        // 检查是否被树突状细胞增益
+                        let isBuffed = false;
+                        for(let br = 0; br < rows && !isBuffed; br++) {
+                            for(let bc = 0; bc < cols && !isBuffed; bc++) {
+                                let dc = grid[br][bc];
+                                if(dc && dc.id === 'dendritic' && !dc.infected) {
+                                    let bg = getAttackedGrids(br, bc, 'buff1');
+                                    if(bg.some(g => g.r === r && g.c === c)) isBuffed = true;
+                                }
+                            }
+                        }
+                        if(isBuffed) {
+                            ctx.strokeStyle = '#ffd700';
+                            ctx.lineWidth = 2;
+                            ctx.beginPath();
+                            ctx.arc(cx, cy, bodyR + 2.5, 0, Math.PI * 2);
+                            ctx.stroke();
+                        }
+                    }
+
+                    // 名称（半透明底板保证头像上可读）
+                    let label = op.name.slice(0, 4);
+                    ctx.font = '9px sans-serif';
+                    let tw = ctx.measureText(label).width;
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+                    ctx.fillRect(cx - tw / 2 - 3, r * tileSize + 8, tw + 6, 12);
+                    ctx.fillStyle = '#fff';
+                    ctx.fillText(label, cx - tw / 2, r * tileSize + 18);
+
+                    // 寿命条
+                    let lifeRatio = op.lifeTimer / op.maxLifeTimer;
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+                    ctx.fillRect(cx - (tileSize - 20) / 2 - 1, r * tileSize + 49, tileSize - 18, 6);
+                    ctx.fillStyle = lifeRatio > 0.3 ? '#2ecc71' : '#e74c3c';
+                    ctx.fillRect(cx - (tileSize - 20) / 2, r * tileSize + 50, (tileSize - 20) * lifeRatio, 4);
+                }
+            }
+        }
+
+        // 绘制敌人
+        for(let en of enemies) {
+            drawEnemy(en);
+        }
+
+        // 绘制免疫细胞技能特效
+        drawSkillEffects();
+
+        // 绘制粒子效果
+        for(let p of particles) {
+            if(p.isText) {
+                ctx.globalAlpha = p.life / p.maxLife;
+                ctx.fillStyle = p.color;
+                ctx.font = 'bold 10px sans-serif';
+                ctx.fillText(p.text, p.x - 15, p.y);
+            } else {
+                ctx.globalAlpha = p.life / p.maxLife;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        ctx.globalAlpha = 1;
+    }
+
+    // ==================== UI 更新 ====================
+    function updateUI() {
+        document.getElementById('baseHp').innerText = baseHp;
+        document.getElementById('atpVal').innerText = atp;
+        document.getElementById('nutVal').innerText = nutrients;
+        document.getElementById('marrowVal').innerText = marrow;
+    }
+
+    function resetGame() {
+        waveInProgress = false;
+        waveSpawningDone = false;
+        grid = Array(rows).fill().map(() => Array(cols).fill(null));
+        enemies = [];
+        particles = [];
+        skillEffects = [];
+        baseHp = levels[currentLevel - 1].baseHp;
+        atp = 30;
+        updateUI();
+    }
+
+    // ==================== 主循环 ====================
+    setInterval(() => {
+        if(waveInProgress) updateGame();
+        drawGame();
+    }, 1000 / 60);
+
+    // ==================== 初始化 ====================
+    renderLevelList();
+    renderOperators();
+    renderEnemyBestiary();
+    updateUI();
+</script>
+</body>
+</html>
