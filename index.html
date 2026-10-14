@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>细胞防线 - 终极稳定版</title>
+    <title>细胞防线 - 免疫系统增强版</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
         body { background-color: #121216; color: #d4d4d4; display: flex; height: 100vh; overflow: hidden; }
@@ -44,6 +44,9 @@
         .level-list { display: flex; flex-direction: column; gap: 6px; max-height: 250px; overflow-y: auto; }
         .level-item { background: #16161a; padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; border: 1px solid #2a2a38; cursor: pointer; }
         .level-item.active { border-color: #4facfe; background: #1f304a; }
+
+        .bestiary-entry { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; font-size: 11px; line-height: 1.5; }
+        .bestiary-color { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; margin-top: 3px; }
     </style>
 </head>
 <body>
@@ -52,7 +55,7 @@
     <div class="main-panel">
         <div class="top-bar">
             <div><span class="hp-badge">❤ 宿主生命: <span id="baseHp">12</span></span></div>
-            <div style="font-weight: bold; color: #f39c12;" id="levelTitleDisplay">当前关卡：第 1 关 (儿童期)</div>
+            <div style="font-weight: bold; color: #f39c12;" id="levelTitleDisplay">当前关卡：第 1 关 (幼儿期)</div>
             <div style="display:flex; gap:12px;">
                 <div class="res-badge nut-badge">🧪 营养: <span id="nutVal">100</span></div>
                 <div class="res-badge">⚡ ATP: <span id="atpVal">30</span></div>
@@ -64,7 +67,7 @@
         </div>
 
         <div class="dock-area">
-            <div style="font-size: 13px; color: #aaa;" id="tipMsg">提示：点击干员部署；点击**已部署的细胞**可触发细胞凋亡（强制回收）！</div>
+            <div style="font-size: 13px; color: #aaa;" id="tipMsg">提示：点击干员部署；点击已部署的细胞可触发细胞凋亡（强制回收）！</div>
             <div class="operator-list" id="operatorList"></div>
             <div class="controls-row">
                 <button class="btn-secondary" onclick="resetGame()">重置关卡</button>
@@ -75,7 +78,7 @@
 
     <div class="sidebar">
         <div class="card-box">
-            <div class="card-title">🗺️️ 人体关卡选择 (1-10关)</div>
+            <div class="card-title">🗺️ 人体关卡选择 (1-15关)</div>
             <div class="level-list" id="levelList"></div>
         </div>
 
@@ -83,24 +86,142 @@
             <div class="card-title">🧬 核心玩法说明</div>
             <div style="font-size: 11px; color: #aaa; line-height: 1.6;">
                 • <b>细胞凋亡</b>：点击格子上已有细胞可直接回收返还50% ATP。<br>
-                • <b>攻击范围</b>：不同细胞大小对应不同攻击范围（如巨噬细胞十字广域，中性粒细胞前方2格）。<br>
-                • <b>对策卡</b>：随关卡自动解锁专属高费对策卡（如第2关解锁溶菌酶分泌细胞，专克链球菌）。
+                • <b>攻击范围</b>：不同细胞有不同攻击范围（前方1-3格、十字、圆形、整行等）。<br>
+                • <b>寿命差异</b>：中性粒细胞10秒短命速攻，红细胞25秒长寿肉盾，记忆T细胞40秒超长待机。<br>
+                • <b>增益机制</b>：树突状细胞可激活周围细胞+50%攻击力。<br>
+                • <b>敌人特性</b>：不同病原体有减伤、闪避、毒素、分裂、自愈、感染等独特能力。
             </div>
+        </div>
+
+        <div class="card-box">
+            <div class="card-title">🦠 病原体图鉴</div>
+            <div id="enemyBestiary" style="font-size: 11px; color: #aaa; line-height: 1.5;"></div>
         </div>
     </div>
 </div>
 
 <script>
-    // 细胞干员池
+    // ==================== 敌人（病原体）配置 ====================
+    const enemyTypes = {
+        influenza: {
+            name: "流感病毒", color: '#e74c3c', shape: 'circle',
+            hpMult: 1.0, speedMult: 1.0, size: 14,
+            damageReduction: 0, evasion: 0,
+            ability: 'none', isBacteria: false,
+            desc: "标准流感，成群出现无特殊能力"
+        },
+        rhinovirus: {
+            name: "鼻病毒", color: '#f1c40f', shape: 'diamond',
+            hpMult: 0.7, speedMult: 1.7, size: 12,
+            damageReduction: 0, evasion: 0.2,
+            ability: 'none', isBacteria: false,
+            desc: "速度极快，20%概率闪避攻击"
+        },
+        streptococcus: {
+            name: "链球菌", color: '#9b59b6', shape: 'chain',
+            hpMult: 2.0, speedMult: 0.5, size: 16,
+            damageReduction: 0.3, evasion: 0,
+            ability: 'corrode', isBacteria: true,
+            desc: "30%减伤，腐蚀免疫细胞(3倍损耗)"
+        },
+        mycoplasma: {
+            name: "肺炎支原体", color: '#e67e22', shape: 'blob',
+            hpMult: 1.5, speedMult: 0.7, size: 15,
+            damageReduction: 0.1, evasion: 0,
+            ability: 'toxin', isBacteria: true,
+            desc: "释放毒素持续损伤周围细胞"
+        },
+        rotavirus: {
+            name: "轮状病毒", color: '#1abc9c', shape: 'gear',
+            hpMult: 1.0, speedMult: 1.1, size: 13,
+            damageReduction: 0, evasion: 0,
+            ability: 'split', isBacteria: false,
+            desc: "死亡时分裂为2个小型子体"
+        },
+        tubercle: {
+            name: "结核杆菌", color: '#34495e', shape: 'rod',
+            hpMult: 3.0, speedMult: 0.4, size: 18,
+            damageReduction: 0.5, evasion: 0,
+            ability: 'regen', isBacteria: true,
+            desc: "50%减伤，持续自愈+6HP/秒"
+        },
+        coronavirus: {
+            name: "冠状病毒", color: '#e84393', shape: 'spike',
+            hpMult: 1.8, speedMult: 0.8, size: 16,
+            damageReduction: 0.15, evasion: 0,
+            ability: 'infect', isBacteria: false,
+            desc: "感染免疫细胞使其3秒内瘫痪"
+        },
+        ecoli: {
+            name: "大肠杆菌", color: '#2ecc71', shape: 'rod',
+            hpMult: 1.3, speedMult: 0.9, size: 14,
+            damageReduction: 0.1, evasion: 0,
+            ability: 'toxin', isBacteria: true,
+            desc: "分泌肠毒素腐蚀周围免疫细胞"
+        },
+        staph: {
+            name: "金黄色葡萄球菌", color: '#f39c12', shape: 'cluster',
+            hpMult: 1.6, speedMult: 0.6, size: 15,
+            damageReduction: 0.2, evasion: 0,
+            ability: 'death_toxin', isBacteria: true,
+            desc: "20%减伤，死亡时释放毒素爆发"
+        },
+        hepatitisBoss: {
+            name: "核心变异Boss", color: '#c0392b', shape: 'boss',
+            hpMult: 5.0, speedMult: 0.35, size: 22,
+            damageReduction: 0.3, evasion: 0,
+            ability: 'spawn', isBacteria: false,
+            desc: "Boss级，定期召唤流感子体(最多3次)"
+        }
+    };
+
+    // ==================== 免疫细胞配置 ====================
+    const cellColors = {
+        neutrophil: '#27ae60',
+        rbc: '#e74c3c',
+        macrophage: '#3498db',
+        lysozyme: '#d35400',
+        tcell: '#9b59b6',
+        nkcell: '#8b0000',
+        bcell: '#00bcd4',
+        dendritic: '#ffd700',
+        eosinophil: '#e91e63',
+        memoryT: '#009688'
+    };
+
     const masterPool = [
-        { id: 'neutrophil', name: "中性粒细胞", unlockLevel: 1, cost: 4, maxCount: 6, rangeType: 'front2', atk: 14, maxLifeSec: 12, desc: "前方2格急性穿透" },
-        { id: 'rbc', name: "红细胞", unlockLevel: 1, cost: 3, maxCount: 8, rangeType: 'front1', atk: 8, maxLifeSec: 25, desc: "前方1格，长寿稳固" },
-        { id: 'macrophage', name: "巨噬细胞", unlockLevel: 1, cost: 8, maxCount: 4, rangeType: 'cross2', atk: 32, maxLifeSec: 15, desc: "十字广域大范围吞噬" },
-        { id: 'lysozyme', name: "溶菌酶分泌细胞", unlockLevel: 2, cost: 14, maxCount: 2, rangeType: 'allRow', atk: 65, maxLifeSec: 10, desc: "第2关特供：整行高伤克链球菌" },
-        { id: 'tcell', name: "成熟T淋巴细胞", unlockLevel: 4, cost: 10, maxCount: 3, rangeType: 'circle1', atk: 28, maxLifeSec: 12, desc: "周围3x3范围群攻" },
-        { id: 'nkcell', name: "NK杀手细胞", unlockLevel: 6, cost: 12, maxCount: 2, rangeType: 'cross3', atk: 50, maxLifeSec: 10, desc: "超大十字广谱打击" }
+        { id: 'neutrophil', name: "中性粒细胞", unlockLevel: 1, cost: 4, maxCount: 6, rangeType: 'front1', atk: 10, maxLifeSec: 10, desc: "前方1格，急性首发响应" },
+        { id: 'rbc', name: "红细胞", unlockLevel: 1, cost: 3, maxCount: 8, rangeType: 'front1', atk: 5, maxLifeSec: 25, desc: "前方1格，长寿抗伤肉盾" },
+        { id: 'macrophage', name: "巨噬细胞", unlockLevel: 1, cost: 8, maxCount: 4, rangeType: 'cross2', atk: 25, maxLifeSec: 15, desc: "十字2格广域吞噬" },
+        { id: 'lysozyme', name: "溶菌酶分泌细胞", unlockLevel: 2, cost: 14, maxCount: 2, rangeType: 'front2', atk: 40, maxLifeSec: 8, desc: "前方2格，专克细菌(+50%)" },
+        { id: 'tcell', name: "T淋巴细胞", unlockLevel: 3, cost: 10, maxCount: 3, rangeType: 'circle1', atk: 18, maxLifeSec: 12, desc: "周围3x3协同群攻" },
+        { id: 'nkcell', name: "NK杀手细胞", unlockLevel: 4, cost: 12, maxCount: 2, rangeType: 'cross3', atk: 35, maxLifeSec: 10, desc: "超大十字广谱猎杀" },
+        { id: 'bcell', name: "B淋巴细胞", unlockLevel: 5, cost: 11, maxCount: 3, rangeType: 'allRow', atk: 12, maxLifeSec: 20, desc: "整行抗体远程打击" },
+        { id: 'dendritic', name: "树突状细胞", unlockLevel: 6, cost: 9, maxCount: 3, rangeType: 'buff1', atk: 0, maxLifeSec: 18, desc: "激活周围细胞+50%攻击" },
+        { id: 'eosinophil', name: "嗜酸性粒细胞", unlockLevel: 7, cost: 8, maxCount: 4, rangeType: 'front3', atk: 20, maxLifeSec: 14, desc: "前方3格远程穿刺" },
+        { id: 'memoryT', name: "记忆T细胞", unlockLevel: 8, cost: 15, maxCount: 2, rangeType: 'circle2', atk: 8, maxLifeSec: 40, desc: "5x5超长寿命(40秒)" }
     ];
 
+    // ==================== 关卡配置（15关生命周期） ====================
+    const levels = [
+        { id: 1, ageGroup: '幼儿期', name: "第1关: 脐带残端初阶防线", enemyHp: 25, enemyCount: 8, rewardNut: 20, baseHp: 12, allowedEnemies: ['influenza'] },
+        { id: 2, ageGroup: '幼儿期', name: "第2关: 乳牙期微循环突袭", enemyHp: 35, enemyCount: 10, rewardNut: 25, baseHp: 12, allowedEnemies: ['influenza', 'rhinovirus'] },
+        { id: 3, ageGroup: '幼儿期', name: "第3关: 幼儿肠道菌群建立", enemyHp: 42, enemyCount: 12, rewardNut: 28, baseHp: 12, allowedEnemies: ['rotavirus', 'ecoli'] },
+        { id: 4, ageGroup: '儿童期', name: "第4关: 扁桃体初战链球菌", enemyHp: 50, enemyCount: 14, rewardNut: 30, baseHp: 10, allowedEnemies: ['influenza', 'streptococcus'] },
+        { id: 5, ageGroup: '儿童期', name: "第5关: 校园流感大暴发", enemyHp: 60, enemyCount: 16, rewardNut: 35, baseHp: 10, allowedEnemies: ['influenza', 'rhinovirus', 'rotavirus'] },
+        { id: 6, ageGroup: '儿童期', name: "第6关: 呼吸道黏膜防御战", enemyHp: 72, enemyCount: 18, rewardNut: 38, baseHp: 10, allowedEnemies: ['rhinovirus', 'mycoplasma'] },
+        { id: 7, ageGroup: '青少年', name: "第7关: 青春期皮脂腺突围", enemyHp: 85, enemyCount: 20, rewardNut: 42, baseHp: 8, allowedEnemies: ['staph', 'streptococcus'] },
+        { id: 8, ageGroup: '青少年', name: "第8关: 淋巴结总动员", enemyHp: 100, enemyCount: 22, rewardNut: 45, baseHp: 8, allowedEnemies: ['influenza', 'streptococcus', 'mycoplasma', 'ecoli'] },
+        { id: 9, ageGroup: '青少年', name: "第9关: 免疫特训场", enemyHp: 115, enemyCount: 24, rewardNut: 50, baseHp: 8, allowedEnemies: ['rotavirus', 'tubercle', 'coronavirus'] },
+        { id: 10, ageGroup: '成年期', name: "第10关: 职场高压微环境", enemyHp: 135, enemyCount: 26, rewardNut: 55, baseHp: 6, allowedEnemies: ['rhinovirus', 'mycoplasma', 'tubercle'] },
+        { id: 11, ageGroup: '成年期', name: "第11关: 熬夜免疫低谷突袭", enemyHp: 155, enemyCount: 28, rewardNut: 60, baseHp: 6, allowedEnemies: ['influenza', 'coronavirus', 'staph'] },
+        { id: 12, ageGroup: '成年期', name: "第12关: 肝脏解毒重压区", enemyHp: 180, enemyCount: 30, rewardNut: 65, baseHp: 6, allowedEnemies: ['tubercle', 'hepatitisBoss'] },
+        { id: 13, ageGroup: '老年期', name: "第13关: 胸腺退化期防线", enemyHp: 210, enemyCount: 32, rewardNut: 75, baseHp: 5, allowedEnemies: ['streptococcus', 'tubercle', 'coronavirus'] },
+        { id: 14, ageGroup: '老年期', name: "第14关: 慢性侵蚀全面告急", enemyHp: 240, enemyCount: 35, rewardNut: 85, baseHp: 5, allowedEnemies: ['mycoplasma', 'tubercle', 'staph', 'ecoli'] },
+        { id: 15, ageGroup: '老年期', name: "第15关: 终极免疫决战", enemyHp: 280, enemyCount: 40, rewardNut: 120, baseHp: 4, allowedEnemies: ['influenza', 'streptococcus', 'coronavirus', 'tubercle', 'hepatitisBoss'] }
+    ];
+
+    // ==================== 游戏状态 ====================
     let playerOperators = [
         { ...masterPool[0] },
         { ...masterPool[1] },
@@ -110,23 +231,10 @@
     let nutrients = 100;
     let atp = 30;
     let currentLevel = 1;
-
-    const levels = [
-        { id: 1, ageGroup: '儿童期', name: "第 1 关: 末梢微循环 (流感入侵)", enemyHp: 30, enemyCount: 6, rewardNut: 25, baseHp: 12 },
-        { id: 2, ageGroup: '儿童期', name: "第 2 关: 扁桃体防线 (链球菌)", enemyHp: 48, enemyCount: 7, rewardNut: 30, baseHp: 12 },
-        { id: 3, ageGroup: '儿童期', name: "第 3 关: 气道黏膜 (支原体)", enemyHp: 65, enemyCount: 9, rewardNut: 35, baseHp: 12 },
-        { id: 4, ageGroup: '青少年期', name: "第 4 关: 淋巴结阵地 (腺病毒)", enemyHp: 80, enemyCount: 10, rewardNut: 40, baseHp: 15 },
-        { id: 5, ageGroup: '青少年期', name: "第 5 关: 肝脏解毒区 (乙肝突袭)", enemyHp: 95, enemyCount: 11, rewardNut: 45, baseHp: 15 },
-        { id: 6, ageGroup: '成年期', name: "第 6 关: 脾脏免疫过滤网", enemyHp: 120, enemyCount: 12, rewardNut: 50, baseHp: 20 },
-        { id: 7, ageGroup: '成年期', name: "第 7 关: 血脑屏障防线", enemyHp: 145, enemyCount: 14, rewardNut: 60, baseHp: 20 },
-        { id: 8, ageGroup: '老年期', name: "第 8 关: 胃酸防御衰退圈", enemyHp: 170, enemyCount: 15, rewardNut: 70, baseHp: 10 },
-        { id: 9, ageGroup: '老年期', name: "第 9 关: 冠状动脉硬化险地", enemyHp: 200, enemyCount: 16, rewardNut: 80, baseHp: 10 },
-        { id: 10, ageGroup: '老年期', name: "第 10 关: 全身免疫总决战", enemyHp: 240, enemyCount: 20, rewardNut: 100, baseHp: 10 }
-    ];
-
     let baseHp = levels[0].baseHp;
     let selectedOp = playerOperators[0];
     let waveInProgress = false;
+    let waveSpawningDone = false;
 
     let mouseX = -1, mouseY = -1;
     const canvas = document.getElementById('gameCanvas');
@@ -137,7 +245,49 @@
     const tileSize = 70;
     let grid = Array(rows).fill().map(() => Array(cols).fill(null));
     let enemies = [];
+    let particles = [];
 
+    // ==================== 辅助函数 ====================
+    function getAttackedGrids(opR, opC, rangeType) {
+        let list = [];
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                if(rangeType === 'front1' && r === opR && c === opC + 1) list.push({r, c});
+                if(rangeType === 'front2' && r === opR && (c === opC + 1 || c === opC + 2)) list.push({r, c});
+                if(rangeType === 'front3' && r === opR && (c === opC + 1 || c === opC + 2 || c === opC + 3)) list.push({r, c});
+                if(rangeType === 'cross2' && ((r === opR && Math.abs(c - opC) <= 2) || (c === opC && Math.abs(r - opR) <= 2))) list.push({r, c});
+                if(rangeType === 'cross3' && ((r === opR && Math.abs(c - opC) <= 3) || (c === opC && Math.abs(r - opR) <= 3))) list.push({r, c});
+                if(rangeType === 'circle1' && Math.abs(r - opR) <= 1 && Math.abs(c - opC) <= 1) list.push({r, c});
+                if(rangeType === 'circle2' && Math.abs(r - opR) <= 2 && Math.abs(c - opC) <= 2) list.push({r, c});
+                if(rangeType === 'buff1' && Math.abs(r - opR) <= 1 && Math.abs(c - opC) <= 1 && !(r === opR && c === opC)) list.push({r, c});
+                if(rangeType === 'allRow' && r === opR && c > opC) list.push({r, c});
+            }
+        }
+        return list;
+    }
+
+    function spawnDeathParticles(x, y, color) {
+        for(let i = 0; i < 10; i++) {
+            particles.push({
+                x: x, y: y,
+                vx: (Math.random() - 0.5) * 5,
+                vy: (Math.random() - 0.5) * 5,
+                life: 30, maxLife: 30,
+                color: color, size: 2 + Math.random() * 3
+            });
+        }
+    }
+
+    function spawnFloatingText(x, y, text, color) {
+        particles.push({
+            x: x, y: y,
+            vx: 0, vy: -0.8,
+            life: 50, maxLife: 50,
+            text: text, color: color, isText: true
+        });
+    }
+
+    // ==================== UI 渲染 ====================
     function checkUnlockByLevel() {
         for(let master of masterPool) {
             if(currentLevel >= master.unlockLevel) {
@@ -158,6 +308,17 @@
             <div class="level-item ${currentLevel === lvl.id ? 'active' : ''}" onclick="selectLevel(${lvl.id})">
                 <div><b>${lvl.name}</b></div>
                 <div style="color: #f39c12;">🧪${lvl.rewardNut}</div>
+            </div>
+        `).join('');
+    }
+
+    function renderEnemyBestiary() {
+        const div = document.getElementById('enemyBestiary');
+        if(!div) return;
+        div.innerHTML = Object.values(enemyTypes).map(e => `
+            <div class="bestiary-entry">
+                <div class="bestiary-color" style="background:${e.color};"></div>
+                <div><b style="color:${e.color};">${e.name}</b> — ${e.desc}</div>
             </div>
         `).join('');
     }
@@ -192,21 +353,7 @@
         renderOperators();
     }
 
-    function getAttackedGrids(opR, opC, rangeType) {
-        let list = [];
-        for(let r = 0; r < rows; r++) {
-            for(let c = 0; c < cols; c++) {
-                if(rangeType === 'front1' && r === opR && c === opC + 1) list.push({r, c});
-                if(rangeType === 'front2' && r === opR && (c === opC + 1 || c === opC + 2)) list.push({r, c});
-                if(rangeType === 'cross2' && ((r === opR && Math.abs(c - opC) <= 2) || (c === opC && Math.abs(r - opR) <= 2))) list.push({r, c});
-                if(rangeType === 'cross3' && ((r === opR && Math.abs(c - opC) <= 3) || (c === opC && Math.abs(r - opR) <= 3))) list.push({r, c});
-                if(rangeType === 'circle1' && Math.abs(r - opR) <= 1 && Math.abs(c - opC) <= 1) list.push({r, c});
-                if(rangeType === 'allRow' && r === opR && c > opC) list.push({r, c});
-            }
-        }
-        return list;
-    }
-
+    // ==================== 事件监听 ====================
     canvas.addEventListener('mousemove', (e) => {
         const rect = canvas.getBoundingClientRect();
         mouseX = e.clientX - rect.left;
@@ -243,74 +390,223 @@
 
             atp -= selectedOp.cost;
             let totalFrames = selectedOp.maxLifeSec * 60;
-            grid[r][c] = { ...selectedOp, r, c, lifeTimer: totalFrames, maxLifeTimer: totalFrames };
+            grid[r][c] = { ...selectedOp, r, c, lifeTimer: totalFrames, maxLifeTimer: totalFrames, infected: false, infectTimer: 0 };
             updateUI();
         }
     });
 
+    // ==================== 敌人生成 ====================
     function startWave() {
         if(waveInProgress) return;
         waveInProgress = true;
+        waveSpawningDone = false;
         let lvlData = levels[currentLevel - 1];
         let spawned = 0;
+        let allowed = lvlData.allowedEnemies || ['influenza'];
+        let spawnInterval = currentLevel <= 5 ? 1500 : (currentLevel <= 10 ? 1200 : 1000);
 
         let spawnTimer = setInterval(() => {
             if(spawned < lvlData.enemyCount) {
+                let typeKey = allowed[Math.floor(Math.random() * allowed.length)];
+                let td = enemyTypes[typeKey];
                 let targetRow = Math.floor(Math.random() * rows);
+                let hp = Math.floor(lvlData.enemyHp * td.hpMult);
+
                 enemies.push({
                     x: cols * tileSize - 15,
                     y: targetRow * tileSize + tileSize / 2,
-                    hp: lvlData.enemyHp,
-                    maxHp: lvlData.enemyHp,
-                    speed: 0.45 + currentLevel * 0.015,
+                    hp: hp,
+                    maxHp: hp,
+                    speed: (0.45 + currentLevel * 0.012) * td.speedMult,
                     currentR: targetRow,
-                    currentC: cols - 1
+                    currentC: cols - 1,
+                    type: typeKey,
+                    typeData: td,
+                    ability: td.ability,
+                    damageReduction: td.damageReduction,
+                    evasion: td.evasion,
+                    isBacteria: td.isBacteria,
+                    isSplit: false,
+                    toxinTimer: 0,
+                    spawnTimer: 0,
+                    spawnCount: 0,
+                    size: td.size
                 });
                 spawned++;
             } else {
                 clearInterval(spawnTimer);
+                waveSpawningDone = true;
             }
-        }, 1500);
+        }, spawnInterval);
     }
 
+    // ==================== 游戏逻辑更新 ====================
     function updateGame() {
+        // ATP 自然恢复
         if(Math.random() < 0.035) {
             atp = Math.min(60, atp + 1);
             updateUI();
         }
 
+        // 计算树突状细胞增益范围
+        let buffedCells = new Set();
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                let op = grid[r][c];
+                if(op && op.id === 'dendritic' && !op.infected) {
+                    let buffGrids = getAttackedGrids(r, c, 'buff1');
+                    for(let bg of buffGrids) {
+                        buffedCells.add(bg.r + ',' + bg.c);
+                    }
+                }
+            }
+        }
+
+        // 免疫细胞攻击逻辑
         for(let r = 0; r < rows; r++) {
             for(let c = 0; c < cols; c++) {
                 let op = grid[r][c];
                 if(op) {
+                    // 寿命倒计时
                     op.lifeTimer -= 1;
+                    if(op.infected) {
+                        op.infectTimer--;
+                        op.lifeTimer -= 1; // 感染时额外损耗
+                        if(op.infectTimer <= 0) op.infected = false;
+                    }
                     if(op.lifeTimer <= 0) { grid[r][c] = null; continue; }
 
+                    // 感染状态不攻击，树突状细胞不攻击（仅增益）
+                    if(op.infected || op.id === 'dendritic') continue;
+
                     let targetGrids = getAttackedGrids(r, c, op.rangeType);
+                    let buffMult = buffedCells.has(r + ',' + c) ? 1.5 : 1;
+
                     for(let en of enemies) {
                         if(targetGrids.some(tg => tg.r === en.currentR && tg.c === en.currentC)) {
-                            en.hp -= (op.atk * 0.06);
+                            // 闪避判定
+                            if(Math.random() < (en.evasion || 0)) continue;
+                            // 基础伤害
+                            let damage = op.atk * 0.06 * buffMult * (1 - (en.damageReduction || 0));
+                            // 溶菌酶对细菌加伤
+                            if(op.id === 'lysozyme' && en.isBacteria) damage *= 1.5;
+                            en.hp -= damage;
                         }
                     }
                 }
             }
         }
 
+        // 敌人移动与能力触发
         for(let i = enemies.length - 1; i >= 0; i--) {
             let en = enemies[i];
             en.x -= en.speed;
             en.currentC = Math.max(0, Math.min(cols - 1, Math.floor(en.x / tileSize)));
             en.currentR = Math.max(0, Math.min(rows - 1, Math.floor(en.y / tileSize)));
 
+            // 与免疫细胞碰撞
             let cell = grid[en.currentR][en.currentC];
             if(cell) {
                 en.x += en.speed * 0.8;
-                cell.lifeTimer -= 1.5;
+                // 腐蚀能力：链球菌对细胞造成3倍损耗
+                let corrodeMult = en.ability === 'corrode' ? 3 : 1.5;
+                cell.lifeTimer -= corrodeMult;
+
+                // 感染能力：冠状病毒使细胞瘫痪
+                if(en.ability === 'infect' && !cell.infected) {
+                    cell.infected = true;
+                    cell.infectTimer = 180; // 3秒
+                    spawnFloatingText(en.x, en.y - 20, "感染!", '#e84393');
+                }
             }
 
+            // 毒素能力：支原体/大肠杆菌定期损伤周围细胞
+            if(en.ability === 'toxin') {
+                en.toxinTimer++;
+                if(en.toxinTimer >= 120) { // 每2秒
+                    en.toxinTimer = 0;
+                    for(let dr = -1; dr <= 1; dr++) {
+                        for(let dc = -1; dc <= 1; dc++) {
+                            let nr = en.currentR + dr, nc = en.currentC + dc;
+                            if(nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc]) {
+                                grid[nr][nc].lifeTimer -= 30;
+                            }
+                        }
+                    }
+                    spawnFloatingText(en.x, en.y - 20, "毒素!", en.typeData.color);
+                }
+            }
+
+            // 自愈能力：结核杆菌持续回血
+            if(en.ability === 'regen') {
+                en.hp = Math.min(en.maxHp, en.hp + 0.1);
+            }
+
+            // 召唤能力：Boss定期生成子体
+            if(en.ability === 'spawn' && en.spawnCount < 3) {
+                en.spawnTimer++;
+                if(en.spawnTimer >= 300) { // 每5秒
+                    en.spawnTimer = 0;
+                    en.spawnCount++;
+                    let td = enemyTypes['influenza'];
+                    for(let j = 0; j < 2; j++) {
+                        let row = Math.max(0, Math.min(rows - 1, en.currentR + (j === 0 ? -1 : 1)));
+                        enemies.push({
+                            x: en.x, y: row * tileSize + tileSize / 2,
+                            hp: Math.floor(en.maxHp * 0.12), maxHp: Math.floor(en.maxHp * 0.12),
+                            speed: en.speed * 1.8,
+                            currentR: row, currentC: en.currentC,
+                            type: 'influenza', typeData: td,
+                            ability: 'none', damageReduction: 0, evasion: 0,
+                            isBacteria: false, isSplit: true,
+                            toxinTimer: 0, spawnTimer: 0, spawnCount: 99,
+                            size: 12
+                        });
+                    }
+                    spawnFloatingText(en.x, en.y - 25, "召唤子体!", '#c0392b');
+                }
+            }
+
+            // 敌人死亡处理
             if(en.hp <= 0) {
+                // 分裂能力：轮状病毒死亡时生成2个子体
+                if(en.ability === 'split' && !en.isSplit) {
+                    let td = en.typeData;
+                    for(let j = 0; j < 2; j++) {
+                        let row = Math.max(0, Math.min(rows - 1, en.currentR + (j === 0 ? -1 : 1)));
+                        enemies.push({
+                            x: en.x, y: row * tileSize + tileSize / 2,
+                            hp: Math.floor(en.maxHp * 0.4), maxHp: Math.floor(en.maxHp * 0.4),
+                            speed: en.speed * 1.3,
+                            currentR: row, currentC: en.currentC,
+                            type: en.type, typeData: td,
+                            ability: 'none', damageReduction: 0, evasion: 0,
+                            isBacteria: td.isBacteria, isSplit: true,
+                            toxinTimer: 0, spawnTimer: 0, spawnCount: 99,
+                            size: td.size * 0.7
+                        });
+                    }
+                    spawnFloatingText(en.x, en.y - 20, "分裂!", '#1abc9c');
+                }
+
+                // 死亡毒素：葡萄球菌死亡时爆发
+                if(en.ability === 'death_toxin') {
+                    for(let dr = -1; dr <= 1; dr++) {
+                        for(let dc = -1; dc <= 1; dc++) {
+                            let nr = en.currentR + dr, nc = en.currentC + dc;
+                            if(nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc]) {
+                                grid[nr][nc].lifeTimer -= 60;
+                            }
+                        }
+                    }
+                    spawnFloatingText(en.x, en.y - 20, "毒素爆发!", '#f39c12');
+                }
+
+                spawnDeathParticles(en.x, en.y, en.typeData.color);
                 enemies.splice(i, 1);
-                if(enemies.length === 0 && waveInProgress) {
+
+                // 通关判定
+                if(enemies.length === 0 && waveInProgress && waveSpawningDone) {
                     waveInProgress = false;
                     let lvlData = levels[currentLevel - 1];
                     nutrients += lvlData.rewardNut;
@@ -327,7 +623,9 @@
                     updateUI();
                 }
             } else if(en.x <= 0) {
+                // 敌人突破防线
                 baseHp -= 1;
+                spawnDeathParticles(5, en.y, '#ff0000');
                 enemies.splice(i, 1);
                 updateUI();
                 if(baseHp <= 0) {
@@ -336,8 +634,157 @@
                 }
             }
         }
+
+        // 更新粒子
+        for(let i = particles.length - 1; i >= 0; i--) {
+            let p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life--;
+            if(p.life <= 0) particles.splice(i, 1);
+        }
     }
 
+    // ==================== 敌人绘制 ====================
+    function drawEnemy(en) {
+        let td = en.typeData;
+        let color = td.color;
+        let size = en.size || 14;
+
+        ctx.save();
+        ctx.translate(en.x, en.y);
+
+        switch(td.shape) {
+            case 'circle':
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(0, 0, size, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+
+            case 'diamond':
+                ctx.fillStyle = color;
+                ctx.rotate(Math.PI / 4);
+                ctx.fillRect(-size * 0.8, -size * 0.8, size * 1.6, size * 1.6);
+                ctx.rotate(-Math.PI / 4);
+                break;
+
+            case 'chain':
+                ctx.fillStyle = color;
+                for(let i = -1; i <= 1; i++) {
+                    ctx.beginPath();
+                    ctx.arc(i * size * 0.7, 0, size * 0.55, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                break;
+
+            case 'blob':
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                let t = Date.now() / 300;
+                for(let i = 0; i <= 8; i++) {
+                    let angle = (i / 8) * Math.PI * 2;
+                    let r = size * (0.85 + Math.sin(t + i) * 0.15);
+                    if(i === 0) ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                    else ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                }
+                ctx.closePath();
+                ctx.fill();
+                break;
+
+            case 'gear':
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                let teeth = 8;
+                for(let i = 0; i < teeth * 2; i++) {
+                    let angle = (i / (teeth * 2)) * Math.PI * 2;
+                    let r = i % 2 === 0 ? size : size * 0.65;
+                    if(i === 0) ctx.moveTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                    else ctx.lineTo(Math.cos(angle) * r, Math.sin(angle) * r);
+                }
+                ctx.closePath();
+                ctx.fill();
+                break;
+
+            case 'rod':
+                ctx.fillStyle = color;
+                ctx.fillRect(-size * 0.9, -size * 0.35, size * 1.8, size * 0.7);
+                ctx.beginPath();
+                ctx.arc(-size * 0.9, 0, size * 0.35, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(size * 0.9, 0, size * 0.35, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+
+            case 'spike':
+                // 刺突
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 2;
+                let spikes = 12;
+                for(let i = 0; i < spikes; i++) {
+                    let angle = (i / spikes) * Math.PI * 2;
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(angle) * size * 0.9, Math.sin(angle) * size * 0.9);
+                    ctx.lineTo(Math.cos(angle) * size * 1.5, Math.sin(angle) * size * 1.5);
+                    ctx.stroke();
+                }
+                // 主体
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 0.9, 0, Math.PI * 2);
+                ctx.fill();
+                break;
+
+            case 'cluster':
+                ctx.fillStyle = color;
+                let positions = [[-size*0.4, -size*0.3], [size*0.4, -size*0.3], [0, size*0.4], [-size*0.4, size*0.4], [size*0.4, size*0.3]];
+                for(let pos of positions) {
+                    ctx.beginPath();
+                    ctx.arc(pos[0], pos[1], size * 0.45, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                break;
+
+            case 'boss':
+                // 外层光环
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 1.15, 0, Math.PI * 2);
+                ctx.stroke();
+                // 主体
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(0, 0, size, 0, Math.PI * 2);
+                ctx.fill();
+                // 内部纹理
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 0.6, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 0.3, 0, Math.PI * 2);
+                ctx.stroke();
+                break;
+        }
+
+        ctx.restore();
+
+        // HP 血条
+        ctx.fillStyle = '#444';
+        ctx.fillRect(en.x - size - 2, en.y - size - 8, (size + 2) * 2, 4);
+        ctx.fillStyle = '#e67e22';
+        ctx.fillRect(en.x - size - 2, en.y - size - 8, (size + 2) * 2 * Math.max(0, en.hp / en.maxHp), 4);
+
+        // 名称
+        ctx.fillStyle = '#fff';
+        ctx.font = '8px sans-serif';
+        ctx.fillText(td.name, en.x - size, en.y - size - 12);
+    }
+
+    // ==================== 游戏绘制 ====================
     function drawGame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -345,9 +792,10 @@
         let hoverR = Math.floor(mouseY / tileSize);
         let isValidHover = hoverR >= 0 && hoverR < rows && hoverC >= 0 && hoverC < cols;
 
+        // 部署预览范围
         if(selectedOp && isValidHover && grid[hoverR][hoverC] === null) {
             let rangeGrids = getAttackedGrids(hoverR, hoverC, selectedOp.rangeType);
-            ctx.fillStyle = 'rgba(79, 172, 254, 0.25)';
+            ctx.fillStyle = selectedOp.id === 'dendritic' ? 'rgba(255, 215, 0, 0.2)' : 'rgba(79, 172, 254, 0.25)';
             for(let tg of rangeGrids) {
                 if(tg.r >= 0 && tg.r < rows && tg.c >= 0 && tg.c < cols) {
                     ctx.fillRect(tg.c * tileSize + 1, tg.r * tileSize + 1, tileSize - 2, tileSize - 2);
@@ -355,6 +803,7 @@
             }
         }
 
+        // 绘制网格和免疫细胞
         for(let r = 0; r < rows; r++) {
             for(let c = 0; c < cols; c++) {
                 ctx.strokeStyle = '#333346';
@@ -363,13 +812,44 @@
 
                 let op = grid[r][c];
                 if(op) {
-                    ctx.fillStyle = op.id === 'lysozyme' ? '#d35400' : (op.id.includes('cell') && op.id !== 'neutrophil' ? '#8e44ad' : '#27ae60');
+                    let cellColor = cellColors[op.id] || '#27ae60';
+
+                    // 感染状态视觉
+                    if(op.infected) {
+                        ctx.fillStyle = 'rgba(232, 67, 147, 0.3)';
+                        ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
+                    }
+
+                    // 细胞主体
+                    ctx.fillStyle = cellColor;
                     ctx.fillRect(c * tileSize + 6, r * tileSize + 6, tileSize - 12, tileSize - 12);
 
-                    ctx.fillStyle = '#fff';
-                    ctx.font = '11px sans-serif';
-                    ctx.fillText(op.name.slice(0, 4), c * tileSize + 8, r * tileSize + 30);
+                    // 增益边框
+                    if(op.id !== 'dendritic') {
+                        // 检查是否被树突状细胞增益
+                        let isBuffed = false;
+                        for(let br = 0; br < rows && !isBuffed; br++) {
+                            for(let bc = 0; bc < cols && !isBuffed; bc++) {
+                                let dc = grid[br][bc];
+                                if(dc && dc.id === 'dendritic' && !dc.infected) {
+                                    let bg = getAttackedGrids(br, bc, 'buff1');
+                                    if(bg.some(g => g.r === r && g.c === c)) isBuffed = true;
+                                }
+                            }
+                        }
+                        if(isBuffed) {
+                            ctx.strokeStyle = '#ffd700';
+                            ctx.lineWidth = 2;
+                            ctx.strokeRect(c * tileSize + 5, r * tileSize + 5, tileSize - 10, tileSize - 10);
+                        }
+                    }
 
+                    // 名称
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '10px sans-serif';
+                    ctx.fillText(op.name.slice(0, 4), c * tileSize + 8, r * tileSize + 28);
+
+                    // 寿命条
                     let lifeRatio = op.lifeTimer / op.maxLifeTimer;
                     ctx.fillStyle = '#444';
                     ctx.fillRect(c * tileSize + 10, r * tileSize + 50, tileSize - 20, 4);
@@ -379,23 +859,30 @@
             }
         }
 
+        // 绘制敌人
         for(let en of enemies) {
-            ctx.fillStyle = '#e74c3c';
-            ctx.beginPath();
-            ctx.arc(en.x, en.y, 14, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#fff';
-            ctx.font = '9px sans-serif';
-            ctx.fillText("病原", en.x - 10, en.y - 18);
-
-            ctx.fillStyle = '#444';
-            ctx.fillRect(en.x - 16, en.y - 24, 32, 4);
-            ctx.fillStyle = '#e67e22';
-            ctx.fillRect(en.x - 16, en.y - 24, 32 * (en.hp / en.maxHp), 4);
+            drawEnemy(en);
         }
+
+        // 绘制粒子效果
+        for(let p of particles) {
+            if(p.isText) {
+                ctx.globalAlpha = p.life / p.maxLife;
+                ctx.fillStyle = p.color;
+                ctx.font = 'bold 10px sans-serif';
+                ctx.fillText(p.text, p.x - 15, p.y);
+            } else {
+                ctx.globalAlpha = p.life / p.maxLife;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        ctx.globalAlpha = 1;
     }
 
+    // ==================== UI 更新 ====================
     function updateUI() {
         document.getElementById('baseHp').innerText = baseHp;
         document.getElementById('atpVal').innerText = atp;
@@ -404,20 +891,25 @@
 
     function resetGame() {
         waveInProgress = false;
+        waveSpawningDone = false;
         grid = Array(rows).fill().map(() => Array(cols).fill(null));
         enemies = [];
+        particles = [];
         baseHp = levels[currentLevel - 1].baseHp;
         atp = 30;
         updateUI();
     }
 
+    // ==================== 主循环 ====================
     setInterval(() => {
         if(waveInProgress) updateGame();
         drawGame();
     }, 1000 / 60);
 
+    // ==================== 初始化 ====================
     renderLevelList();
     renderOperators();
+    renderEnemyBestiary();
     updateUI();
 </script>
 </body>
