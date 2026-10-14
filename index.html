@@ -17,7 +17,7 @@
         .hp-badge { color: #ff5252; font-weight: bold; }
 
         .canvas-area { flex: 1; display: flex; justify-content: center; align-items: center; background: #141418; position: relative; }
-        canvas { background: #1a1a24; border: 2px solid #38384d; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: crosshair; display: block; }
+        canvas { background: #1a1a24; border: 2px solid #38384d; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: crosshair; display: block; touch-action: none; max-width: 100%; height: auto; }
 
         .dock-area { background: #1c1c24; padding: 15px 20px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #2d2d3b; }
         .operator-list { display: flex; gap: 10px; overflow-x: auto; min-height: 85px; align-items: center; }
@@ -131,6 +131,19 @@
         .op-avatar { display: flex; justify-content: center; margin-bottom: 4px; }
         .ci-row { display: flex; gap: 10px; align-items: center; }
         .ci-main { flex: 1; min-width: 0; }
+
+        /* ===== 移动端适配（小屏堆叠布局+触控友好） ===== */
+        @media (max-width: 900px) {
+            body, .pc-container { flex-direction: column; height: auto; min-height: 100vh; overflow: auto; }
+            .main-panel { border-right: none; border-bottom: 1px solid #2d2d3b; }
+            .top-bar { flex-wrap: wrap; gap: 6px; padding: 8px 10px; font-size: 12px; }
+            .canvas-area { padding: 6px; }
+            .dock-area { padding: 10px 12px; }
+            .operator-card { min-width: 110px; }
+            .sidebar { padding: 12px; }
+            .level-list { max-height: 180px; }
+            .modal { max-height: 92vh; }
+        }
     </style>
 </head>
 <body>
@@ -301,11 +314,11 @@
             desc: "20%减伤，死亡时释放毒素爆发"
         },
         hepatitisBoss: {
-            name: "核心变异Boss", color: '#c0392b', shape: 'boss',
+            name: "肝炎病毒Boss", color: '#c0392b', shape: 'boss',
             hpMult: 5.0, speedMult: 0.35, size: 22,
             damageReduction: 0.3, evasion: 0,
             ability: 'spawn', isBacteria: false,
-            desc: "Boss级，定期召唤流感子体(最多3次)"
+            desc: "Boss级，在肝细胞内复制后释放子代病毒(最多3次)"
         }
     };
 
@@ -325,14 +338,14 @@
 
     const masterPool = [
         { id: 'neutrophil', name: "中性粒细胞", rarity: 'common', unlockLevel: 1, cost: 4, maxCount: 6, rangeType: 'front1', atk: 10, maxLifeSec: 10, desc: "前方1格，急性首发响应" },
-        { id: 'rbc', name: "红细胞", rarity: 'common', unlockLevel: 1, cost: 3, maxCount: 8, rangeType: 'front1', atk: 5, maxLifeSec: 25, desc: "前方1格，长寿抗伤肉盾" },
+        { id: 'rbc', name: "红细胞", rarity: 'common', unlockLevel: 1, cost: 3, maxCount: 8, rangeType: 'front1', atk: 5, maxLifeSec: 25, desc: "前方1格，携氧供能辅助氧化杀菌，长寿肉盾" },
         { id: 'macrophage', name: "巨噬细胞", rarity: 'rare', unlockLevel: 1, cost: 8, maxCount: 4, rangeType: 'cross2', atk: 25, maxLifeSec: 15, desc: "十字2格广域吞噬" },
-        { id: 'lysozyme', name: "溶菌酶分泌细胞", rarity: 'epic', unlockLevel: 2, cost: 14, maxCount: 2, rangeType: 'front2', atk: 40, maxLifeSec: 8, desc: "前方2格，专克细菌(+50%)" },
+        { id: 'lysozyme', name: "溶菌酶分泌细胞", rarity: 'epic', unlockLevel: 2, cost: 14, maxCount: 2, rangeType: 'front2', atk: 40, maxLifeSec: 8, desc: "前方2格，水解细菌肽聚糖细胞壁(+50%)" },
         { id: 'tcell', name: "T淋巴细胞", rarity: 'rare', unlockLevel: 3, cost: 10, maxCount: 3, rangeType: 'circle1', atk: 18, maxLifeSec: 12, desc: "周围3x3协同群攻" },
-        { id: 'nkcell', name: "NK杀手细胞", rarity: 'epic', unlockLevel: 4, cost: 12, maxCount: 2, rangeType: 'cross3', atk: 35, maxLifeSec: 10, desc: "超大十字广谱猎杀" },
+        { id: 'nkcell', name: "NK自然杀伤细胞", rarity: 'epic', unlockLevel: 4, cost: 12, maxCount: 2, rangeType: 'cross3', atk: 35, maxLifeSec: 10, desc: "超大十字范围，杀伤病毒感染细胞" },
         { id: 'bcell', name: "B淋巴细胞", rarity: 'rare', unlockLevel: 5, cost: 11, maxCount: 3, rangeType: 'allRow', atk: 12, maxLifeSec: 20, desc: "整行抗体远程打击" },
         { id: 'dendritic', name: "树突状细胞", rarity: 'legendary', unlockLevel: 6, cost: 9, maxCount: 3, rangeType: 'buff1', atk: 0, maxLifeSec: 18, desc: "激活周围细胞+50%攻击" },
-        { id: 'eosinophil', name: "嗜酸性粒细胞", rarity: 'common', unlockLevel: 7, cost: 8, maxCount: 4, rangeType: 'front3', atk: 20, maxLifeSec: 14, desc: "前方3格远程穿刺" },
+        { id: 'eosinophil', name: "嗜酸性粒细胞", rarity: 'common', unlockLevel: 7, cost: 8, maxCount: 4, rangeType: 'front3', atk: 20, maxLifeSec: 14, desc: "前方3格脱颗粒远程杀伤" },
         { id: 'memoryT', name: "记忆T细胞", rarity: 'legendary', unlockLevel: 8, cost: 15, maxCount: 2, rangeType: 'circle2', atk: 8, maxLifeSec: 40, desc: "5x5超长寿命(40秒)" }
     ];
 
@@ -346,6 +359,7 @@
 
     // ==================== 免疫细胞卡通头像（依据真实细胞形态卡通化） ====================
     // 红细胞双凹无核、中性粒细胞三叶核+NETs、巨噬细胞皱褶吞噬、树突状细胞星状树突等均按真实形态设计
+    const AVATAR_LOCAL = 'assets/avatars/';
     const AVATAR_API = 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=';
     const avatarPrompts = {
         rbc: "cute cartoon mascot of a red blood cell, bright red round biconcave disc with lighter center dimple like a donut, no nucleus, tiny kawaii happy face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
@@ -364,20 +378,31 @@
     const avatarURLs = {};       // URL（UI <img>用）
     const avatarStatus = {};     // loading / ok / fail
     (function initCellAvatars() {
+        const svgFallback = (id) => 'data:image/svg+xml;utf8,' + encodeURIComponent(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="49" fill="#22222e"/><text x="50" y="64" font-size="42" text-anchor="middle">${avatarEmoji[id] || '🦠'}</text></svg>`
+        );
         for (let id in avatarPrompts) {
-            let url = AVATAR_API + encodeURIComponent(avatarPrompts[id]) + '&image_size=square_hd';
-            avatarURLs[id] = url;
+            const localURL = AVATAR_LOCAL + id + '.svg';
+            const onlineURL = AVATAR_API + encodeURIComponent(avatarPrompts[id]) + '&image_size=square_hd';
+            avatarURLs[id] = localURL;
             avatarStatus[id] = 'loading';
             let img = new Image();
             cellAvatars[id] = img;
             img.onload = () => { avatarStatus[id] = 'ok'; };
             img.onerror = () => {
-                avatarStatus[id] = 'fail';
-                avatarURLs[id] = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-                    `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="49" fill="#22222e"/><text x="50" y="64" font-size="42" text-anchor="middle">${avatarEmoji[id] || '🦠'}</text></svg>`
-                );
+                if(avatarURLs[id] === localURL) {
+                    avatarURLs[id] = onlineURL;
+                    img.onerror = () => {
+                        avatarStatus[id] = 'fail';
+                        avatarURLs[id] = svgFallback(id);
+                    };
+                    img.src = onlineURL;
+                } else {
+                    avatarStatus[id] = 'fail';
+                    avatarURLs[id] = svgFallback(id);
+                }
             };
-            img.src = url;
+            img.src = localURL;
         }
     })();
     // UI圆形头像（稀有度描边可选）
@@ -424,12 +449,12 @@
             science: '真实依据：胸腺是T细胞发育成熟的"军校"，其体积在青春期达到一生中的峰值，T细胞库最为丰富多样，此后才逐渐退化；黏膜分泌的溶菌酶也是这一阶段抵御呼吸道病原的重要化学屏障。'
         },
         {
-            id: 'adult', name: '巅峰免疫池', ageGroup: '成年期', ageRange: '19-45岁', unlockLevel: 10,
+            id: 'adult', name: '巅峰免疫池', ageGroup: '成年期', ageRange: '19-59岁', unlockLevel: 10,
             upOps: ['dendritic', 'eosinophil'], upRate: 0.6,
             science: '真实依据：成年期免疫功能达到一生巅峰，树突状细胞是体内最强的抗原提呈细胞（专业APC），像"指挥官"一样激活T细胞；嗜酸性粒细胞主导抗寄生虫免疫，也与成年期高发的过敏反应相关。'
         },
         {
-            id: 'elder', name: '记忆传承池', ageGroup: '老年期', ageRange: '46岁+', unlockLevel: 13,
+            id: 'elder', name: '记忆传承池', ageGroup: '老年期', ageRange: '60岁+', unlockLevel: 13,
             upOps: ['memoryT'], upRate: 0.7,
             science: '真实依据：免疫衰老（immunosenescence）——胸腺退化后新T细胞锐减，老年人对新病原体的应答变弱；但一生积累的记忆T细胞库庞大且持久，是老年免疫的最后堡垒（这也是既往疫苗对老年人仍有效的原因）。'
         }
@@ -461,6 +486,17 @@
     let mouseX = -1, mouseY = -1;
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
+    const CANVAS_W = 770, CANVAS_H = 350;
+
+    // 高DPI屏幕清晰化：按设备像素比放大画布物理分辨率
+    (function setupHiDPI() {
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        if(dpr > 1) {
+            canvas.width = CANVAS_W * dpr;
+            canvas.height = CANVAS_H * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+    })();
 
     const cols = 11;
     const rows = 5;
@@ -949,18 +985,27 @@
     }
 
     // ==================== 事件监听 ====================
-    canvas.addEventListener('mousemove', (e) => {
+    // 逻辑坐标换算：兼容CSS缩放与移动端触控
+    function toLogicalCoords(clientX, clientY) {
         const rect = canvas.getBoundingClientRect();
-        mouseX = e.clientX - rect.left;
-        mouseY = e.clientY - rect.top;
+        return {
+            x: (clientX - rect.left) * (CANVAS_W / rect.width),
+            y: (clientY - rect.top) * (CANVAS_H / rect.height)
+        };
+    }
+
+    canvas.addEventListener('mousemove', (e) => {
+        const p = toLogicalCoords(e.clientX, e.clientY);
+        mouseX = p.x;
+        mouseY = p.y;
     });
 
     canvas.addEventListener('mouseleave', () => { mouseX = -1; mouseY = -1; });
 
-    canvas.addEventListener('click', (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const c = Math.floor((e.clientX - rect.left) / tileSize);
-        const r = Math.floor((e.clientY - rect.top) / tileSize);
+    function handleBoardTap(clientX, clientY) {
+        const p = toLogicalCoords(clientX, clientY);
+        const c = Math.floor(p.x / tileSize);
+        const r = Math.floor(p.y / tileSize);
 
         if(r >= 0 && r < rows && c >= 0 && c < cols) {
             // 细胞凋亡（点击已有细胞回收）
@@ -988,7 +1033,26 @@
             grid[r][c] = { ...selectedOp, r, c, lifeTimer: totalFrames, maxLifeTimer: totalFrames, infected: false, infectTimer: 0 };
             updateUI();
         }
-    });
+    }
+
+    canvas.addEventListener('click', (e) => handleBoardTap(e.clientX, e.clientY));
+
+    // 移动端触控支持（touchend落子，touchstart预览高亮）
+    canvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const t = e.changedTouches[0];
+        const p = toLogicalCoords(t.clientX, t.clientY);
+        mouseX = p.x;
+        mouseY = p.y;
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        const t = e.changedTouches[0];
+        handleBoardTap(t.clientX, t.clientY);
+        mouseX = -1;
+        mouseY = -1;
+    }, { passive: false });
 
     // ==================== 敌人生成 ====================
     function startWave() {
@@ -1033,6 +1097,26 @@
                 waveSpawningDone = true;
             }
         }, spawnInterval);
+    }
+
+    // ==================== 波次结算 ====================
+    function completeWave() {
+        waveInProgress = false;
+        waveSpawningDone = false;
+        let lvlData = levels[currentLevel - 1];
+        nutrients += lvlData.rewardNut;
+        marrow += 2;   // 通关固定奖励2个骨髓造血原液
+        alert(`🎉 恭喜通关 ${lvlData.name}！\n获得营养 🧪+${lvlData.rewardNut}，骨髓造血原液 🦴+2`);
+
+        if(currentLevel < levels.length) {
+            currentLevel++;
+            refreshDeckOperators();
+            let nextLvl = levels[currentLevel-1];
+            baseHp = nextLvl.baseHp;
+            document.getElementById('levelTitleDisplay').innerText = `当前关卡：第 ${nextLvl.id} 关 (${nextLvl.ageGroup})`;
+            renderLevelList();
+        }
+        updateUI();
     }
 
     // ==================== 游戏逻辑更新 ====================
@@ -1146,7 +1230,7 @@
                 en.hp = Math.min(en.maxHp, en.hp + 0.1);
             }
 
-            // 召唤能力：Boss定期生成子体
+            // 召唤能力：肝炎病毒Boss在肝细胞内复制后定期释放子代病毒
             if(en.ability === 'spawn' && en.spawnCount < 3) {
                 en.spawnTimer++;
                 if(en.spawnTimer >= 300) { // 每5秒
@@ -1167,13 +1251,13 @@
                             size: 12
                         });
                     }
-                    spawnFloatingText(en.x, en.y - 25, "召唤子体!", '#c0392b');
+                    spawnFloatingText(en.x, en.y - 25, "释放子代病毒!", '#c0392b');
                 }
             }
 
             // 敌人死亡处理
             if(en.hp <= 0) {
-                // Boss掉落：击杀核心变异Boss额外奖励骨髓造血原液
+                // Boss掉落：击杀肝炎病毒Boss额外奖励骨髓造血原液
                 if(en.type === 'hepatitisBoss') {
                     marrow += 1;
                     spawnFloatingText(en.x, en.y - 30, "原液+1!", '#ff6ec7');
@@ -1217,21 +1301,7 @@
 
                 // 通关判定
                 if(enemies.length === 0 && waveInProgress && waveSpawningDone) {
-                    waveInProgress = false;
-                    let lvlData = levels[currentLevel - 1];
-                    nutrients += lvlData.rewardNut;
-                    marrow += 2;   // 通关固定奖励2个骨髓造血原液
-                    alert(`🎉 恭喜通关 ${lvlData.name}！\n获得营养 🧪+${lvlData.rewardNut}，骨髓造血原液 🦴+2`);
-
-                    if(currentLevel < levels.length) {
-                        currentLevel++;
-                        refreshDeckOperators();
-                        let nextLvl = levels[currentLevel-1];
-                        baseHp = nextLvl.baseHp;
-                        document.getElementById('levelTitleDisplay').innerText = `当前关卡：第 ${nextLvl.id} 关 (${nextLvl.ageGroup})`;
-                        renderLevelList();
-                    }
-                    updateUI();
+                    completeWave();
                 }
             } else if(en.x <= 0) {
                 // 敌人突破防线
@@ -1242,6 +1312,11 @@
                 if(baseHp <= 0) {
                     alert("宿主防线崩溃！游戏失败。");
                     resetGame();
+                    return;
+                }
+                // 全部敌人突破防线后同样结算波次，防止卡死
+                if(enemies.length === 0 && waveInProgress && waveSpawningDone) {
+                    completeWave();
                 }
             }
         }
