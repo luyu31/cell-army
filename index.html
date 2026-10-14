@@ -112,6 +112,25 @@
         .ci-actions button:hover { background: #38384d; color: #fff; }
         .ci-actions button.on { background: #4facfe; color: #fff; }
         .ci-actions .full-star { font-size: 11px; color: #ffb142; padding: 4px 0; }
+
+        /* ===== 年龄阶段UP池 ===== */
+        .pool-tabs { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 6px; }
+        .pool-tab { flex: 1 1 30%; min-width: 150px; background: #22222e; border: 1px solid #333342; border-radius: 8px; padding: 6px 10px; cursor: pointer; transition: all 0.15s; }
+        .pool-tab:hover { border-color: #4facfe; }
+        .pool-tab.active { border-color: #4facfe; background: #1f304a; box-shadow: 0 0 8px rgba(79,172,254,0.35); }
+        .pool-tab.locked { opacity: 0.45; }
+        .pool-tab .pt-name { font-size: 11px; font-weight: bold; color: #fff; }
+        .pool-tab .pt-sub { font-size: 9px; color: #888; margin-top: 2px; }
+        .pool-tab .pt-up { color: #ffb142; }
+        .pool-science { background: #16161a; border: 1px solid #2a2a38; border-radius: 8px; padding: 10px; font-size: 11px; color: #aaa; line-height: 1.7; margin: 8px 0; display: flex; gap: 12px; align-items: flex-start; }
+        .pool-up-ops { display: flex; gap: 8px; flex-shrink: 0; }
+        .up-badge { font-size: 9px; color: #ffb142; border: 1px solid #ffb142; border-radius: 8px; padding: 0 6px; margin-left: 4px; }
+
+        /* ===== 卡通头像 ===== */
+        .card-avatar { display: flex; justify-content: center; margin-bottom: 4px; }
+        .op-avatar { display: flex; justify-content: center; margin-bottom: 4px; }
+        .ci-row { display: flex; gap: 10px; align-items: center; }
+        .ci-main { flex: 1; min-width: 0; }
     </style>
 </head>
 <body>
@@ -183,12 +202,14 @@
             <button onclick="closeGacha()">✕</button>
         </div>
         <div class="modal-body">
-            <div style="font-size:12px; color:#aaa;">骨髓造血原液：<b style="color:#ff6ec7;" id="gachaMarrow">0</b></div>
+            <div style="font-size:12px; color:#aaa;">骨髓造血原液：<b style="color:#ff6ec7;" id="gachaMarrow">0</b>　<span style="color:#666;">｜随生命周期关卡解锁各年龄阶段主题UP池（依据真实免疫发育）</span></div>
+            <div class="pool-tabs" id="poolTabs"></div>
+            <div class="pool-science" id="poolScience"></div>
             <div class="gacha-buttons">
                 <button class="btn-gacha-single" onclick="doGacha(1)">单抽<br><small>1 原液</small></button>
                 <button class="btn-gacha-ten" onclick="doGacha(10)">十连抽<br><small>9 原液 · 保底精英+</small></button>
             </div>
-            <div class="prob-info">概率：普通55% · 精英30% · 史诗12% · 传奇3%</div>
+            <div class="prob-info">基础概率：普通55% · 精英30% · 史诗12% · 传奇3% ｜UP池：命中UP干员稀有度时，按UP率倾向出UP干员</div>
             <div class="pool-list" id="gachaPoolList"></div>
             <div class="exchange-row">
                 <span style="font-size:11px; color:#aaa;">营养兑换：</span>
@@ -323,6 +344,47 @@
         legendary: { label: '传奇', color: '#f39c12', glow: '#ffd700', prob: 3,  fragReward: 10 }
     };
 
+    // ==================== 免疫细胞卡通头像（依据真实细胞形态卡通化） ====================
+    // 红细胞双凹无核、中性粒细胞三叶核+NETs、巨噬细胞皱褶吞噬、树突状细胞星状树突等均按真实形态设计
+    const AVATAR_API = 'https://trae-api-cn.mchost.guru/api/ide/v1/tool_text_to_image?prompt=';
+    const avatarPrompts = {
+        rbc: "cute cartoon mascot of a red blood cell, bright red round biconcave disc with lighter center dimple like a donut, no nucleus, tiny kawaii happy face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        neutrophil: "cute cartoon mascot of a neutrophil white blood cell, round pale lilac cell with a purple three-lobed nucleus visible inside and fine pink granules, brave face, throwing a small green capture net, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        macrophage: "cute cartoon mascot of a macrophage white blood cell, big round teal-blue cell with wavy ruffled membrane edges, engulfing a tiny purple bacterium, big friendly eyes, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        lysozyme: "cute cartoon mascot of a lysozyme secreting cell, round golden-yellow cell spraying tiny enzyme droplets that dissolve small green bacteria, cheerful kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        tcell: "cute cartoon mascot of a T lymphocyte white blood cell, small round sky-blue cell covered with tiny Y-shaped T-cell receptors on its surface, heroic determined kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        nkcell: "cute cartoon mascot of a natural killer cell, large round crimson-red granular lymphocyte with dark purple killer granules inside and spiky receptors on its surface, cool confident kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        bcell: "cute cartoon mascot of a B lymphocyte white blood cell, round mint-green cell studded with Y-shaped antibody receptors, holding up a small glowing Y-shaped antibody, friendly kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        dendritic: "cute cartoon mascot of a dendritic cell, golden-yellow star-shaped cell with many branching dendrite arms like a little sun, wise calm kawaii face, waving one dendrite arm, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        eosinophil: "cute cartoon mascot of an eosinophil white blood cell, round coral-pink cell with bright red-orange granules and a two-lobed nucleus, aiming at a tiny worm parasite, playful kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        memoryT: "cute cartoon mascot of a memory T cell, teal round lymphocyte with Y-shaped receptors and a small glowing golden star medal on its chest, calm veteran kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon"
+    };
+    const avatarEmoji = { rbc: '🔴', neutrophil: '⚡', macrophage: '🌀', lysozyme: '💧', tcell: '🎯', nkcell: '🗡️', bcell: '🛡️', dendritic: '☀️', eosinophil: '🏹', memoryT: '📚' };
+    const cellAvatars = {};      // Image对象（Canvas绘制用）
+    const avatarURLs = {};       // URL（UI <img>用）
+    const avatarStatus = {};     // loading / ok / fail
+    (function initCellAvatars() {
+        for (let id in avatarPrompts) {
+            let url = AVATAR_API + encodeURIComponent(avatarPrompts[id]) + '&image_size=square_hd';
+            avatarURLs[id] = url;
+            avatarStatus[id] = 'loading';
+            let img = new Image();
+            cellAvatars[id] = img;
+            img.onload = () => { avatarStatus[id] = 'ok'; };
+            img.onerror = () => {
+                avatarStatus[id] = 'fail';
+                avatarURLs[id] = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+                    `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><circle cx="50" cy="50" r="49" fill="#22222e"/><text x="50" y="64" font-size="42" text-anchor="middle">${avatarEmoji[id] || '🦠'}</text></svg>`
+                );
+            };
+            img.src = url;
+        }
+    })();
+    // UI圆形头像（稀有度描边可选）
+    function avatarImg(id, size, extraStyle) {
+        return `<img src="${avatarURLs[id]}" width="${size}" height="${size}" style="border-radius:50%; object-fit:cover; border:2px solid #38384d; background:#fff; display:block; ${extraStyle || ''}">`;
+    }
+
     // ==================== 关卡配置（15关生命周期） ====================
     const levels = [
         { id: 1, ageGroup: '幼儿期', name: "第1关: 脐带残端初阶防线", enemyHp: 25, enemyCount: 8, rewardNut: 20, baseHp: 12, allowedEnemies: ['influenza'] },
@@ -342,6 +404,37 @@
         { id: 15, ageGroup: '老年期', name: "第15关: 终极免疫决战", enemyHp: 280, enemyCount: 40, rewardNut: 120, baseHp: 4, allowedEnemies: ['influenza', 'streptococcus', 'coronavirus', 'tubercle', 'hepatitisBoss'] }
     ];
 
+    // ==================== 年龄阶段UP池（依据真实免疫发育规律） ====================
+    // 幼儿期(第1-3关) → 儿童期(第4-6关) → 青少年(第7-9关) → 成年期(第10-12关) → 老年期(第13-15关)
+    // UP机制：命中UP干员稀有度时，按upRate概率选中UP干员；解锁条件：推进到对应生命周期阶段
+    const ageStagePools = [
+        {
+            id: 'toddler', name: '先天防线池', ageGroup: '幼儿期', ageRange: '0-6岁', unlockLevel: 1,
+            upOps: ['neutrophil', 'nkcell'], upRate: 0.6,
+            science: '真实依据：幼儿的适应性免疫尚未发育成熟，主要依靠先天免疫首当其冲——中性粒细胞在出生时即大量投入战斗，NK细胞出生时就具备杀伤活性；同时母体IgG经胎盘传递、母乳sIgA提供被动保护，如同"先天防线"。'
+        },
+        {
+            id: 'child', name: '疫苗筑忆池', ageGroup: '儿童期', ageRange: '7-12岁', unlockLevel: 4,
+            upOps: ['bcell', 'macrophage'], upRate: 0.6,
+            science: '真实依据：儿童期按免疫规划接种疫苗，B细胞受抗原刺激后分化为浆细胞产生抗体，并建立长效的记忆B细胞；巨噬细胞负责吞噬病原、提呈抗原，是启动适应性免疫的"清道夫"。'
+        },
+        {
+            id: 'teen', name: '胸腺特训池', ageGroup: '青少年', ageRange: '13-18岁', unlockLevel: 7,
+            upOps: ['tcell', 'lysozyme'], upRate: 0.6,
+            science: '真实依据：胸腺是T细胞发育成熟的"军校"，其体积在青春期达到一生中的峰值，T细胞库最为丰富多样，此后才逐渐退化；黏膜分泌的溶菌酶也是这一阶段抵御呼吸道病原的重要化学屏障。'
+        },
+        {
+            id: 'adult', name: '巅峰免疫池', ageGroup: '成年期', ageRange: '19-45岁', unlockLevel: 10,
+            upOps: ['dendritic', 'eosinophil'], upRate: 0.6,
+            science: '真实依据：成年期免疫功能达到一生巅峰，树突状细胞是体内最强的抗原提呈细胞（专业APC），像"指挥官"一样激活T细胞；嗜酸性粒细胞主导抗寄生虫免疫，也与成年期高发的过敏反应相关。'
+        },
+        {
+            id: 'elder', name: '记忆传承池', ageGroup: '老年期', ageRange: '46岁+', unlockLevel: 13,
+            upOps: ['memoryT'], upRate: 0.7,
+            science: '真实依据：免疫衰老（immunosenescence）——胸腺退化后新T细胞锐减，老年人对新病原体的应答变弱；但一生积累的记忆T细胞库庞大且持久，是老年免疫的最后堡垒（这也是既往疫苗对老年人仍有效的原因）。'
+        }
+    ];
+
     // ==================== 游戏状态 ====================
     let nutrients = 100;
     let atp = 30;
@@ -354,6 +447,7 @@
     let marrow = 5;                                    // 骨髓造血原液（抽卡代币）
     let collection = {};                               // { opId: { stars, fragments } }
     let deck = ['neutrophil', 'rbc', 'macrophage'];    // 编队（3~5名）
+    let currentPoolType = 'standard';                  // 当前卡池：standard=常驻池，否则为 ageStagePools.id
 
     // 初始赠送3名初始干员（1星）
     for(let starterId of deck) {
@@ -548,10 +642,17 @@
         return masterPool.filter(op => op.unlockLevel <= currentLevel);
     }
 
-    function rollOne(pool) {
+    function rollOne(pool, upOps, upRate) {
         let rarity = rollRarity();
         let candidates = pool.filter(op => op.rarity === rarity);
         if (candidates.length === 0) candidates = pool; // 该稀有度暂无已解锁干员时回退
+        // UP池：命中UP干员稀有度时，按UP率倾向选中UP干员
+        if (upOps && upOps.length > 0 && upRate > 0) {
+            let upInRarity = candidates.filter(op => upOps.includes(op.id));
+            if (upInRarity.length > 0 && Math.random() < upRate) {
+                return upInRarity[Math.floor(Math.random() * upInRarity.length)];
+            }
+        }
         return candidates[Math.floor(Math.random() * candidates.length)];
     }
 
@@ -561,15 +662,28 @@
         let pool = getAvailablePool();
         if (pool.length === 0) { alert('当前卡池暂无可用干员！'); return; }
 
-        marrow -= cost;
-        let results = [];
-        for (let i = 0; i < count; i++) results.push(rollOne(pool));
+        // 年龄阶段UP池校验
+        let stage = currentPoolType !== 'standard' ? ageStagePools.find(p => p.id === currentPoolType) : null;
+        if (stage && currentLevel < stage.unlockLevel) {
+            alert(`「${stage.name}」尚未解锁：需推进到「${stage.ageGroup}」阶段（第${stage.unlockLevel}关起）。`);
+            return;
+        }
 
-        // 十连保底：至少1张精英级及以上
+        marrow -= cost;
+        let upOps = stage ? stage.upOps : null;
+        let upRate = stage ? stage.upRate : 0;
+        let results = [];
+        for (let i = 0; i < count; i++) results.push(rollOne(pool, upOps, upRate));
+
+        // 十连保底：至少1张精英级及以上（UP池保底同样倾向UP干员）
         if (count === 10) {
             let hasRarePlus = results.some(op => op.rarity !== 'common');
             if (!hasRarePlus) {
                 let rarePlus = pool.filter(op => op.rarity !== 'common');
+                if (stage) {
+                    let upRarePlus = rarePlus.filter(op => stage.upOps.includes(op.id));
+                    if (upRarePlus.length > 0 && Math.random() < upRate) rarePlus = upRarePlus;
+                }
                 if (rarePlus.length > 0) {
                     results[0] = rarePlus[Math.floor(Math.random() * rarePlus.length)];
                 }
@@ -597,12 +711,14 @@
     function renderGachaResult(summary) {
         const div = document.getElementById('gachaResult');
         if (!div) return;
-        let html = '<div class="gacha-cards">';
+        let poolTitle = currentPoolType === 'standard' ? '常驻·骨髓分化池' : (ageStagePools.find(p => p.id === currentPoolType).name + '（UP池）');
+        let html = `<div style="font-size:11px; color:#888; text-align:center; margin-bottom:6px;">— ${poolTitle} 招募结果 —</div><div class="gacha-cards">`;
         for (let s of summary) {
             let op = s.op;
             let rc = rarityConfig[op.rarity];
             let note = s.isNew ? '<div class="card-note">NEW 入藏!</div>' : `<div class="card-note">重复 +${s.frag} 信物</div>`;
             html += `<div class="gacha-card ${op.rarity}" style="border-color:${rc.color}; box-shadow:0 0 14px ${rc.glow};">
+                <div class="card-avatar">${avatarImg(op.id, 56, 'border-color:' + rc.color)}</div>
                 <div class="rarity-label" style="color:${rc.color};">${rc.label}</div>
                 <div class="card-name">${op.name}</div>
                 <div class="card-star">${'★'.repeat(collection[op.id].stars)}</div>
@@ -617,9 +733,11 @@
         const div = document.getElementById('gachaPoolList');
         if (!div) return;
         let pool = getAvailablePool();
+        let stage = currentPoolType !== 'standard' ? ageStagePools.find(p => p.id === currentPoolType) : null;
         div.innerHTML = pool.map(op => {
             let rc = rarityConfig[op.rarity];
-            return `<span class="pool-chip" style="color:${rc.color}; border-color:${rc.color};">${op.name}</span>`;
+            let isUp = stage && stage.upOps.includes(op.id);
+            return `<span class="pool-chip" style="color:${rc.color}; border-color:${rc.color}; ${isUp ? 'background:#3a2f14; box-shadow:0 0 6px rgba(255,177,66,0.4);' : ''}">${isUp ? '⭐' : ''}${op.name}${isUp ? ' UP' : ''}</span>`;
         }).join('');
     }
 
@@ -633,7 +751,66 @@
 
     function refreshGachaUI() {
         document.getElementById('gachaMarrow').innerText = marrow;
+        renderPoolTabs();
+        renderPoolScience();
         renderGachaPool();
+    }
+
+    // ==================== 年龄阶段UP池 UI ====================
+    function opNameById(id) { let op = masterPool.find(m => m.id === id); return op ? op.name : id; }
+
+    function renderPoolTabs() {
+        const div = document.getElementById('poolTabs');
+        if (!div) return;
+        let html = `<div class="pool-tab ${currentPoolType === 'standard' ? 'active' : ''}" onclick="switchPool('standard')">
+            <div class="pt-name">🦴 常驻·骨髓分化池</div>
+            <div class="pt-sub">全谱系均衡招募</div>
+        </div>`;
+        for (let stage of ageStagePools) {
+            let unlocked = currentLevel >= stage.unlockLevel;
+            let sub = unlocked
+                ? `<span class="pt-up">UP: ${stage.upOps.map(opNameById).join(' / ')}</span> · UP率${Math.round(stage.upRate * 100)}%`
+                : `🔒 进入${stage.ageGroup}（第${stage.unlockLevel}关起）解锁`;
+            html += `<div class="pool-tab ${currentPoolType === stage.id ? 'active' : ''} ${unlocked ? '' : 'locked'}" onclick="switchPool('${stage.id}')">
+                <div class="pt-name">${stage.name} <span style="font-size:9px; color:#888;">${stage.ageGroup} ${stage.ageRange}</span></div>
+                <div class="pt-sub">${sub}</div>
+            </div>`;
+        }
+        div.innerHTML = html;
+    }
+
+    function switchPool(type) {
+        if (type !== 'standard') {
+            let stage = ageStagePools.find(p => p.id === type);
+            if (stage && currentLevel < stage.unlockLevel) {
+                alert(`「${stage.name}」尚未解锁：需推进到「${stage.ageGroup}」阶段（第${stage.unlockLevel}关起）。`);
+                return;
+            }
+        }
+        currentPoolType = type;
+        renderPoolTabs();
+        renderPoolScience();
+        renderGachaPool();
+    }
+
+    function renderPoolScience() {
+        const div = document.getElementById('poolScience');
+        if (!div) return;
+        if (currentPoolType === 'standard') {
+            div.innerHTML = `<div style="flex:1;"><b style="color:#4facfe;">常驻·骨髓分化池</b><br>真实依据：骨髓是免疫细胞的"摇篮"——红细胞、粒细胞、单核巨噬细胞均由骨髓造血干细胞分化，T/B淋巴细胞也在此产生后再到外周免疫器官成熟。全谱系均衡招募。</div>`;
+            return;
+        }
+        let stage = ageStagePools.find(p => p.id === currentPoolType);
+        let upHtml = stage.upOps.map(id => {
+            let op = masterPool.find(m => m.id === id);
+            let rc = rarityConfig[op.rarity];
+            return `<div style="text-align:center;">
+                ${avatarImg(id, 44, 'border-color:' + rc.color)}
+                <div style="font-size:10px; color:${rc.color}; margin-top:2px;">${op.name}</div>
+            </div>`;
+        }).join('');
+        div.innerHTML = `<div class="pool-up-ops">${upHtml}</div>
+            <div style="flex:1;"><b style="color:#ffb142;">🎯 UP干员（UP率${Math.round(stage.upRate * 100)}%）</b> · ${stage.ageGroup} ${stage.ageRange} · 第${stage.unlockLevel}关起开放<br>${stage.science}</div>`;
     }
 
     function openGacha() {
@@ -690,12 +867,17 @@
                 ? `<button onclick="upgradeStar('${id}')">升星(${upCost}信物)</button>`
                 : '<span class="full-star">满星 ★</span>';
             return `<div class="collection-item" style="border-left:3px solid ${rc.color};">
-                <div class="ci-top">
-                    <b style="color:${rc.color};">${op.name}</b>
-                    <span class="rarity-tag" style="color:${rc.color};">${rc.label}</span>
+                <div class="ci-row">
+                    ${avatarImg(id, 38, 'border-color:' + rc.color)}
+                    <div class="ci-main">
+                        <div class="ci-top">
+                            <b style="color:${rc.color};">${op.name}${deck.includes(id) ? '<span class="up-badge">编队中</span>' : ''}</b>
+                            <span class="rarity-tag" style="color:${rc.color};">${rc.label}</span>
+                        </div>
+                        <div class="ci-stars">${'★'.repeat(c.stars)}${'☆'.repeat(5 - c.stars)}</div>
+                        <div class="ci-info">信物 ${c.fragments} · ${op.desc}</div>
+                    </div>
                 </div>
-                <div class="ci-stars">${'★'.repeat(c.stars)}${'☆'.repeat(5 - c.stars)}</div>
-                <div class="ci-info">信物 ${c.fragments} · ${op.desc}</div>
                 <div class="ci-actions">
                     ${actionHtml}
                     <button class="${inDeck ? 'on' : ''}" onclick="toggleDeck('${id}')">${inDeck ? '移出编队' : '加入编队'}</button>
@@ -752,6 +934,7 @@
         if(!list) return;
         list.innerHTML = playerOperators.map((op, idx) => `
             <div class="operator-card ${selectedOp === op ? 'selected' : ''}" onclick="selectOperator(${idx})">
+                <div class="op-avatar">${avatarImg(op.id, 34, 'border-color:' + (rarityConfig[op.rarity] ? rarityConfig[op.rarity].color : '#38384d'))}</div>
                 <div class="name">${op.name}</div>
                 <div class="cost">⚡ ${op.cost} ATP · ${'★'.repeat(op.stars)}</div>
                 <div class="desc">${op.desc}</div>
@@ -1446,16 +1629,37 @@
                 let op = grid[r][c];
                 if(op) {
                     let cellColor = cellColors[op.id] || '#27ae60';
+                    let cx = c * tileSize + tileSize / 2;
+                    let cy = r * tileSize + tileSize / 2;
+                    let bodyR = tileSize / 2 - 5;
 
-                    // 感染状态视觉
-                    if(op.infected) {
-                        ctx.fillStyle = 'rgba(232, 67, 147, 0.3)';
-                        ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
+                    // 细胞主体：卡通头像（圆形裁剪），未加载/失败时回退为色块
+                    if(avatarStatus[op.id] === 'ok') {
+                        ctx.save();
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, bodyR, 0, Math.PI * 2);
+                        ctx.clip();
+                        let s = bodyR * 2;
+                        ctx.drawImage(cellAvatars[op.id], cx - bodyR, cy - bodyR, s, s);
+                        if(op.infected) {
+                            ctx.fillStyle = 'rgba(232, 67, 147, 0.35)';
+                            ctx.fillRect(cx - bodyR, cy - bodyR, s, s);
+                        }
+                        ctx.restore();
+                        ctx.strokeStyle = op.infected ? '#e84393' : cellColor;
+                        ctx.lineWidth = 2.5;
+                        ctx.beginPath();
+                        ctx.arc(cx, cy, bodyR, 0, Math.PI * 2);
+                        ctx.stroke();
+                    } else {
+                        // 感染状态视觉（色块回退模式）
+                        if(op.infected) {
+                            ctx.fillStyle = 'rgba(232, 67, 147, 0.3)';
+                            ctx.fillRect(c * tileSize, r * tileSize, tileSize, tileSize);
+                        }
+                        ctx.fillStyle = cellColor;
+                        ctx.fillRect(c * tileSize + 6, r * tileSize + 6, tileSize - 12, tileSize - 12);
                     }
-
-                    // 细胞主体
-                    ctx.fillStyle = cellColor;
-                    ctx.fillRect(c * tileSize + 6, r * tileSize + 6, tileSize - 12, tileSize - 12);
 
                     // 增益边框
                     if(op.id !== 'dendritic') {
@@ -1473,21 +1677,27 @@
                         if(isBuffed) {
                             ctx.strokeStyle = '#ffd700';
                             ctx.lineWidth = 2;
-                            ctx.strokeRect(c * tileSize + 5, r * tileSize + 5, tileSize - 10, tileSize - 10);
+                            ctx.beginPath();
+                            ctx.arc(cx, cy, bodyR + 2.5, 0, Math.PI * 2);
+                            ctx.stroke();
                         }
                     }
 
-                    // 名称
+                    // 名称（半透明底板保证头像上可读）
+                    let label = op.name.slice(0, 4);
+                    ctx.font = '9px sans-serif';
+                    let tw = ctx.measureText(label).width;
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+                    ctx.fillRect(cx - tw / 2 - 3, r * tileSize + 8, tw + 6, 12);
                     ctx.fillStyle = '#fff';
-                    ctx.font = '10px sans-serif';
-                    ctx.fillText(op.name.slice(0, 4), c * tileSize + 8, r * tileSize + 28);
+                    ctx.fillText(label, cx - tw / 2, r * tileSize + 18);
 
                     // 寿命条
                     let lifeRatio = op.lifeTimer / op.maxLifeTimer;
-                    ctx.fillStyle = '#444';
-                    ctx.fillRect(c * tileSize + 10, r * tileSize + 50, tileSize - 20, 4);
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+                    ctx.fillRect(cx - (tileSize - 20) / 2 - 1, r * tileSize + 49, tileSize - 18, 6);
                     ctx.fillStyle = lifeRatio > 0.3 ? '#2ecc71' : '#e74c3c';
-                    ctx.fillRect(c * tileSize + 10, r * tileSize + 50, (tileSize - 20) * lifeRatio, 4);
+                    ctx.fillRect(cx - (tileSize - 20) / 2, r * tileSize + 50, (tileSize - 20) * lifeRatio, 4);
                 }
             }
         }
