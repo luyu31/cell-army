@@ -2,24 +2,30 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>细胞防线 - 免疫系统增强版</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: #121216; color: #d4d4d4; display: flex; height: 100vh; overflow: hidden; }
+        body { background-color: #121216; color: #d4d4d4; display: flex; height: 100vh; height: 100dvh; overflow: hidden; touch-action: manipulation; }
 
-        .pc-container { display: flex; width: 100vw; height: 100vh; }
+        .pc-container { display: flex; width: 100vw; height: 100vh; height: 100dvh; }
 
-        .main-panel { flex: 3; display: flex; flex-direction: column; border-right: 1px solid #2d2d3b; background: #16161a; }
-        .top-bar { background: #1c1c24; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d2d3b; font-size: 14px; }
-        .res-badge { background: #252533; padding: 5px 12px; border-radius: 20px; color: #4facfe; font-weight: bold; border: 1px solid #38384d; display: flex; align-items: center; gap: 6px; }
+        .main-panel { flex: 3; display: flex; flex-direction: column; min-width: 0; min-height: 0; border-right: 1px solid #2d2d3b; background: #16161a; }
+        .top-bar { background: #1c1c24; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center; gap: 10px; border-bottom: 1px solid #2d2d3b; font-size: 14px; flex-shrink: 0; }
+        .tb-title { font-weight: bold; color: #f39c12; }
+        .res-badge { background: #252533; padding: 5px 12px; border-radius: 20px; color: #4facfe; font-weight: bold; border: 1px solid #38384d; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
         .nut-badge { color: #f39c12; font-weight: bold; background: #2a251c; border-color: #523e1a; }
-        .hp-badge { color: #ff5252; font-weight: bold; }
+        .hp-badge { color: #ff5252; font-weight: bold; white-space: nowrap; }
 
-        .canvas-area { flex: 1; display: flex; justify-content: center; align-items: center; background: #141418; position: relative; }
-        canvas { background: #1a1a24; border: 2px solid #38384d; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: crosshair; display: block; touch-action: none; max-width: 100%; height: auto; }
+        .canvas-area { flex: 1 1 auto; min-height: 0; display: flex; justify-content: center; align-items: center; background: #141418; position: relative; overflow: hidden; }
+        canvas { background: #1a1a24; border: 2px solid #38384d; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: crosshair; display: block; touch-action: none; max-width: 100%; max-height: 100%; }
 
-        .dock-area { background: #1c1c24; padding: 15px 20px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #2d2d3b; }
+        .dock-area { background: #1c1c24; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; border-top: 1px solid #2d2d3b; flex-shrink: 0; }
+        .tip-msg { font-size: 12px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .dock-main { display: flex; gap: 10px; align-items: stretch; }
+        .dock-main .operator-list { flex: 1; min-width: 0; }
+        .controls-col { display: flex; flex-direction: column; gap: 8px; justify-content: center; flex-shrink: 0; }
+        .controls-col button { white-space: nowrap; }
         .operator-list { display: flex; gap: 10px; overflow-x: auto; min-height: 85px; align-items: center; }
         .operator-card {
             min-width: 135px; background: #22222e; border: 2px solid #38384d; border-radius: 10px;
@@ -30,8 +36,6 @@
         .operator-card .cost { font-size: 11px; color: #ffb142; margin-top: 2px; font-weight: bold; }
         .operator-card .name { font-size: 12px; color: #fff; font-weight: bold; }
         .operator-card .desc { font-size: 9px; color: #888; margin-top: 2px; }
-
-        .controls-row { display: flex; justify-content: space-between; align-items: center; }
         .btn-primary { background: #4facfe; color: #fff; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
         .btn-primary:hover { background: #3598db; }
         .btn-secondary { background: #2a2a38; color: #ccc; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; cursor: pointer; }
@@ -165,17 +169,70 @@
         .ci-row { display: flex; gap: 10px; align-items: center; }
         .ci-main { flex: 1; min-width: 0; }
 
-        /* ===== 移动端适配（小屏堆叠布局+触控友好） ===== */
+        /* ===== 移动端菜单按钮与抽屉背景（桌面隐藏） ===== */
+        .menu-btn { display: none; background: #252533; border: 1px solid #38384d; color: #d4d4d4; border-radius: 6px; width: 32px; height: 28px; cursor: pointer; font-size: 15px; align-items: center; justify-content: center; flex-shrink: 0; }
+        .menu-btn:active { background: #38384d; }
+        .sidebar-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 940; }
+
+        /* ===== 移动端适配（单屏布局：画布自适应缩放 + 侧栏抽屉化，开始按钮常驻可见） ===== */
         @media (max-width: 900px) {
-            body, .pc-container { flex-direction: column; height: auto; min-height: 100vh; overflow: auto; }
-            .main-panel { border-right: none; border-bottom: 1px solid #2d2d3b; }
-            .top-bar { flex-wrap: wrap; gap: 6px; padding: 8px 10px; font-size: 12px; }
-            .canvas-area { padding: 6px; }
-            .dock-area { padding: 10px 12px; }
-            .operator-card { min-width: 110px; }
-            .sidebar { padding: 12px; }
-            .level-list { max-height: 180px; }
-            .modal { max-height: 92vh; }
+            html, body { overflow: hidden; height: 100%; }
+            body, .pc-container { flex-direction: column; }
+            .main-panel { flex: 1 1 auto; border-right: none; }
+
+            /* 顶栏：单行紧凑 */
+            .top-bar { padding: 4px 8px; font-size: 11px; gap: 6px; }
+            .top-bar .hp-badge { font-size: 11px; }
+            .tb-title { flex: 1; min-width: 0; text-align: center; font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+            .res-badge { padding: 3px 8px; font-size: 11px; gap: 3px; }
+            .res-label { display: none; }
+            .menu-btn { display: inline-flex; }
+
+            /* 画布：等比缩放填满剩余空间 */
+            .canvas-area { flex: 1 1 auto; min-height: 0; padding: 4px; }
+            canvas { border-width: 1px; }
+
+            /* 底部操作栏：干员横滑 + 开战/重置常驻右侧 */
+            .dock-area { padding: 6px 8px; gap: 5px; }
+            .tip-msg { font-size: 10px; }
+            .dock-main { gap: 8px; }
+            .operator-list { min-height: 0; gap: 6px; }
+            .operator-card { min-width: 80px; padding: 4px; }
+            .operator-card .name { font-size: 10px; }
+            .operator-card .cost { font-size: 9px; }
+            .operator-card .desc { display: none; }
+            .operator-card .op-avatar img { width: 26px; height: 26px; }
+            .controls-col { width: 68px; gap: 6px; }
+            .controls-col button { padding: 10px 2px; font-size: 12px; }
+
+            /* 侧栏 → 右侧滑出抽屉 */
+            .sidebar {
+                position: fixed; top: 0; right: 0; bottom: 0; width: min(82vw, 330px); z-index: 950;
+                padding: 12px; gap: 10px; transform: translateX(105%); transition: transform 0.25s ease;
+                box-shadow: -10px 0 30px rgba(0,0,0,0.55); border-left: 1px solid #2d2d3b;
+            }
+            .sidebar.open { transform: translateX(0); }
+            .sidebar-backdrop { display: block; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+            .sidebar-backdrop.show { opacity: 1; pointer-events: auto; }
+            .level-list { max-height: 34vh; }
+            .card-box { padding: 10px; }
+
+            /* 弹窗与抽卡卡牌适配 */
+            .modal { width: 96vw; max-height: 94vh; }
+            .modal-body { padding: 10px; }
+            .gacha-buttons button { padding: 10px 6px; font-size: 13px; }
+            .gacha-cards { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+            .gacha-card { width: auto; margin: 0; }
+            .gacha-card.single { grid-column: 1 / -1; justify-self: center; width: 150px; }
+            .pool-tab { min-width: 130px; }
+        }
+        /* 超矮横屏（如 16:9 小屏）：进一步压缩提示行与内边距 */
+        @media (max-width: 900px) and (max-height: 420px) {
+            .tip-msg { display: none; }
+            .top-bar { padding: 2px 6px; }
+            .dock-area { padding: 4px 6px; gap: 4px; }
+            .controls-col button { padding: 8px 2px; }
+            .operator-card .op-avatar img { width: 22px; height: 22px; }
         }
     </style>
 </head>
@@ -184,13 +241,16 @@
 <div class="pc-container">
     <div class="main-panel">
         <div class="top-bar">
-            <div><span class="hp-badge">❤ 宿主生命: <span id="baseHp">12</span></span></div>
-            <div style="font-weight: bold; color: #f39c12;" id="levelTitleDisplay">当前关卡：第 1 关 (幼儿期)</div>
-            <div style="display:flex; gap:12px; align-items:center;">
-                <div class="res-badge nut-badge">🧪 营养: <span id="nutVal">100</span></div>
-                <div class="res-badge">⚡ ATP: <span id="atpVal">30</span></div>
-                <div class="res-badge marrow-badge">🦴 原液: <span id="marrowVal">5</span></div>
-                <button id="sfxToggle" onclick="toggleSfx()" title="音效开关" style="background:#252533; border:1px solid #38384d; color:#d4d4d4; border-radius:20px; width:36px; height:28px; cursor:pointer; font-size:13px; line-height:1;">🔊</button>
+            <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                <button class="menu-btn" onclick="toggleMenu()" title="菜单">☰</button>
+                <span class="hp-badge">❤ <span class="res-label">宿主生命:</span> <span id="baseHp">12</span></span>
+            </div>
+            <div class="tb-title" id="levelTitleDisplay">当前关卡：第 1 关 (幼儿期)</div>
+            <div style="display:flex; gap:8px; align-items:center; flex-shrink:0;">
+                <div class="res-badge nut-badge">🧪 <span class="res-label">营养:</span> <span id="nutVal">100</span></div>
+                <div class="res-badge">⚡ <span class="res-label">ATP:</span> <span id="atpVal">30</span></div>
+                <div class="res-badge marrow-badge">🦴 <span class="res-label">原液:</span> <span id="marrowVal">5</span></div>
+                <button id="sfxToggle" onclick="toggleSfx()" title="音效开关" style="background:#252533; border:1px solid #38384d; color:#d4d4d4; border-radius:20px; width:32px; height:26px; cursor:pointer; font-size:13px; line-height:1; flex-shrink:0;">🔊</button>
             </div>
         </div>
 
@@ -199,16 +259,20 @@
         </div>
 
         <div class="dock-area">
-            <div style="font-size: 13px; color: #aaa;" id="tipMsg">提示：点击干员部署；点击已部署的细胞可触发细胞凋亡（强制回收）！</div>
-            <div class="operator-list" id="operatorList"></div>
-            <div class="controls-row">
-                <button class="btn-secondary" onclick="resetGame()">重置关卡</button>
-                <button class="btn-primary" onclick="startWave()">🚀 开始防线战</button>
+            <div class="tip-msg" id="tipMsg">提示：点击干员部署；点击已部署的细胞可触发细胞凋亡（强制回收）！</div>
+            <div class="dock-main">
+                <div class="operator-list" id="operatorList"></div>
+                <div class="controls-col">
+                    <button class="btn-primary" onclick="startWave()">🚀 开始防线战</button>
+                    <button class="btn-secondary" onclick="resetGame()">重置关卡</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="sidebar">
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleMenu(false)"></div>
+
+    <div class="sidebar" id="sidebar">
         <div class="card-box">
             <div class="card-title">🗺️ 人体关卡选择 (1-15关)</div>
             <div class="level-list" id="levelList"></div>
@@ -587,6 +651,16 @@
         let on = SFX.toggle();
         let btn = document.getElementById('sfxToggle');
         if(btn) btn.textContent = on ? '🔊' : '🔇';
+    }
+
+    // 移动端侧栏抽屉开关（桌面端无副作用）
+    function toggleMenu(force) {
+        let sb = document.getElementById('sidebar');
+        let bd = document.getElementById('sidebarBackdrop');
+        if(!sb || !bd) return;
+        let open = (typeof force === 'boolean') ? force : !sb.classList.contains('open');
+        sb.classList.toggle('open', open);
+        bd.classList.toggle('show', open);
     }
     // 首次交互解锁音频上下文（Android WebView 兼容）
     document.addEventListener('touchstart', () => SFX.unlock(), { once: true, passive: true });
@@ -1121,6 +1195,7 @@
     function selectLevel(lvlId) {
         if(waveInProgress) { alert("战斗中无法切换关卡！"); return; }
         SFX.play('tap');
+        toggleMenu(false);   // 移动端：选关后收起抽屉
         currentLevel = lvlId;
         let lvl = levels[lvlId-1];
         baseHp = lvl.baseHp;
