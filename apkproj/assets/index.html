@@ -2,51 +2,112 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>细胞防线 - 免疫系统增强版</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: #121216; color: #d4d4d4; display: flex; height: 100vh; overflow: hidden; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100%; }
+        body { background-color: #0d0d14; color: #d4d4d4; overflow: hidden; }
+        button { touch-action: manipulation; }
 
-        .pc-container { display: flex; width: 100vw; height: 100vh; }
+        /* ========== 主框架：顶栏 / 战场列 / 抽屉侧栏 ========== */
+        .app { display: flex; flex-direction: column; width: 100vw; height: 100vh; height: 100dvh; }
+        .game-row { flex: 1 1 auto; display: flex; min-height: 0; min-width: 0; }
+        .play-col { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 
-        .main-panel { flex: 3; display: flex; flex-direction: column; border-right: 1px solid #2d2d3b; background: #16161a; }
-        .top-bar { background: #1c1c24; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2d2d3b; font-size: 14px; }
-        .res-badge { background: #252533; padding: 5px 12px; border-radius: 20px; color: #4facfe; font-weight: bold; border: 1px solid #38384d; display: flex; align-items: center; gap: 6px; }
-        .nut-badge { color: #f39c12; font-weight: bold; background: #2a251c; border-color: #523e1a; }
-        .hp-badge { color: #ff5252; font-weight: bold; }
+        .top-bar { flex: 0 0 auto; background: #1c1c24; padding: 6px 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 1px solid #2d2d3b; font-size: 12px; flex-wrap: wrap; }
+        .res-badge { background: #252533; padding: 4px 10px; border-radius: 20px; color: #4facfe; font-weight: bold; border: 1px solid #38384d; display: flex; align-items: center; gap: 4px; white-space: nowrap; font-size: 12px; }
+        .nut-badge { color: #f39c12; background: #2a251c; border-color: #523e1a; }
+        .hp-badge { color: #ff5252; font-weight: bold; white-space: nowrap; }
+        .lvl-title { font-weight: bold; color: #f39c12; font-size: 12px; text-align: center; flex: 1 1 auto; min-width: 90px; }
 
-        .canvas-area { flex: 1; display: flex; justify-content: center; align-items: center; background: #141418; position: relative; }
-        canvas { background: #1a1a24; border: 2px solid #38384d; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); cursor: crosshair; display: block; touch-action: none; max-width: 100%; height: auto; }
+        .icon-btn { flex: 0 0 auto; width: 38px; height: 38px; border-radius: 10px; border: 1px solid #38384d; background: #252533; color: #4facfe; font-size: 18px; cursor: pointer; }
+        .icon-btn:active { background: #3598db; }
 
-        .dock-area { background: #1c1c24; padding: 15px 20px; display: flex; flex-direction: column; gap: 10px; border-top: 1px solid #2d2d3b; }
-        .operator-list { display: flex; gap: 10px; overflow-x: auto; min-height: 85px; align-items: center; }
+        .canvas-area { flex: 1 1 auto; display: flex; justify-content: center; align-items: center; background: #141418; position: relative; min-height: 0; padding: 4px; }
+        canvas { background: #1a1a24; border: 2px solid #38384d; border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,0.5); cursor: crosshair; display: block; touch-action: none; }
+
+        .dock-area { flex: 0 0 auto; background: #1c1c24; padding: 6px 10px 8px; display: flex; flex-direction: column; gap: 5px; border-top: 1px solid #2d2d3b; }
+        .tip-line { font-size: 11px; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .operator-list { display: flex; gap: 8px; overflow-x: auto; align-items: stretch; padding: 2px; scroll-snap-type: x proximity; }
         .operator-card {
-            min-width: 135px; background: #22222e; border: 2px solid #38384d; border-radius: 10px;
-            padding: 8px; text-align: center; cursor: pointer; transition: all 0.2s; position: relative; flex-shrink: 0;
+            min-width: 92px; background: #22222e; border: 2px solid #38384d; border-radius: 10px;
+            padding: 5px 6px; text-align: center; cursor: pointer; transition: transform 0.15s, border-color 0.15s; flex-shrink: 0; scroll-snap-align: start;
         }
-        .operator-card:hover { border-color: #4facfe; transform: translateY(-2px); }
-        .operator-card.selected { border-color: #4facfe; background: #1f304a; box-shadow: 0 0 10px rgba(79,172,254,0.3); }
-        .operator-card .cost { font-size: 11px; color: #ffb142; margin-top: 2px; font-weight: bold; }
-        .operator-card .name { font-size: 12px; color: #fff; font-weight: bold; }
-        .operator-card .desc { font-size: 9px; color: #888; margin-top: 2px; }
+        .operator-card:active { transform: scale(0.96); }
+        .operator-card.selected { border-color: #4facfe; background: #1f304a; box-shadow: 0 0 10px rgba(79,172,254,0.45); }
+        .operator-card .cost { font-size: 10px; color: #ffb142; font-weight: bold; }
+        .operator-card .name { font-size: 11px; color: #fff; font-weight: bold; }
+        .operator-card .range { font-size: 9px; color: #4facfe; }
+        .operator-card .desc { display: none; }
 
-        .controls-row { display: flex; justify-content: space-between; align-items: center; }
-        .btn-primary { background: #4facfe; color: #fff; border: none; border-radius: 8px; padding: 8px 18px; font-size: 13px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
-        .btn-primary:hover { background: #3598db; }
-        .btn-secondary { background: #2a2a38; color: #ccc; border: none; border-radius: 8px; padding: 8px 14px; font-size: 12px; cursor: pointer; }
-        .btn-secondary:hover { background: #38384d; color: #fff; }
+        .controls-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+        .btn-primary { background: #4facfe; color: #fff; border: none; border-radius: 10px; padding: 11px 20px; font-size: 14px; font-weight: bold; cursor: pointer; }
+        .btn-primary:active { background: #2f8bd1; }
+        .btn-primary:disabled { background: #3a3f4d; color: #8893a8; cursor: default; }
+        .btn-secondary { background: #2a2a38; color: #ccc; border: none; border-radius: 10px; padding: 11px 16px; font-size: 13px; cursor: pointer; min-height: 42px; }
+        .btn-secondary:active { background: #38384d; color: #fff; }
+        #startWaveBtn { flex: 1 1 auto; }
 
-        .sidebar { flex: 1.3; background: #1a1a22; display: flex; flex-direction: column; padding: 20px; gap: 15px; overflow-y: auto; }
-        .card-box { background: #22222e; border: 1px solid #333342; border-radius: 12px; padding: 16px; }
-        .card-title { font-size: 14px; font-weight: bold; color: #4facfe; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+        /* ========== 抽屉式侧栏（手机覆盖层 / 桌面固定栏） ========== */
+        .drawer-scrim { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 800; display: none; }
+        .drawer-scrim.open { display: block; }
+        .sidebar {
+            position: fixed; top: 0; right: 0; bottom: 0; width: min(370px, 90vw); z-index: 850;
+            background: #1a1a22; display: flex; flex-direction: column; padding: 14px; gap: 12px;
+            overflow-y: auto; transform: translateX(105%); transition: transform 0.25s ease;
+            border-left: 1px solid #2d2d3b;
+        }
+        .sidebar.open { transform: translateX(0); box-shadow: -10px 0 30px rgba(0,0,0,0.6); }
+        .drawer-head { display: flex; justify-content: space-between; align-items: center; }
+        .drawer-head .t { font-size: 15px; font-weight: bold; color: #4facfe; }
+        .drawer-close { background: #2a2a38; border: none; color: #ccc; width: 34px; height: 34px; border-radius: 8px; font-size: 16px; cursor: pointer; }
 
-        .level-list { display: flex; flex-direction: column; gap: 6px; max-height: 250px; overflow-y: auto; }
-        .level-item { background: #16161a; padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; border: 1px solid #2a2a38; cursor: pointer; }
+        .card-box { background: #22222e; border: 1px solid #333342; border-radius: 12px; padding: 13px; }
+        .card-title { font-size: 13px; font-weight: bold; color: #4facfe; margin-bottom: 9px; display: flex; align-items: center; gap: 6px; }
+
+        .level-list { display: flex; flex-direction: column; gap: 6px; max-height: min(46vh, 300px); overflow-y: auto; }
+        .level-item { background: #16161a; padding: 9px 11px; border-radius: 7px; display: flex; justify-content: space-between; align-items: center; font-size: 12px; border: 1px solid #2a2a38; cursor: pointer; }
+        .level-item:active { background: #1f304a; }
         .level-item.active { border-color: #4facfe; background: #1f304a; }
 
-        .bestiary-entry { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px; font-size: 11px; line-height: 1.5; }
+        .bestiary-entry { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 7px; font-size: 11px; line-height: 1.5; }
         .bestiary-color { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; margin-top: 3px; }
+        .range-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 10px; font-size: 10.5px; color: #aaa; margin-top: 6px; }
+        .range-legend b { color: #4facfe; }
+
+        /* ========== 桌面宽屏：恢复分栏 ========== */
+        @media (min-width: 1024px) and (min-height: 560px) {
+            .drawer-scrim { display: none !important; }
+            .sidebar { position: static; transform: none; width: 350px; flex: 0 0 350px; border-left: 1px solid #2d2d3b; box-shadow: none; }
+            .drawer-head { display: none; }
+            .menu-btn { display: none; }
+            .play-col { border-right: none; }
+            .top-bar { font-size: 14px; padding: 10px 18px; }
+            .operator-card { min-width: 132px; padding: 8px; }
+            .operator-card .desc { display: block; font-size: 9px; color: #888; margin-top: 2px; }
+            .dock-area { padding: 12px 18px; gap: 8px; }
+            .level-list { max-height: 250px; }
+        }
+
+        /* 矮横屏手机进一步压缩，把空间让给棋盘 */
+        @media (max-height: 480px) {
+            .top-bar { padding: 3px 8px; gap: 6px; }
+            .res-badge { padding: 2px 8px; font-size: 11px; }
+            .lvl-title { font-size: 11px; }
+            .icon-btn { width: 32px; height: 32px; font-size: 15px; }
+            .canvas-area { padding: 2px; }
+            .tip-line { font-size: 10px; height: 13px; }
+            .dock-area { padding: 3px 8px 5px; gap: 3px; }
+            .operator-list { gap: 6px; }
+            .operator-card { min-width: 76px; padding: 3px 4px 4px; border-radius: 8px; }
+            .operator-card .op-avatar img { width: 26px; height: 26px; }
+            .operator-card .name { font-size: 10px; }
+            .operator-card .cost { font-size: 9px; }
+            .operator-card .range { font-size: 8px; }
+            .btn-primary { padding: 7px 12px; font-size: 13px; min-height: 34px; }
+            .btn-secondary { padding: 7px 10px; min-height: 34px; font-size: 12px; }
+        }
 
         /* ===== 抽卡与编队弹窗 ===== */
         .marrow-badge { color: #ff6ec7; font-weight: bold; background: #2a1f2a; border-color: #5a2a4a; }
@@ -132,77 +193,209 @@
         .ci-row { display: flex; gap: 10px; align-items: center; }
         .ci-main { flex: 1; min-width: 0; }
 
-        /* ===== 移动端适配（小屏堆叠布局+触控友好） ===== */
-        @media (max-width: 900px) {
-            body, .pc-container { flex-direction: column; height: auto; min-height: 100vh; overflow: auto; }
-            .main-panel { border-right: none; border-bottom: 1px solid #2d2d3b; }
-            .top-bar { flex-wrap: wrap; gap: 6px; padding: 8px 10px; font-size: 12px; }
-            .canvas-area { padding: 6px; }
-            .dock-area { padding: 10px 12px; }
-            .operator-card { min-width: 110px; }
-            .sidebar { padding: 12px; }
-            .level-list { max-height: 180px; }
-            .modal { max-height: 92vh; }
+        /* 弹窗在手机上全屏化，矮横屏可滚动 */
+        @media (max-width: 600px) {
+            .modal { width: 100vw; max-width: 100vw; max-height: 96vh; border-radius: 14px 14px 0 0; align-self: flex-end; }
         }
+        @media (max-height: 500px) {
+            .modal { max-height: 94vh; }
+            .modal-body { padding: 10px 12px; }
+        }
+
+        /* ==================== 抽卡分化动画 ==================== */
+        .ga-overlay {
+            position: fixed; inset: 0; z-index: 2000; display: none;
+            align-items: center; justify-content: center; overflow: hidden;
+            background: radial-gradient(circle at 50% 45%, #2a0a12 0%, #0a0608 70%);
+        }
+        .ga-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .ga-skip {
+            position: absolute; top: 12px; right: 12px; z-index: 30;
+            background: rgba(40,40,55,0.85); color: #ccc; border: 1px solid #4a4a5e; border-radius: 18px;
+            padding: 8px 16px; font-size: 13px; cursor: pointer;
+        }
+        .ga-skip:active { background: #4facfe; color: #fff; }
+
+        .ga-title { position: absolute; top: 46px; left: 0; right: 0; text-align: center; color: #ff9a9a; font-size: 15px; font-weight: bold; letter-spacing: 1px; text-shadow: 0 0 12px rgba(255,80,80,.6); }
+        .ga-breadcrumb { position: absolute; bottom: 14%; left: 5%; right: 5%; text-align: center; font-size: 12px; color: #d8a0a0; line-height: 1.8; }
+        .ga-breadcrumb .step { display: inline-block; margin: 0 3px; padding: 3px 9px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); }
+        .ga-breadcrumb .step.on { background: rgba(79,172,254,0.18); border-color: #4facfe; color: #bfe0ff; }
+        .ga-breadcrumb .signal { display: block; margin-top: 7px; color: #8fb9d8; font-size: 11px; }
+
+        /* 造血干细胞 HSC */
+        .ga-hsc {
+            position: relative; width: 120px; height: 120px; border-radius: 50%;
+            background: radial-gradient(circle at 38% 32%, #c23a4a, #6e1220 70%, #3d0a12);
+            box-shadow: 0 0 30px rgba(220,60,80,.55), inset 0 0 18px rgba(0,0,0,.45);
+            display: flex; align-items: center; justify-content: center;
+            animation: hscPulse 1.6s ease-in-out infinite;
+        }
+        .ga-hsc .ga-nucleus {
+            width: 52px; height: 52px; border-radius: 50%;
+            background: radial-gradient(circle at 40% 35%, #7a2a48, #2e0a20 75%);
+            box-shadow: inset 0 0 8px rgba(0,0,0,.6);
+        }
+        .ga-hsc .ga-tag { position: absolute; bottom: -26px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 12px; color: #ffb3bd; font-weight: bold; }
+        .ga-hsc .ga-sub { position: absolute; bottom: -44px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 10px; color: #b07880; }
+        @keyframes hscPulse { 0%,100% { transform: scale(1); box-shadow: 0 0 26px rgba(220,60,80,.45), inset 0 0 18px rgba(0,0,0,.45);} 50% { transform: scale(1.07); box-shadow: 0 0 44px rgba(220,60,80,.8), inset 0 0 18px rgba(0,0,0,.45);} }
+
+        /* 祖细胞芽生 */
+        .ga-bud {
+            position: absolute; width: 64px; height: 64px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 9px; color: #d8ecff; text-align: center; line-height: 1.2;
+            opacity: 0;
+        }
+        .ga-bud.myeloid { background: radial-gradient(circle at 38% 32%, #e8943f, #8a4210 70%, #4a2206); box-shadow: 0 0 22px rgba(240,150,60,.6); }
+        .ga-bud.lymphoid { background: radial-gradient(circle at 38% 32%, #4fb0e8, #145a86 70%, #08324c); box-shadow: 0 0 22px rgba(79,172,254,.6); }
+        .ga-bud .n2 { position: absolute; width: 26px; height: 26px; border-radius: 50%; background: rgba(20,10,30,.55); }
+        .ga-bud.show { animation: budIn 0.7s ease forwards; }
+        @keyframes budIn { 0% { opacity: 0; transform: scale(0.2);} 100% { opacity: 1; transform: scale(1);} }
+
+        /* 分化闪光 */
+        .ga-flash { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+        .ga-flash .burst { position: absolute; width: 40px; height: 40px; border-radius: 50%; opacity: 0; }
+        .ga-flash.go .burst { animation: burst 0.9s ease-out forwards; }
+        @keyframes burst { 0% { opacity: .95; transform: scale(0.2);} 100% { opacity: 0; transform: scale(22);} }
+        .ga-rays { position: absolute; width: 700px; height: 700px; opacity: 0; }
+        .ga-flash.go .ga-rays { animation: raysIn 1.1s ease-out forwards; }
+        @keyframes raysIn { 0% { opacity: 0; transform: rotate(0) scale(.3);} 35% { opacity: .9;} 100% { opacity: 0; transform: rotate(40deg) scale(1.15);} }
+
+        .ga-goldword { position: absolute; font-size: 40px; font-weight: 900; color: #ffd84d; text-shadow: 0 0 18px #ffae00, 0 0 40px #ff8800; opacity: 0; transform: scale(0.4); letter-spacing: 6px; }
+        .ga-flash.go .ga-goldword { animation: goldWord 1.3s cubic-bezier(.2,1.6,.4,1) forwards; }
+        @keyframes goldWord { 0% { opacity: 0; transform: scale(0.3) translateY(20px);} 40% { opacity: 1; transform: scale(1.15) translateY(0);} 70% { transform: scale(1);} 100% { opacity: .92;} }
+
+        .ga-particle { position: absolute; width: 7px; height: 7px; border-radius: 50%; bottom: 46%; opacity: 0; }
+        .ga-flash.go .ga-particle { animation: gaFloat 1.5s ease-out forwards; }
+        @keyframes gaFloat { 0% { opacity: 1; transform: translateY(0) scale(1);} 100% { opacity: 0; transform: translateY(-230px) scale(.3);} }
+
+        /* 成熟细胞结果卡 */
+        .ga-result { position: relative; display: none; flex-direction: column; align-items: center; gap: 8px; width: min(560px, 94vw); max-height: 92%; }
+        .ga-result.show { display: flex; animation: cardZoom .55s cubic-bezier(.2,1.5,.4,1) forwards; }
+        @keyframes cardZoom { 0% { transform: scale(.3); opacity: 0;} 100% { transform: scale(1); opacity: 1;} }
+        .ga-cell-emblem { width: 108px; height: 108px; border-radius: 50%; padding: 4px; background: conic-gradient(#555, #888, #555); position: relative; }
+        .ga-cell-emblem img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; background: #fff; }
+        .ga-cell-emblem.legendary { background: conic-gradient(#ffae00, #fff4b0, #ffae00, #c77b00, #ffae00); animation: goldSpin 2.2s linear infinite; box-shadow: 0 0 30px rgba(255,200,60,.75); }
+        .ga-cell-emblem.epic { background: conic-gradient(#9b59b6, #e0b8ff, #9b59b6); box-shadow: 0 0 24px rgba(180,100,230,.6); animation: goldSpin 3s linear infinite; }
+        .ga-cell-emblem.rare { box-shadow: 0 0 20px rgba(79,172,254,.55); }
+        @keyframes goldSpin { to { transform: rotate(360deg); } }
+        .ga-cell-name { font-size: 21px; font-weight: bold; color: #fff; }
+        .ga-rarity { font-size: 13px; font-weight: bold; }
+        .ga-stars { color: #ffb142; font-size: 16px; letter-spacing: 2px; }
+        .ga-func {
+            background: rgba(20,22,34,.92); border: 1px solid #38384d; border-radius: 12px;
+            padding: 12px 14px; font-size: 12.5px; color: #c9d3e0; line-height: 1.75; overflow-y: auto;
+            width: 100%;
+        }
+        .ga-func .ft { color: #ffd84d; font-weight: bold; margin-bottom: 4px; font-size: 13px; }
+        .ga-func .path { color: #8fb9d8; margin-bottom: 6px; font-size: 11.5px; }
+        .ga-confirm { margin-top: 4px; background: #4facfe; color: #fff; border: none; border-radius: 22px; padding: 12px 44px; font-size: 15px; font-weight: bold; cursor: pointer; }
+        .ga-confirm:active { background: #2f8bd1; }
+
+        /* 十连：有丝分裂 + 5x2 格子 */
+        .ga-ten-wrap { width: min(680px, 96vw); display: none; flex-direction: column; align-items: center; gap: 8px; max-height: 94%; }
+        .ga-ten-wrap.show { display: flex; }
+        .ga-mitosis { position: relative; width: 130px; height: 130px; }
+        .ga-mitosis .half { position: absolute; top: 25px; width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #c23a4a, #6e1220 70%); box-shadow: 0 0 20px rgba(220,60,80,.5); }
+        .ga-mitosis .half.left { left: 25px; }
+        .ga-mitosis .half.right { left: 25px; }
+        .ga-mitosis.go .half.left { animation: splitL 1s ease forwards; }
+        .ga-mitosis.go .half.right { animation: splitR 1s ease forwards; }
+        @keyframes splitL { to { left: -5px; } }
+        @keyframes splitR { to { left: 55px; } }
+
+        .ga-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; }
+        .ga-slot {
+            aspect-ratio: 1; border-radius: 12px; border: 2px solid #3a3a4d; background: #1c1c28;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+            padding: 3px; cursor: pointer; position: relative; opacity: .35;
+        }
+        .ga-slot.revealed { opacity: 1; animation: slotPing .45s ease; }
+        @keyframes slotPing { 0% { transform: scale(.6);} 60% { transform: scale(1.08);} 100% { transform: scale(1);} }
+        .ga-slot img { width: 58%; height: 58%; border-radius: 50%; object-fit: cover; background: #fff; }
+        .ga-slot .sn { font-size: 10px; color: #fff; font-weight: bold; text-align: center; line-height: 1.1; }
+        .ga-slot .tag { position: absolute; top: 2px; right: 4px; font-size: 9px; font-weight: bold; }
+        .ga-slot.legendary { border-color: #ffd700; box-shadow: 0 0 16px rgba(255,200,60,.65); background: #2a2410; }
+        .ga-slot.epic { border-color: #9b59b6; box-shadow: 0 0 12px rgba(180,100,230,.5); }
+        .ga-slot.rare { border-color: #4facfe; box-shadow: 0 0 10px rgba(79,172,254,.4); }
+        .ga-slot.common { border-color: #5c6a70; }
+        .ga-ten-info { font-size: 12px; color: #aaa; text-align: center; min-height: 18px; }
+        .ga-ten-info b { color: #ffd84d; }
+        .ga-detail { background: rgba(20,22,34,.92); border: 1px solid #38384d; border-radius: 10px; padding: 8px 12px; font-size: 11.5px; color: #c9d3e0; line-height: 1.65; width: 100%; max-height: 20vh; overflow-y: auto; display: none; }
+        .ga-detail.show { display: block; }
+
+        /* 全屏金光环境闪 */
+        .ga-screenflash { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
+        .ga-screenflash.gold { background: radial-gradient(circle, rgba(255,215,80,.5), rgba(255,150,0,.18) 45%, transparent 75%); }
+        .ga-screenflash.purple { background: radial-gradient(circle, rgba(190,110,255,.4), rgba(130,60,200,.14) 45%, transparent 75%); }
+        .ga-screenflash.fire { animation: screenFlash .9s ease-out forwards; }
+        @keyframes screenFlash { 0% { opacity: 0;} 25% { opacity: 1;} 100% { opacity: 0;} }
     </style>
 </head>
 <body>
 
-<div class="pc-container">
-    <div class="main-panel">
-        <div class="top-bar">
-            <div><span class="hp-badge">❤ 宿主生命: <span id="baseHp">12</span></span></div>
-            <div style="font-weight: bold; color: #f39c12;" id="levelTitleDisplay">当前关卡：第 1 关 (幼儿期)</div>
-            <div style="display:flex; gap:12px;">
-                <div class="res-badge nut-badge">🧪 营养: <span id="nutVal">100</span></div>
-                <div class="res-badge">⚡ ATP: <span id="atpVal">30</span></div>
-                <div class="res-badge marrow-badge">🦴 原液: <span id="marrowVal">5</span></div>
-            </div>
-        </div>
-
-        <div class="canvas-area">
-            <canvas id="gameCanvas" width="770" height="350"></canvas>
-        </div>
-
-        <div class="dock-area">
-            <div style="font-size: 13px; color: #aaa;" id="tipMsg">提示：点击干员部署；点击已部署的细胞可触发细胞凋亡（强制回收）！</div>
-            <div class="operator-list" id="operatorList"></div>
-            <div class="controls-row">
-                <button class="btn-secondary" onclick="resetGame()">重置关卡</button>
-                <button class="btn-primary" onclick="startWave()">🚀 开始防线战</button>
-            </div>
-        </div>
+<div class="app">
+    <div class="top-bar">
+        <button class="icon-btn menu-btn" onclick="openDrawer()" aria-label="菜单">☰</button>
+        <div><span class="hp-badge">❤ <span id="baseHp">12</span></span></div>
+        <div class="lvl-title" id="levelTitleDisplay">第 1 关 · 幼儿期</div>
+        <div class="res-badge nut-badge">🧪<span id="nutVal">100</span></div>
+        <div class="res-badge">⚡<span id="atpVal">30</span></div>
+        <div class="res-badge marrow-badge">🦴<span id="marrowVal">5</span></div>
     </div>
 
-    <div class="sidebar">
-        <div class="card-box">
-            <div class="card-title">🗺️ 人体关卡选择 (1-15关)</div>
-            <div class="level-list" id="levelList"></div>
-        </div>
-
-        <div class="card-box">
-            <div class="card-title">🦴 免疫干员招募</div>
-            <div style="display:flex; flex-direction:column; gap:8px;">
-                <button class="btn-primary" onclick="openGacha()">🦴 骨髓招募所（抽卡）</button>
-                <button class="btn-secondary" onclick="openDeck()">🧬 编队管理</button>
+    <div class="game-row">
+        <div class="play-col">
+            <div class="canvas-area">
+                <canvas id="gameCanvas" width="770" height="350"></canvas>
             </div>
-            <div style="font-size:10px; color:#888; margin-top:8px; line-height:1.5;">通关+2原液，击杀Boss+1原液；重复卡转信物用于升星（攻+15%/寿命+2秒）。</div>
-        </div>
 
-        <div class="card-box">
-            <div class="card-title">🧬 核心玩法说明</div>
-            <div style="font-size: 11px; color: #aaa; line-height: 1.6;">
-                • <b>细胞凋亡</b>：点击格子上已有细胞可直接回收返还50% ATP。<br>
-                • <b>攻击范围</b>：不同细胞有不同攻击范围（前方1-3格、十字、圆形、整行等）。<br>
-                • <b>寿命差异</b>：中性粒细胞10秒短命速攻，红细胞25秒长寿肉盾，记忆T细胞40秒超长待机。<br>
-                • <b>增益机制</b>：树突状细胞可激活周围细胞+50%攻击力。<br>
-                • <b>敌人特性</b>：不同病原体有减伤、闪避、毒素、分裂、自愈、感染等独特能力。
+            <div class="dock-area">
+                <div class="tip-line" id="tipMsg">提示：点选下方干员，再点棋盘格部署；点已部署细胞可诱导凋亡（回收50%ATP）</div>
+                <div class="operator-list" id="operatorList"></div>
+                <div class="controls-row">
+                    <button class="btn-secondary" onclick="resetGame()">↺ 重置</button>
+                    <button class="btn-primary" id="startWaveBtn" onclick="startWave()">🚀 开始防线战</button>
+                </div>
             </div>
         </div>
 
-        <div class="card-box">
-            <div class="card-title">🦠 病原体图鉴</div>
-            <div id="enemyBestiary" style="font-size: 11px; color: #aaa; line-height: 1.5;"></div>
+        <div class="drawer-scrim" id="drawerScrim" onclick="closeDrawer()"></div>
+        <div class="sidebar" id="sidebar">
+            <div class="drawer-head">
+                <span class="t">🧫 免疫指挥中心</span>
+                <button class="drawer-close" onclick="closeDrawer()">✕</button>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title">🗺️ 人体关卡 (1-15关)</div>
+                <div class="level-list" id="levelList"></div>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title">🦴 免疫干员招募</div>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <button class="btn-primary" onclick="closeDrawer();openGacha()">🦴 骨髓招募所（抽卡）</button>
+                    <button class="btn-secondary" onclick="closeDrawer();openDeck()">🧬 编队管理</button>
+                </div>
+                <div style="font-size:10px; color:#888; margin-top:8px; line-height:1.5;">通关+2原液，击杀Boss+1原液；重复卡转信物用于升星（攻+15%/寿命+2秒）。</div>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title">🧬 核心玩法说明</div>
+                <div style="font-size: 11px; color: #aaa; line-height: 1.6;">
+                    • <b>细胞凋亡</b>：点击格子上已有细胞可直接回收返还50% ATP。<br>
+                    • <b>寿命差异</b>：中性粒细胞10秒短命速攻，红细胞25秒长寿肉盾，记忆T细胞40秒超长待机。<br>
+                    • <b>增益机制</b>：树突状细胞可激活周围细胞+50%攻击力。<br>
+                    • <b>敌人特性</b>：减伤、闪避、毒素、分裂、自愈、感染等独特能力。
+                </div>
+                <div class="card-title" style="margin-top:10px;">🎯 攻击范围（依细胞特性）</div>
+                <div class="range-legend" id="rangeLegend"></div>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title">🦠 病原体图鉴</div>
+                <div id="enemyBestiary" style="font-size: 11px; color: #aaa; line-height: 1.5;"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -245,6 +438,24 @@
             <div class="collection-list" id="collectionList"></div>
         </div>
     </div>
+</div>
+
+<!-- ===== 通关 / 失败结算弹窗 ===== -->
+<div class="modal-overlay" id="resultModal" style="display:none; z-index:1200;">
+    <div class="modal" style="width:400px;">
+        <div class="modal-header" id="resultTitle">结算</div>
+        <div class="modal-body" style="text-align:center;">
+            <div id="resultDesc" style="font-size:13px; color:#ccc; line-height:1.9;"></div>
+            <button class="btn-primary" id="resultBtn" style="margin-top:16px; width:100%; padding:13px;"></button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 抽卡分化动画 ===== -->
+<div class="ga-overlay" id="gachaAnim">
+    <div class="ga-screenflash" id="gaScreenFlash"></div>
+    <div class="ga-scene" id="gaScene"></div>
+    <button class="ga-skip" id="gaSkip">跳过 ⏩</button>
 </div>
 
 <script>
@@ -339,7 +550,7 @@
     const masterPool = [
         { id: 'neutrophil', name: "中性粒细胞", rarity: 'common', unlockLevel: 1, cost: 4, maxCount: 6, rangeType: 'front1', atk: 10, maxLifeSec: 10, desc: "前方1格，急性首发响应" },
         { id: 'rbc', name: "红细胞", rarity: 'common', unlockLevel: 1, cost: 3, maxCount: 8, rangeType: 'front1', atk: 5, maxLifeSec: 25, desc: "前方1格，携氧供能辅助氧化杀菌，长寿肉盾" },
-        { id: 'macrophage', name: "巨噬细胞", rarity: 'rare', unlockLevel: 1, cost: 8, maxCount: 4, rangeType: 'cross2', atk: 25, maxLifeSec: 15, desc: "十字2格广域吞噬" },
+        { id: 'macrophage', name: "巨噬细胞", rarity: 'rare', unlockLevel: 1, cost: 8, maxCount: 4, rangeType: 'circle1', atk: 25, maxLifeSec: 15, desc: "周围3x3吞噬杀菌，兼抗原提呈" },
         { id: 'lysozyme', name: "溶菌酶分泌细胞", rarity: 'epic', unlockLevel: 2, cost: 14, maxCount: 2, rangeType: 'front2', atk: 40, maxLifeSec: 8, desc: "前方2格，水解细菌肽聚糖细胞壁(+50%)" },
         { id: 'tcell', name: "T淋巴细胞", rarity: 'rare', unlockLevel: 3, cost: 10, maxCount: 3, rangeType: 'circle1', atk: 18, maxLifeSec: 12, desc: "周围3x3协同群攻" },
         { id: 'nkcell', name: "NK自然杀伤细胞", rarity: 'epic', unlockLevel: 4, cost: 12, maxCount: 2, rangeType: 'cross3', atk: 35, maxLifeSec: 10, desc: "超大十字范围，杀伤病毒感染细胞" },
@@ -355,6 +566,84 @@
         rare:      { label: '精英', color: '#3498db', glow: '#4facfe', prob: 30, fragReward: 2 },
         epic:      { label: '史诗', color: '#9b59b6', glow: '#c39bd3', prob: 12, fragReward: 5 },
         legendary: { label: '传奇', color: '#f39c12', glow: '#ffd700', prob: 3,  fragReward: 10 }
+    };
+
+    // ==================== 攻击范围（依真实细胞作用方式） ====================
+    const rangeTypeInfo = {
+        front1:  { label: '前方1格', bio: '近身接触杀伤' },
+        front2:  { label: '前方2格', bio: '分泌物中距离扩散' },
+        front3:  { label: '前方3格', bio: '脱颗粒远程投射' },
+        cross2:  { label: '十字2格', bio: '广域十字覆盖' },
+        cross3:  { label: '十字3格', bio: '超大十字监视' },
+        circle1: { label: '周围3×3', bio: '相邻吞噬/协同' },
+        circle2: { label: '周围5×5', bio: '大范围持久监视' },
+        buff1:   { label: '周围增益', bio: '抗原提呈激活友军' },
+        allRow:  { label: '整行远程', bio: '抗体随体液全行打击' }
+    };
+
+    // ==================== 细胞分化通路与真实作用（免疫/生化科普） ====================
+    // lineage: myeloid 髓系 / lymphoid 淋巴系；pathway 为造血分化路径；signal 为诱导分化的细胞因子/转录因子
+    const cellScience = {
+        neutrophil: {
+            lineage: 'myeloid',
+            pathway: ['CD34⁺造血干细胞', '髓系祖细胞 CMP', '粒-单核系祖细胞 GMP', '中性粒细胞'],
+            signal: 'G-CSF（粒细胞集落刺激因子）诱导终末分化',
+            func: '先天免疫一线"急先锋"，感染后数小时内最先抵达。吞噬细菌形成吞噬体后，借 NADPH 氧化酶发起"呼吸爆发"产生活性氧杀灭；崩解时释放由 DNA 与中性粒细胞弹性蛋白酶交织成的 NETs（中性粒细胞胞外诱捕网）困住病原体。半衰期仅数小时，故短命速攻。'
+        },
+        rbc: {
+            lineage: 'myeloid',
+            pathway: ['CD34⁺造血干细胞', '髓系祖细胞 CMP', '巨核-红系祖细胞 MEP', '红细胞（脱核成熟）'],
+            signal: '肾脏分泌 EPO（促红细胞生成素）促进红系分化',
+            func: '成熟时主动排出细胞核，以最大化容纳血红蛋白。血红蛋白运输 O₂ 与部分 CO₂，为免疫细胞的氧化磷酸化与呼吸爆发供能——不直接杀敌，而以约120天寿命承担"长寿后勤肉盾"。'
+        },
+        macrophage: {
+            lineage: 'myeloid',
+            pathway: ['CD34⁺造血干细胞', '髓系祖细胞 CMP', '粒-单核系祖细胞 GMP', '单核细胞（入血）', '组织巨噬细胞'],
+            signal: 'M-CSF 诱导单核/巨噬系分化',
+            func: '体积最大的吞噬细胞，伸伪足吞噬病原体与凋亡细胞（胞葬作用），靠溶酶体水解酶降解。同时以 MHC-II 提呈抗原肽，启动并指挥适应性免疫，故攻击范围为"周围3×3"近身吞噬。'
+        },
+        lysozyme: {
+            lineage: 'myeloid',
+            pathway: ['CD34⁺造血干细胞', '髓系祖细胞 CMP', '粒-单核系祖细胞 GMP', '髓系效应细胞分泌溶菌酶'],
+            signal: '溶菌酶由中性粒细胞、巨噬细胞及肠隐窝潘氏细胞大量分泌',
+            func: '溶菌酶水解细菌肽聚糖中 N-乙酰胞壁酸与 N-乙酰葡糖胺之间的 β-1,4 糖苷键，使细胞壁缺损、细菌渗透性裂解，对革兰阳性菌特效——属"分泌物前方2格扩散"的化学屏障。'
+        },
+        tcell: {
+            lineage: 'lymphoid',
+            pathway: ['CD34⁺造血干细胞', '淋巴系祖细胞 CLP', '迁入胸腺完成V(D)J重排与选择', '成熟T细胞'],
+            signal: 'IL-7 维持淋巴系分化；Notch 信号决定 T 系定向',
+            func: '细胞免疫核心，在胸腺"军校"成熟。CD8⁺ 细胞毒T细胞经 TCR 识别 MHC-I 呈递的病毒抗原后，释放穿孔素（perforin）在靶细胞膜打孔、颗粒酶（granzyme）进入诱导感染细胞凋亡；与周围3×3友军协同群攻。'
+        },
+        nkcell: {
+            lineage: 'lymphoid',
+            pathway: ['CD34⁺造血干细胞', '淋巴系祖细胞 CLP', 'NK细胞（骨髓直接成熟，无需胸腺）'],
+            signal: 'IL-15 是 NK 细胞发育与存活的关键因子',
+            func: '先天淋巴细胞，无需预先致敏。通过"丢失自我"机制识别下调 MHC-I 的病毒感染/肿瘤细胞，释放穿孔素与颗粒酶诱导凋亡，并分泌 IFN-γ 激活巨噬细胞。反应快、覆盖广，对应"超大十字"范围。'
+        },
+        bcell: {
+            lineage: 'lymphoid',
+            pathway: ['CD34⁺造血干细胞', '淋巴系祖细胞 CLP', '骨髓内完成BCR基因重排', '成熟B细胞→浆细胞'],
+            signal: '抗原刺激 + Tfh 细胞（IL-4/IL-21）辅助活化',
+            func: '体液免疫核心。活化后分化为浆细胞大量分泌抗体（IgG/IgA/IgM）：中和病毒、调理吞噬、激活补体。抗体随血液与组织液远程输送，故可"整行远程打击"；部分细胞转为记忆B细胞。'
+        },
+        dendritic: {
+            lineage: 'myeloid',
+            pathway: ['CD34⁺造血干细胞', '髓系祖细胞 CMP', '未成熟树突状细胞（外周组织哨岗）', '成熟抗原提呈DC'],
+            signal: 'GM-CSF、FLT3L 促进树突状细胞分化成熟',
+            func: '体内功能最强的专职抗原提呈细胞（专业APC）。星状树突极大增加接触面，以 MHC-II 提呈抗原并提供 B7-CD28 共刺激信号，像"指挥官"一样激活初始T细胞——自身不攻击，而是增益周围3×3友军+50%。'
+        },
+        eosinophil: {
+            lineage: 'myeloid',
+            pathway: ['CD34⁺造血干细胞', '髓系祖细胞 CMP', '粒-单核系祖细胞 GMP', '嗜酸性粒细胞'],
+            signal: 'IL-5 主导嗜酸性粒细胞分化与存活',
+            func: '颗粒富含主要碱性蛋白（MBP）与嗜酸性阳离子蛋白。寄生虫体型过大无法吞噬，嗜酸性粒细胞通过"脱颗粒"把毒蛋白远程投射到虫体表面，对应"前方3格"远程杀伤；也参与过敏炎症。'
+        },
+        memoryT: {
+            lineage: 'lymphoid',
+            pathway: ['效应T细胞', '感染清除后收缩期分化', '记忆T细胞（TCM/TEM/TRM）'],
+            signal: 'IL-7/IL-15 维持记忆细胞长期存活',
+            func: '抗原清除后以低代谢状态长期存活（可达数十年）。再次遭遇同一抗原时无需重新致敏即可迅速大量扩增、应答更快更强，是疫苗长期保护力的基础——对应"周围5×5、40秒超长待机"的持久监视。'
+        }
     };
 
     // ==================== 免疫细胞卡通头像（依据真实细胞形态卡通化） ====================
@@ -712,9 +1001,11 @@
         for (let i = 0; i < count; i++) results.push(rollOne(pool, upOps, upRate));
 
         // 十连保底：至少1张精英级及以上（UP池保底同样倾向UP干员）
+        let guaranteeTriggered = false;
         if (count === 10) {
             let hasRarePlus = results.some(op => op.rarity !== 'common');
             if (!hasRarePlus) {
+                guaranteeTriggered = true;
                 let rarePlus = pool.filter(op => op.rarity !== 'common');
                 if (stage) {
                     let upRarePlus = rarePlus.filter(op => stage.upOps.includes(op.id));
@@ -742,18 +1033,26 @@
         refreshDeckOperators();
         updateUI();
         renderGachaResult(summary);
+        refreshGachaUI();
+
+        // 播放造血干细胞分化动画
+        if(count === 10) {
+            playGachaTenAnim(summary, guaranteeTriggered);
+        } else {
+            playGachaSingleAnim(summary[0]);
+        }
     }
 
     function renderGachaResult(summary) {
         const div = document.getElementById('gachaResult');
         if (!div) return;
         let poolTitle = currentPoolType === 'standard' ? '常驻·骨髓分化池' : (ageStagePools.find(p => p.id === currentPoolType).name + '（UP池）');
-        let html = `<div style="font-size:11px; color:#888; text-align:center; margin-bottom:6px;">— ${poolTitle} 招募结果 —</div><div class="gacha-cards">`;
+        let html = `<div style="font-size:11px; color:#888; text-align:center; margin-bottom:6px;">— ${poolTitle} 招募结果（点击卡片查看作用） —</div><div class="gacha-cards">`;
         for (let s of summary) {
             let op = s.op;
             let rc = rarityConfig[op.rarity];
             let note = s.isNew ? '<div class="card-note">NEW 入藏!</div>' : `<div class="card-note">重复 +${s.frag} 信物</div>`;
-            html += `<div class="gacha-card ${op.rarity}" style="border-color:${rc.color}; box-shadow:0 0 14px ${rc.glow};">
+            html += `<div class="gacha-card ${op.rarity}" style="border-color:${rc.color}; box-shadow:0 0 14px ${rc.glow}; cursor:pointer;" onclick="showCellScience('${op.id}')">
                 <div class="card-avatar">${avatarImg(op.id, 56, 'border-color:' + rc.color)}</div>
                 <div class="rarity-label" style="color:${rc.color};">${rc.label}</div>
                 <div class="card-name">${op.name}</div>
@@ -857,6 +1156,271 @@
         document.getElementById('gachaModal').style.display = 'none';
     }
 
+    // ==================== 抽卡：造血干细胞分化动画 ====================
+    const gaOverlay = document.getElementById('gachaAnim');
+    const gaScene = document.getElementById('gaScene');
+    const gaScreenFlash = document.getElementById('gaScreenFlash');
+    let gaTimers = [];
+    function gaLater(fn, ms) { gaTimers.push(setTimeout(fn, ms)); }
+    function gaClearTimers() { gaTimers.forEach(t => clearTimeout(t)); gaTimers = []; }
+    let gaContext = null;   // {type:'single'|'ten', summary, guarantee}
+    document.getElementById('gaSkip').addEventListener('click', gaSkipToEnd);
+    function gaSkipToEnd() {
+        if(!gaContext) { gaCloseAnim(); return; }
+        if(gaContext.type === 'single') {
+            gaClearTimers();
+            renderSingleFinale(gaContext.summary);
+        } else {
+            gaClearTimers();
+            buildTenFinale(gaContext.summary, gaContext.guarantee);
+        }
+    }
+
+    function rarityFlashColor(r) {
+        return r === 'legendary' ? '#ffd84d' : r === 'epic' ? '#b464ff' : r === 'rare' ? '#4facfe' : '#9fb6c4';
+    }
+    function rarityWord(r) {
+        return r === 'legendary' ? '出 金 !' : r === 'epic' ? '紫 光 !' : '';
+    }
+
+    // 全屏环境光：传奇金光 / 史诗紫光
+    function gaEnvFlash(rarity) {
+        if(rarity !== 'legendary' && rarity !== 'epic') return;
+        let cls = rarity === 'legendary' ? 'gold' : 'purple';
+        gaScreenFlash.className = 'ga-screenflash ' + cls;
+        // 强制重排以重启动画
+        void gaScreenFlash.offsetWidth;
+        gaScreenFlash.classList.add('fire');
+    }
+
+    // 分化路径面包屑
+    function pathwayBreadcrumb(pathArr, activeCount) {
+        return pathArr.map((p, i) =>
+            `<span class="step ${i < activeCount ? 'on' : ''}">${p}</span>${i < pathArr.length - 1 ? ' → ' : ''}`
+        ).join('');
+    }
+
+    // ---------- 单抽动画 ----------
+    function playGachaSingleAnim(s) {
+        gaClearTimers();
+        gaContext = { type: 'single', summary: s };
+        const op = s.op, sci = cellScience[op.id];
+        const flashColor = rarityFlashColor(op.rarity);
+        const lineageCls = sci.lineage === 'myeloid' ? 'myeloid' : 'lymphoid';
+        const progenitorName = sci.lineage === 'myeloid' ? '髓系祖细胞 CMP' : '淋巴系祖细胞 CLP';
+
+        gaOverlay.style.display = 'flex';
+        gaScreenFlash.className = 'ga-screenflash';
+
+        // 阶段1：骨髓微环境中的造血干细胞
+        gaScene.innerHTML = `
+            <div class="ga-title">骨髓 · 造血微环境</div>
+            <div class="ga-hsc" id="gaHsc">
+                <span class="ga-nucleus"></span>
+                <span class="ga-tag">CD34⁺ 造血干细胞</span>
+                <span class="ga-sub">自我更新 · 多向分化潜能</span>
+            </div>
+            <div class="ga-breadcrumb" id="gaCrumb">${pathwayBreadcrumb(sci.pathway, 1)}<span class="signal">骨髓基质细胞分泌细胞因子，启动谱系特异性转录因子程序</span></div>`;
+
+        // 阶段2：不对称分裂 → 定向祖细胞芽生
+        gaLater(() => {
+            const crumb = document.getElementById('gaCrumb');
+            if(crumb) crumb.innerHTML = pathwayBreadcrumb(sci.pathway, 2) + `<span class="signal">${sci.signal}</span>`;
+            const hsc = document.getElementById('gaHsc');
+            if(hsc) hsc.insertAdjacentHTML('beforebegin',
+                `<div class="ga-bud ${lineageCls} show" id="gaBud" style="top: calc(50% + 52px); left: calc(50% + 52px);"><span class="n2"></span>${progenitorName}</div>`);
+        }, 1300);
+
+        // 阶段3：终末分化闪光（传奇金光 / 史诗紫光）
+        gaLater(() => {
+            const crumb = document.getElementById('gaCrumb');
+            if(crumb) crumb.innerHTML = pathwayBreadcrumb(sci.pathway, sci.pathway.length);
+            const hsc = document.getElementById('gaHsc'); if(hsc) hsc.style.display = 'none';
+            const bud = document.getElementById('gaBud'); if(bud) bud.style.display = 'none';
+            gaEnvFlash(op.rarity);
+
+            // 光芒射线（锥形渐变）
+            let raysBg = op.rarity === 'legendary'
+                ? 'repeating-conic-gradient(from 0deg, rgba(255,216,77,.9) 0deg 8deg, transparent 8deg 20deg)'
+                : op.rarity === 'epic'
+                  ? 'repeating-conic-gradient(from 0deg, rgba(180,100,255,.8) 0deg 8deg, transparent 8deg 20deg)'
+                  : 'repeating-conic-gradient(from 0deg, rgba(159,182,196,.5) 0deg 10deg, transparent 10deg 24deg)';
+            let particles = '';
+            if(op.rarity === 'legendary' || op.rarity === 'epic') {
+                for(let i = 0; i < 18; i++) {
+                    let col = op.rarity === 'legendary' ? (i % 2 ? '#ffd84d' : '#ffae4a') : '#c78fff';
+                    let left = 8 + Math.random() * 84, delay = Math.random() * 0.35, dur = 1.1 + Math.random() * 0.7;
+                    particles += `<span class="ga-particle" style="left:${left}%;background:${col};box-shadow:0 0 8px ${col};animation-delay:${delay}s;animation-duration:${dur}s;"></span>`;
+                }
+            }
+            gaScene.insertAdjacentHTML('beforeend', `
+                <div class="ga-flash" id="gaFlash">
+                    <div class="burst" style="background:radial-gradient(circle, ${flashColor}, transparent 70%);"></div>
+                    <div class="ga-rays" style="background:${raysBg};border-radius:50%;mask-image:radial-gradient(circle, #000 18%, transparent 62%);-webkit-mask-image:radial-gradient(circle, #000 18%, transparent 62%);"></div>
+                    ${rarityWord(op.rarity) ? `<div class="ga-goldword">${rarityWord(op.rarity)}</div>` : ''}
+                    ${particles}
+                </div>`);
+            requestAnimationFrame(() => { const f = document.getElementById('gaFlash'); if(f) f.classList.add('go'); });
+        }, 2600);
+
+        // 阶段4：成熟细胞 + 该细胞的作用
+        gaLater(() => renderSingleFinale(s), 3650);
+    }
+
+    function renderSingleFinale(s) {
+        const op = s.op, rc = rarityConfig[op.rarity], sci = cellScience[op.id];
+        const flash = document.getElementById('gaFlash'); if(flash) flash.remove();
+        const crumb = document.getElementById('gaCrumb'); if(crumb) crumb.style.display = 'none';
+        const hsc = document.getElementById('gaHsc'); if(hsc) hsc.style.display = 'none';
+        const bud = document.getElementById('gaBud'); if(bud) bud.style.display = 'none';
+        const old = document.getElementById('gaResult'); if(old) old.remove();
+        gaScene.insertAdjacentHTML('beforeend', `
+            <div class="ga-result" id="gaResult">
+                <div class="ga-cell-emblem ${op.rarity}"><img src="${avatarURLs[op.id]}" alt=""></div>
+                <div class="ga-cell-name" style="text-shadow:0 0 12px ${rc.color};">${op.name}</div>
+                <div class="ga-rarity" style="color:${rc.color};">${rc.label} 干员 · ${rangeTypeInfo[op.rangeType].label}</div>
+                <div class="ga-stars">${'★'.repeat(collection[op.id].stars)}</div>
+                <div class="ga-func">
+                    <div class="path">🧬 分化路径：${sci.pathway.join(' → ')}</div>
+                    <div class="ft">🔬 该细胞的作用</div>
+                    <div>${sci.func}</div>
+                </div>
+                <button class="ga-confirm" onclick="gaCloseAnim()">确认编入骨髓库</button>
+            </div>`);
+        requestAnimationFrame(() => { const r = document.getElementById('gaResult'); if(r) r.classList.add('show'); });
+    }
+
+    // ---------- 十连动画 ----------
+    function playGachaTenAnim(summary, guaranteeTriggered) {
+        gaClearTimers();
+        gaContext = { type: 'ten', summary: summary, guarantee: guaranteeTriggered };
+        gaOverlay.style.display = 'flex';
+        gaScreenFlash.className = 'ga-screenflash';
+
+        // 阶段1：造血干细胞有丝分裂（自我更新+扩增）
+        gaScene.innerHTML = `
+            <div class="ga-title">骨髓动员 · 一批造血干细胞进入分化</div>
+            <div class="ga-ten-wrap" id="gaTenWrap">
+                <div class="ga-mitosis" id="gaMitosis">
+                    <div class="half left"></div>
+                    <div class="half right"></div>
+                </div>
+                <div style="font-size:12px; color:#d8a0a0;">CD34⁺ 造血干细胞经有丝分裂扩增（自我更新），随后接受细胞因子信号定向分化</div>
+            </div>`;
+        gaLater(() => { const m = document.getElementById('gaMitosis'); if(m) m.classList.add('go'); }, 200);
+
+        // 阶段2：5×2 格子逐一分化揭晓
+        gaLater(() => buildTenFinale(summary, guaranteeTriggered, true), 1400);
+    }
+
+    // tenSlotHTML 与单张揭晓共用
+    function tenSlotHTML(s, i, revealed) {
+        const op = s.op, rc = rarityConfig[op.rarity];
+        let tag = op.rarity === 'legendary' ? '金' : op.rarity === 'epic' ? '紫' : op.rarity === 'rare' ? '精' : '';
+        return `<div class="ga-slot ${op.rarity} ${revealed ? 'revealed' : ''}" id="gaSlot${i}" data-i="${i}">
+            <span class="tag" style="color:${rc.color};">${tag}</span>
+            ${revealed ? `<img src="${avatarURLs[op.id]}" alt=""><div class="sn">${op.name}</div>` : ''}
+        </div>`;
+    }
+
+    function bindTenSlot(i, s) {
+        const slot = document.getElementById('gaSlot' + i);
+        if(!slot) return;
+        slot.onclick = () => {
+            const d = document.getElementById('gaDetail');
+            const sci = cellScience[s.op.id];
+            const rc = rarityConfig[s.op.rarity];
+            if(d) {
+                d.classList.add('show');
+                d.innerHTML = `<b style="color:${rc.color};">${s.op.name}（${rc.label}）· ${rangeTypeInfo[s.op.rangeType].label}</b> — ${sci.func}`;
+            }
+        };
+    }
+
+    // animate=true 时逐张揭晓；false（跳过）时一次性全部显示
+    function buildTenFinale(summary, guaranteeTriggered, animate) {
+        gaOverlay.style.display = 'flex';
+        gaScene.innerHTML = `
+            <div class="ga-ten-wrap show">
+                <div class="ga-title" style="position:static;">终末分化 ${animate ? '进行中…' : '完成'}</div>
+                <div class="ga-grid" id="gaGrid">
+                    ${summary.map((s, i) => tenSlotHTML(s, i, !animate)).join('')}
+                </div>
+                <div class="ga-ten-info" id="gaTenInfo">${animate ? '细胞因子信号正在诱导 10 个细胞分化…' : tenSummaryText(summary, guaranteeTriggered)}</div>
+                <div class="ga-detail" id="gaDetail"></div>
+                <button class="ga-confirm" id="gaTenConfirm" ${animate ? 'style="display:none;"' : ''} onclick="gaCloseAnim()">确认收入骨髓库</button>
+            </div>`;
+
+        if(animate) {
+            summary.forEach((s, i) => {
+                gaLater(() => {
+                    const slot = document.getElementById('gaSlot' + i);
+                    if(!slot) return;
+                    slot.outerHTML = tenSlotHTML(s, i, true);
+                    bindTenSlot(i, s);
+                    const op = s.op;
+                    if(op.rarity === 'legendary') {
+                        gaEnvFlash('legendary');
+                        const info = document.getElementById('gaTenInfo');
+                        if(info) info.innerHTML = '<b>★ 传奇细胞分化成功！金光降临！</b>';
+                    } else if(op.rarity === 'epic') {
+                        gaEnvFlash('epic');
+                    }
+                }, i * 230 + 250);
+            });
+            gaLater(() => {
+                const info = document.getElementById('gaTenInfo');
+                if(info) info.innerHTML = tenSummaryText(summary, guaranteeTriggered);
+                const btn = document.getElementById('gaTenConfirm'); if(btn) btn.style.display = '';
+            }, summary.length * 230 + 650);
+        } else {
+            summary.forEach((s, i) => bindTenSlot(i, s));
+        }
+    }
+
+    function tenSummaryText(summary, guaranteeTriggered) {
+        let cnt = { legendary: 0, epic: 0, rare: 0, common: 0 };
+        summary.forEach(s => cnt[s.op.rarity]++);
+        let parts = [];
+        if(cnt.legendary) parts.push(`<b>传奇×${cnt.legendary}</b>`);
+        if(cnt.epic) parts.push(`<span style="color:#c78fff;">史诗×${cnt.epic}</span>`);
+        if(cnt.rare) parts.push(`<span style="color:#4facfe;">精英×${cnt.rare}</span>`);
+        if(cnt.common) parts.push(`普通×${cnt.common}`);
+        let guarantee = guaranteeTriggered ? '　🛡️ <b style="color:#ffd84d;">十连保底已触发</b>' : '';
+        return '分化完成：' + parts.join(' · ') + guarantee + '（点击任意细胞查看作用）';
+    }
+
+    // 在抽卡弹窗中点击历史结果卡查看作用
+    function showCellScience(opId) {
+        const op = masterPool.find(m => m.id === opId);
+        const sci = cellScience[opId];
+        const rc = rarityConfig[op.rarity];
+        gaClearTimers();
+        gaScreenFlash.className = 'ga-screenflash';
+        gaOverlay.style.display = 'flex';
+        gaScene.innerHTML = `
+            <div class="ga-result show">
+                <div class="ga-cell-emblem ${op.rarity}"><img src="${avatarURLs[opId]}" alt=""></div>
+                <div class="ga-cell-name" style="text-shadow:0 0 12px ${rc.color};">${op.name}</div>
+                <div class="ga-rarity" style="color:${rc.color};">${rc.label} 干员 · ${rangeTypeInfo[op.rangeType].label}</div>
+                <div class="ga-stars">${'★'.repeat(collection[opId].stars)}</div>
+                <div class="ga-func">
+                    <div class="path">🧬 分化路径：${sci.pathway.join(' → ')}</div>
+                    <div class="ft">🔬 该细胞的作用</div>
+                    <div>${sci.func}</div>
+                </div>
+                <button class="ga-confirm" onclick="gaCloseAnim()">关闭</button>
+            </div>`;
+    }
+
+    function gaCloseAnim() {
+        gaClearTimers();
+        gaContext = null;
+        gaOverlay.style.display = 'none';
+        gaScene.innerHTML = '';
+        gaScreenFlash.className = 'ga-screenflash';
+    }
+
     // ==================== 编队系统 ====================
     function toggleDeck(opId) {
         let idx = deck.indexOf(opId);
@@ -936,10 +1500,31 @@
         if(!list) return;
         list.innerHTML = levels.map(lvl => `
             <div class="level-item ${currentLevel === lvl.id ? 'active' : ''}" onclick="selectLevel(${lvl.id})">
-                <div><b>${lvl.name}</b></div>
+                <div><b>${lvl.id}. ${lvl.ageGroup}</b></div>
                 <div style="color: #f39c12;">🧪${lvl.rewardNut}</div>
             </div>
         `).join('');
+    }
+
+    function renderRangeLegend() {
+        const div = document.getElementById('rangeLegend');
+        if(!div) return;
+        // 只展示当前游戏内实际使用的范围类型
+        const used = {};
+        masterPool.forEach(op => { used[op.rangeType] = true; });
+        div.innerHTML = Object.keys(rangeTypeInfo).filter(k => used[k]).map(k =>
+            `<div><b>${rangeTypeInfo[k].label}</b><br><span style="color:#888;">${rangeTypeInfo[k].bio}</span></div>`
+        ).join('');
+    }
+
+    // ==================== 抽屉侧栏 ====================
+    function openDrawer() {
+        document.getElementById('sidebar').classList.add('open');
+        document.getElementById('drawerScrim').classList.add('open');
+    }
+    function closeDrawer() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('drawerScrim').classList.remove('open');
     }
 
     function renderEnemyBestiary() {
@@ -956,13 +1541,16 @@
     function selectLevel(lvlId) {
         if(waveInProgress) { alert("战斗中无法切换关卡！"); return; }
         currentLevel = lvlId;
-        let lvl = levels[lvlId-1];
-        baseHp = lvl.baseHp;
-        document.getElementById('levelTitleDisplay').innerText = `当前关卡：第 ${lvl.id} 关 (${lvl.ageGroup})`;
-
+        syncLevelUI();
         refreshDeckOperators();
         renderLevelList();
         resetGame();
+        closeDrawer();
+    }
+
+    function syncLevelUI() {
+        let lvl = levels[currentLevel-1];
+        document.getElementById('levelTitleDisplay').innerText = `第 ${lvl.id} 关 · ${lvl.ageGroup}`;
     }
 
     function renderOperators() {
@@ -970,9 +1558,10 @@
         if(!list) return;
         list.innerHTML = playerOperators.map((op, idx) => `
             <div class="operator-card ${selectedOp === op ? 'selected' : ''}" onclick="selectOperator(${idx})">
-                <div class="op-avatar">${avatarImg(op.id, 34, 'border-color:' + (rarityConfig[op.rarity] ? rarityConfig[op.rarity].color : '#38384d'))}</div>
+                <div class="op-avatar">${avatarImg(op.id, 32, 'border-color:' + (rarityConfig[op.rarity] ? rarityConfig[op.rarity].color : '#38384d'))}</div>
                 <div class="name">${op.name}</div>
-                <div class="cost">⚡ ${op.cost} ATP · ${'★'.repeat(op.stars)}</div>
+                <div class="cost">⚡${op.cost} · ${'★'.repeat(op.stars)}</div>
+                <div class="range">${rangeTypeInfo[op.rangeType].label}</div>
                 <div class="desc">${op.desc}</div>
             </div>
         `).join('');
@@ -1055,16 +1644,29 @@
     }, { passive: false });
 
     // ==================== 敌人生成 ====================
+    let spawnTimerId = null;
+    function clearSpawnTimer() {
+        if(spawnTimerId !== null) { clearInterval(spawnTimerId); spawnTimerId = null; }
+    }
+    function updateWaveButton() {
+        const btn = document.getElementById('startWaveBtn');
+        if(!btn) return;
+        if(waveInProgress) { btn.disabled = true; btn.innerText = '⚔️ 防线战进行中…'; }
+        else { btn.disabled = false; btn.innerText = '🚀 开始防线战'; }
+    }
+
     function startWave() {
         if(waveInProgress) return;
         waveInProgress = true;
         waveSpawningDone = false;
+        updateWaveButton();
         let lvlData = levels[currentLevel - 1];
         let spawned = 0;
         let allowed = lvlData.allowedEnemies || ['influenza'];
         let spawnInterval = currentLevel <= 5 ? 1500 : (currentLevel <= 10 ? 1200 : 1000);
 
-        let spawnTimer = setInterval(() => {
+        clearSpawnTimer();
+        spawnTimerId = setInterval(() => {
             if(spawned < lvlData.enemyCount) {
                 let typeKey = allowed[Math.floor(Math.random() * allowed.length)];
                 let td = enemyTypes[typeKey];
@@ -1093,30 +1695,70 @@
                 });
                 spawned++;
             } else {
-                clearInterval(spawnTimer);
+                clearSpawnTimer();
                 waveSpawningDone = true;
             }
         }, spawnInterval);
     }
 
-    // ==================== 波次结算 ====================
-    function completeWave() {
+    // ==================== 波次结算（自定义弹窗，确保关卡状态完整重置） ====================
+    function openResultModal(title, descHtml, btnText, onClick) {
+        document.getElementById('resultTitle').innerText = title;
+        document.getElementById('resultDesc').innerHTML = descHtml;
+        const btn = document.getElementById('resultBtn');
+        btn.innerText = btnText;
+        btn.onclick = onClick;
+        document.getElementById('resultModal').style.display = 'flex';
+    }
+    function closeResultModal() {
+        document.getElementById('resultModal').style.display = 'none';
+    }
+
+    function onVictory() {
         waveInProgress = false;
         waveSpawningDone = false;
+        clearSpawnTimer();
+        updateWaveButton();
         let lvlData = levels[currentLevel - 1];
         nutrients += lvlData.rewardNut;
         marrow += 2;   // 通关固定奖励2个骨髓造血原液
-        alert(`🎉 恭喜通关 ${lvlData.name}！\n获得营养 🧪+${lvlData.rewardNut}，骨髓造血原液 🦴+2`);
-
-        if(currentLevel < levels.length) {
-            currentLevel++;
-            refreshDeckOperators();
-            let nextLvl = levels[currentLevel-1];
-            baseHp = nextLvl.baseHp;
-            document.getElementById('levelTitleDisplay').innerText = `当前关卡：第 ${nextLvl.id} 关 (${nextLvl.ageGroup})`;
-            renderLevelList();
-        }
         updateUI();
+
+        let hasNext = currentLevel < levels.length;
+        openResultModal(
+            '🎉 防线防守成功',
+            `${lvlData.name}<br>获得营养 🧪 +${lvlData.rewardNut}　骨髓原液 🦴 +2`,
+            hasNext ? `➡️ 进入第 ${currentLevel + 1} 关` : '🏆 已通关全部关卡',
+            () => {
+                closeResultModal();
+                if(hasNext) {
+                    currentLevel++;
+                    syncLevelUI();
+                    renderLevelList();
+                    refreshDeckOperators();
+                    resetGame();   // 关键：完整重置棋盘/ATP/粒子，避免下一关状态污染
+                }
+            }
+        );
+    }
+
+    function onDefeat() {
+        waveInProgress = false;
+        waveSpawningDone = false;
+        clearSpawnTimer();
+        updateWaveButton();
+        openResultModal(
+            '💀 宿主防线崩溃',
+            '病原体突破了全部生命防线。<br>调整干员编队与部署位置，再试一次吧！',
+            '🔄 重新挑战本关',
+            () => { closeResultModal(); resetGame(); }
+        );
+    }
+
+    function checkWaveEnd() {
+        if(waveInProgress && waveSpawningDone && spawnTimerId === null && enemies.length === 0) {
+            onVictory();
+        }
     }
 
     // ==================== 游戏逻辑更新 ====================
@@ -1301,7 +1943,7 @@
 
                 // 通关判定
                 if(enemies.length === 0 && waveInProgress && waveSpawningDone) {
-                    completeWave();
+                    checkWaveEnd();
                 }
             } else if(en.x <= 0) {
                 // 敌人突破防线
@@ -1310,13 +1952,12 @@
                 enemies.splice(i, 1);
                 updateUI();
                 if(baseHp <= 0) {
-                    alert("宿主防线崩溃！游戏失败。");
-                    resetGame();
+                    onDefeat();
                     return;
                 }
                 // 全部敌人突破防线后同样结算波次，防止卡死
                 if(enemies.length === 0 && waveInProgress && waveSpawningDone) {
-                    completeWave();
+                    checkWaveEnd();
                 }
             }
         }
@@ -1812,6 +2453,7 @@
     }
 
     function resetGame() {
+        clearSpawnTimer();
         waveInProgress = false;
         waveSpawningDone = false;
         grid = Array(rows).fill().map(() => Array(cols).fill(null));
@@ -1820,8 +2462,28 @@
         skillEffects = [];
         baseHp = levels[currentLevel - 1].baseHp;
         atp = 30;
+        syncLevelUI();
+        renderLevelList();
+        updateWaveButton();
         updateUI();
     }
+
+    // ==================== 画布自适应（保持 770:350 比例铺满战场区） ====================
+    const canvasWrap = document.querySelector('.canvas-area');
+    function fitCanvas() {
+        if(!canvasWrap) return;
+        const pad = 10;
+        const aw = canvasWrap.clientWidth - pad;
+        const ah = canvasWrap.clientHeight - pad;
+        if(aw <= 0 || ah <= 0) return;
+        const ratio = CANVAS_W / CANVAS_H;
+        let w = aw, h = w / ratio;
+        if(h > ah) { h = ah; w = h * ratio; }
+        canvas.style.width = Math.floor(w) + 'px';
+        canvas.style.height = Math.floor(h) + 'px';
+    }
+    window.addEventListener('resize', fitCanvas);
+    window.addEventListener('orientationchange', () => setTimeout(fitCanvas, 200));
 
     // ==================== 主循环 ====================
     setInterval(() => {
@@ -1833,7 +2495,12 @@
     renderLevelList();
     renderOperators();
     renderEnemyBestiary();
+    renderRangeLegend();
+    syncLevelUI();
+    updateWaveButton();
     updateUI();
+    fitCanvas();
+    setTimeout(fitCanvas, 300);   // WebView 布局完成后二次校正
 </script>
 </body>
 </html>
