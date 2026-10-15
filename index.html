@@ -127,6 +127,33 @@
         .legend-flash { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 35%, rgba(255,215,0,0.4), transparent 65%); animation: legendFlash 1.1s ease forwards; }
         @keyframes legendFlash { 0% { opacity: 0; } 25% { opacity: 1; } 100% { opacity: 0; } }
         #gachaResult { position: relative; }
+
+        /* ===== 造血干细胞分化动画（抽卡） ===== */
+        .diff-overlay { position: fixed; inset: 0; z-index: 1100; background: rgba(8, 8, 14, 0.93); display: flex; justify-content: center; align-items: center; }
+        .diff-panel { width: min(520px, 92vw); max-height: 94vh; overflow-y: auto; background: linear-gradient(170deg, #1e1e2c, #171722); border: 1px solid #38384d; border-radius: 16px; padding: 20px 16px 16px; text-align: center; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,0.65); }
+        .diff-title { font-size: 13px; color: #4facfe; font-weight: bold; letter-spacing: 2px; margin-bottom: 16px; }
+        .diff-skip { position: absolute; top: 10px; right: 12px; padding: 4px 10px; font-size: 11px; }
+        .diff-stage { display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 64px; }
+        .diff-node { width: 56px; height: 56px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: #232332; border: 2px solid #38384d; opacity: 0; transform: scale(0.4); transition: all 0.45s cubic-bezier(0.2, 0.7, 0.3, 1.3); flex-shrink: 0; }
+        .diff-node.on { opacity: 1; transform: scale(1); }
+        .diff-node.current { border-color: #4facfe; box-shadow: 0 0 14px rgba(79, 172, 254, 0.55); }
+        .diff-node img { width: 46px; height: 46px; }
+        .diff-arrow { color: #445; font-size: 15px; opacity: 0; transition: opacity 0.3s, color 0.3s; flex-shrink: 0; }
+        .diff-arrow.on { opacity: 1; color: #4facfe; }
+        .diff-label { margin-top: 12px; font-size: 15px; font-weight: bold; color: #fff; min-height: 20px; }
+        .diff-sub { margin-top: 4px; font-size: 11px; color: #8a8a9a; min-height: 16px; }
+        .diff-final { margin-top: 14px; }
+        .df-card { border-radius: 14px; border: 2px solid #555; padding: 14px 12px; background: linear-gradient(165deg, #292938, #1f1f2a); text-align: center; animation: cardFlip 0.55s cubic-bezier(0.2, 0.7, 0.3, 1.25); }
+        .df-card.epic { animation: cardFlip 0.55s cubic-bezier(0.2, 0.7, 0.3, 1.25), epicGlow 1.6s ease 0.55s infinite; }
+        .df-card.legendary { animation: cardFlip 0.55s cubic-bezier(0.2, 0.7, 0.3, 1.25), goldenPulse 1.3s ease 0.55s infinite; }
+        .df-function { margin-top: 10px; text-align: left; font-size: 11px; color: #c5c5d5; line-height: 1.6; background: #16161f; border-radius: 8px; padding: 8px 10px; }
+        .df-range { margin-top: 10px; display: flex; gap: 10px; align-items: center; background: #16161f; border-radius: 8px; padding: 8px 10px; font-size: 11px; color: #ccc; line-height: 1.5; }
+        .range-legend { font-size: 9px; color: #888; margin-top: 2px; }
+        .diff-final .btn-primary { margin-top: 12px; padding: 10px 40px; }
+        .card-range { font-size: 9px; color: #4facfe; margin-top: 1px; }
+        .ci-func { font-size: 10px; color: #999; margin-top: 2px; line-height: 1.5; }
+        .ci-range { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .op-range { position: absolute; top: 2px; right: 2px; background: rgba(14, 14, 20, 0.72); border-radius: 4px; padding: 1px; line-height: 0; }
         .rarity-label { font-size: 10px; font-weight: bold; }
         .card-name { font-size: 12px; color: #fff; font-weight: bold; margin: 4px 0 2px; }
         .card-star { font-size: 11px; color: #ffb142; }
@@ -225,6 +252,15 @@
             .gacha-card { width: auto; margin: 0; }
             .gacha-card.single { grid-column: 1 / -1; justify-self: center; width: 150px; }
             .pool-tab { min-width: 130px; }
+            /* 分化动画适配 */
+            .diff-panel { width: 96vw; padding: 14px 10px 12px; }
+            .diff-node { width: 44px; height: 44px; }
+            .diff-node img { width: 35px; height: 35px; }
+            .diff-stage { min-height: 48px; gap: 3px; }
+            .diff-arrow { font-size: 12px; }
+            .diff-label { font-size: 13px; }
+            .diff-sub { font-size: 10px; }
+            .df-function, .df-range { font-size: 10px; padding: 6px 8px; }
         }
         /* 超矮横屏（如 16:9 小屏）：进一步压缩提示行与内边距 */
         @media (max-width: 900px) and (max-height: 420px) {
@@ -328,6 +364,26 @@
             </div>
             <div id="gachaResult" style="margin-top:14px;"></div>
         </div>
+    </div>
+</div>
+
+<!-- ===== 造血干细胞分化动画弹层 ===== -->
+<div class="diff-overlay" id="diffOverlay" style="display:none;">
+    <div class="diff-panel">
+        <div class="diff-title" id="diffTitle">🧬 造血干细胞分化</div>
+        <button class="btn-secondary diff-skip" id="diffSkip" onclick="skipDiffusion()">跳过 ▸</button>
+        <div class="diff-stage">
+            <div class="diff-node" id="dn1"></div>
+            <div class="diff-arrow" id="da1">➜</div>
+            <div class="diff-node" id="dn2"></div>
+            <div class="diff-arrow" id="da2">➜</div>
+            <div class="diff-node" id="dn3"></div>
+            <div class="diff-arrow" id="da3">➜</div>
+            <div class="diff-node" id="dn4"></div>
+        </div>
+        <div class="diff-label" id="diffLabel"></div>
+        <div class="diff-sub" id="diffSub"></div>
+        <div class="diff-final" id="diffFinal"></div>
     </div>
 </div>
 
@@ -508,6 +564,97 @@
         return `<img src="${avatarURLs[id]}" width="${size}" height="${size}" style="border-radius:50%; object-fit:cover; border:2px solid #38384d; background:#fff; display:block; ${extraStyle || ''}">`;
     }
 
+    // ==================== 攻击范围特性（按细胞生物学特性划分） ====================
+    const RANGE_INFO = {
+        front1:  { name: '接触作用',   desc: '仅紧邻前方1格' },
+        front2:  { name: '趋化扩散',   desc: '前方2格（趋化因子梯度/水解酶扩散）' },
+        front3:  { name: '远程脱颗粒', desc: '前方3格（颗粒内容物远程释放）' },
+        cross2:  { name: '广域吞噬',   desc: '十字方向2格内（伪足延伸吞噬）' },
+        cross3:  { name: '全身巡逻',   desc: '十字方向3格内（外周循环巡逻）' },
+        circle1: { name: '协同围杀',   desc: '周围3×3（免疫突触接触杀伤）' },
+        circle2: { name: '记忆应答',   desc: '周围5×5（记忆克隆扩增扩散）' },
+        allRow:  { name: '体液循环',   desc: '整行远程（抗体随血液淋巴循环）' },
+        buff1:   { name: '提呈增益',   desc: '周围3×3友军攻击+50%（MHC-II提呈激活）' }
+    };
+
+    // ==================== 细胞作用（生物化学功能描述） ====================
+    const FUNCTION_TEXT = {
+        neutrophil: '急性炎症首发应答：沿趋化因子梯度最先抵达感染灶，吞噬病原并释放NETs（中性粒细胞胞外陷阱）网捕杀灭细菌。',
+        eosinophil: '抗寄生虫主力：识别大型病原后脱颗粒，释放主要碱性蛋白（MBP）与嗜酸性阳离子蛋白远程杀伤。',
+        macrophage: '体内清道夫：伸出伪足包裹吞噬病原与凋亡碎片，加工抗原提呈给T细胞，衔接先天与适应性免疫。',
+        rbc: '免疫后勤：血红蛋白携氧保障免疫细胞有氧代谢，辅助氧化杀菌；无核长寿，充当前排屏障。',
+        lysozyme: '化学屏障：分泌溶菌酶水解细菌细胞壁肽聚糖的β-1,4糖苷键，对细菌类病原伤害+50%。',
+        dendritic: '免疫指挥官：最强的专职抗原提呈细胞（APC），以MHC-II提呈抗原激活周围细胞，使其攻击+50%。',
+        tcell: '精准猎杀：TCR识别感染细胞表面MHC提呈的抗原表位后定向杀伤，与周围免疫细胞协同围杀。',
+        bcell: '体液免疫：受抗原刺激后分化为浆细胞，分泌抗体经血液/淋巴循环远程打击整排病原。',
+        nkcell: '天然杀手：无需抗原致敏、不受MHC限制，直接杀伤病毒感染细胞，巡逻范围覆盖全身。',
+        memoryT: '免疫记忆：初次应答后长期存活，再次遭遇同一病原时迅速克隆扩增，提供超持久防线。'
+    };
+
+    // ==================== 造血干细胞分化谱系（遵循真实造血生化知识） ====================
+    const LINEAGE = {
+        neutrophil: { line: '髓系', steps: [
+            { label: '造血干细胞 HSC', sub: 'CD34+ · c-Kit+ · 骨髓微环境维持干性', node: 'hsc' },
+            { label: '髓系祖细胞 CMP', sub: 'CD33+/CD13+ · 转录因子 PU.1 驱动', node: 'cmp' },
+            { label: '粒-单核系祖细胞 GMP', sub: 'C/EBPα 表达 · G-CSF 应答', node: 'gmp' },
+            { label: '中性粒细胞', sub: 'CD66b+/CD16b+ · 急性应答主力', node: 'final' }
+        ]},
+        eosinophil: { line: '髓系', steps: [
+            { label: '造血干细胞 HSC', sub: 'CD34+ · 骨髓微环境维持干性', node: 'hsc' },
+            { label: '髓系祖细胞 CMP', sub: 'CD33+ · 转录因子 PU.1 驱动', node: 'cmp' },
+            { label: '嗜酸性粒祖细胞', sub: 'GATA-1 · C/EBPε · IL-5 应答', node: 'gmp' },
+            { label: '嗜酸性粒细胞', sub: 'CCR3+/Siglec-8+ · 抗寄生虫主力', node: 'final' }
+        ]},
+        macrophage: { line: '髓系', steps: [
+            { label: '造血干细胞 HSC', sub: 'CD34+ · 骨髓微环境维持干性', node: 'hsc' },
+            { label: '髓系祖细胞 CMP', sub: 'CD33+ · 转录因子 PU.1 驱动', node: 'cmp' },
+            { label: '单核细胞', sub: 'CD14+/CD115+ · M-CSF 应答', node: 'gmp' },
+            { label: '巨噬细胞', sub: 'CD68+ · 专职吞噬细胞', node: 'final' }
+        ]},
+        rbc: { line: '髓系', steps: [
+            { label: '造血干细胞 HSC', sub: 'CD34+ · 骨髓微环境维持干性', node: 'hsc' },
+            { label: '髓系祖细胞 CMP', sub: 'CD33+ · 转录因子 PU.1 驱动', node: 'cmp' },
+            { label: '红系祖细胞 BFU-E→CFU-E', sub: 'GATA-1 · EPO（促红细胞生成素）应答', node: 'gmp' },
+            { label: '红细胞', sub: 'CD235a+ · 脱核成熟 · 血红蛋白携氧', node: 'final' }
+        ]},
+        lysozyme: { line: '髓系', steps: [
+            { label: '造血干细胞 HSC', sub: 'CD34+ · 骨髓微环境维持干性', node: 'hsc' },
+            { label: '髓系祖细胞 CMP', sub: 'CD33+ · 转录因子 PU.1 驱动', node: 'cmp' },
+            { label: '粒-单核系祖细胞 GMP', sub: 'LYZ 基因高表达程序启动', node: 'gmp' },
+            { label: '溶菌酶分泌细胞', sub: '水解细菌肽聚糖 β-1,4 糖苷键', node: 'final' }
+        ]},
+        dendritic: { line: '髓系', steps: [
+            { label: '造血干细胞 HSC', sub: 'CD34+ · 骨髓微环境维持干性', node: 'hsc' },
+            { label: '髓系祖细胞 CMP', sub: 'CD33+ · Flt3L 应答', node: 'cmp' },
+            { label: '树突状细胞前体 pre-DC', sub: 'Flt3L · IRF8 驱动', node: 'gmp' },
+            { label: '树突状细胞', sub: 'CD11c+ · MHC-II高表达 · 抗原提呈', node: 'final' }
+        ]},
+        tcell: { line: '淋巴系', steps: [
+            { label: '造血干细胞 HSC', sub: 'CD34+ · 骨髓微环境维持干性', node: 'hsc' },
+            { label: '淋巴系祖细胞 CLP', sub: 'IL-7R+ · 转录因子 Ikaros 驱动', node: 'clp' },
+            { label: '胸腺 T 祖细胞', sub: 'Notch信号 · TCR基因重排 · 阳性/阴性选择', node: 'gmp' },
+            { label: 'T 淋巴细胞', sub: 'CD3+ · TCR识别MHC提呈抗原', node: 'final' }
+        ]},
+        bcell: { line: '淋巴系', steps: [
+            { label: '造血干细胞 HSC', sub: 'CD34+ · 骨髓微环境维持干性', node: 'hsc' },
+            { label: '淋巴系祖细胞 CLP', sub: 'IL-7R+ · 转录因子 Ikaros 驱动', node: 'clp' },
+            { label: 'B 祖细胞', sub: 'Ig重链 DJ→VDJ 重排 · Pax5 驱动', node: 'gmp' },
+            { label: 'B 淋巴细胞', sub: 'CD19+/CD20+ · 分化浆细胞分泌抗体', node: 'final' }
+        ]},
+        nkcell: { line: '淋巴系', steps: [
+            { label: '造血干细胞 HSC', sub: 'CD34+ · 骨髓微环境维持干性', node: 'hsc' },
+            { label: '淋巴系祖细胞 CLP', sub: 'IL-7R+ · 转录因子 Ikaros 驱动', node: 'clp' },
+            { label: 'NK 前体细胞', sub: 'IL-15 应答 · Eomes/T-bet 驱动', node: 'gmp' },
+            { label: 'NK 自然杀伤细胞', sub: 'CD56+/CD16+ · 无需致敏的天然杀伤', node: 'final' }
+        ]},
+        memoryT: { line: '淋巴系', steps: [
+            { label: '造血干细胞 HSC', sub: 'CD34+ · 骨髓微环境维持干性', node: 'hsc' },
+            { label: '淋巴系祖细胞 CLP', sub: 'IL-7R+ · 胸腺训育', node: 'clp' },
+            { label: '初始 T 细胞', sub: 'CD45RA+ · TCR初次识别抗原', node: 'gmp' },
+            { label: '记忆 T 细胞', sub: 'CD45RO+ · 长寿免疫记忆 · 再次应答', node: 'final' }
+        ]}
+    };
+
     // ==================== 关卡配置（15关生命周期） ====================
     const levels = [
         { id: 1, ageGroup: '幼儿期', name: "第1关: 脐带残端初阶防线", enemyHp: 25, enemyCount: 8, rewardNut: 20, baseHp: 12, allowedEnemies: ['influenza'] },
@@ -614,6 +761,7 @@
 
         const lib = {
             tap:       () => tone('sine', 660, 660, 0.06, 0.22),
+            divide:    () => tone('sine', 520, 820, 0.09, 0.2),   // 干细胞分裂分化提示音
             deploy:    () => { tone('sine', 320, 620, 0.12, 0.3); tone('triangle', 500, 900, 0.1, 0.15, 0.03); },
             recycle:   () => tone('sine', 600, 220, 0.16, 0.24),
             hit:       () => {  // 敌人死亡（节流防刷屏）
@@ -903,6 +1051,158 @@
         return candidates[Math.floor(Math.random() * candidates.length)];
     }
 
+    // ==================== 造血干细胞分化动画（抽卡揭示） ====================
+    let diffState = null;   // { timers, s, done, finished }
+
+    // 干细胞/祖细胞卡通示意（未分化形态：大核 + 少量颗粒）
+    function stemCellSvg(color, nucleusColor) {
+        return `<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="24" cy="24" r="21" fill="${color}" opacity="0.22"/>
+            <circle cx="24" cy="24" r="21" fill="none" stroke="${color}" stroke-width="2"/>
+            <circle cx="24" cy="24" r="9.5" fill="${nucleusColor}"/>
+            <circle cx="13.5" cy="15" r="2.6" fill="${nucleusColor}" opacity="0.6"/>
+            <circle cx="34" cy="31.5" r="2.1" fill="${nucleusColor}" opacity="0.6"/>
+            <circle cx="31" cy="12.5" r="1.7" fill="${nucleusColor}" opacity="0.45"/>
+        </svg>`;
+    }
+
+    // 攻击范围缩略图（9×7 网格：蓝=自身，橙=作用范围）
+    function rangeMiniHtml(rangeType, cell) {
+        cell = cell || 8;
+        const C = 9, R = 7, orr = 3, occ = 2, g = 1;
+        const cov = new Set();
+        const add = (r, c) => { if (r >= 0 && r < R && c >= 0 && c < C) cov.add(r + ',' + c); };
+        switch (rangeType) {
+            case 'front1': add(orr, occ + 1); break;
+            case 'front2': add(orr, occ + 1); add(orr, occ + 2); break;
+            case 'front3': add(orr, occ + 1); add(orr, occ + 2); add(orr, occ + 3); break;
+            case 'cross2': for (let d = -2; d <= 2; d++) { add(orr, occ + d); add(orr + d, occ); } break;
+            case 'cross3': for (let d = -3; d <= 3; d++) { add(orr, occ + d); add(orr + d, occ); } break;
+            case 'circle1': for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) add(orr + dr, occ + dc); break;
+            case 'circle2': for (let dr = -2; dr <= 2; dr++) for (let dc = -2; dc <= 2; dc++) add(orr + dr, occ + dc); break;
+            case 'buff1': for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) { if (dr || dc) add(orr + dr, occ + dc); } break;
+            case 'allRow': for (let c = occ + 1; c < C; c++) add(orr, c); break;
+        }
+        let s = `<svg width="${C * (cell + g)}" height="${R * (cell + g)}" viewBox="0 0 ${C * (cell + g)} ${R * (cell + g)}" xmlns="http://www.w3.org/2000/svg">`;
+        for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) {
+            const isSelf = (r === orr && c === occ);
+            const isCov = cov.has(r + ',' + c);
+            const fill = isSelf ? '#4facfe' : (isCov ? '#ff9f43' : '#26263a');
+            s += `<rect x="${c * (cell + g)}" y="${r * (cell + g)}" width="${cell}" height="${cell}" rx="1.5" fill="${fill}"${isSelf ? ' stroke="#9cd2ff" stroke-width="0.6"' : ''}/>`;
+        }
+        return s + '</svg>';
+    }
+
+    // 播放分化动画：HSC → 髓系/淋巴系祖细胞 → 特异性前体 → 最终细胞（遵循造血谱系）
+    function playDiffusion(s, done) {
+        const overlay = document.getElementById('diffOverlay');
+        if (!overlay || !LINEAGE[s.op.id]) { if (done) done(); return; }
+        const lin = LINEAGE[s.op.id];
+        diffState = { timers: [], s, done, finished: false };
+
+        const nodeArt = {
+            hsc: stemCellSvg('#9aa7ff', '#5c6cff'),
+            cmp: stemCellSvg('#ffb26b', '#e67e22'),
+            clp: stemCellSvg('#6fc1ff', '#2d7bd6'),
+            gmp: stemCellSvg('#c9a6e8', '#9b59b6')
+        };
+        // 重置舞台
+        for (let i = 0; i < 4; i++) {
+            const n = document.getElementById('dn' + (i + 1));
+            if (!n) continue;
+            n.className = 'diff-node';
+            n.innerHTML = lin.steps[i].node === 'final' ? avatarImg(s.op.id, 44) : nodeArt[lin.steps[i].node];
+        }
+        for (let i = 1; i <= 3; i++) { const a = document.getElementById('da' + i); if (a) a.classList.remove('on'); }
+        document.getElementById('diffTitle').innerText = `🧬 造血干细胞分化 · ${lin.line}途径`;
+        document.getElementById('diffLabel').innerText = '';
+        document.getElementById('diffSub').innerText = '';
+        const fin = document.getElementById('diffFinal');
+        fin.style.display = 'none';
+        fin.innerHTML = '';
+        document.getElementById('diffSkip').style.display = '';
+        overlay.style.display = 'flex';
+        SFX.play('gacha');
+
+        const STEP_MS = 850;
+        lin.steps.forEach((st, i) => {
+            diffState.timers.push(setTimeout(() => {
+                if (i > 0) { const a = document.getElementById('da' + i); if (a) a.classList.add('on'); }
+                for (let j = 0; j < 4; j++) {
+                    const n = document.getElementById('dn' + (j + 1));
+                    if (n) n.classList.toggle('current', j === i);
+                }
+                const node = document.getElementById('dn' + (i + 1));
+                if (node) node.classList.add('on');
+                document.getElementById('diffLabel').innerText = st.label;
+                document.getElementById('diffSub').innerText = st.sub;
+                SFX.play('divide');
+            }, 300 + i * STEP_MS));
+        });
+        diffState.timers.push(setTimeout(() => finishDiffusion(), 300 + lin.steps.length * STEP_MS + 250));
+    }
+
+    // 动画结束：展示最终细胞 + 其生物化学作用 + 攻击范围特性
+    function finishDiffusion() {
+        if (!diffState || diffState.finished) return;
+        diffState.finished = true;
+        diffState.timers.forEach(clearTimeout);
+        diffState.timers = [];
+        const s = diffState.s;
+        const op = s.op;
+        const rc = rarityConfig[op.rarity];
+        const ri = RANGE_INFO[op.rangeType];
+
+        for (let i = 1; i <= 4; i++) {
+            const n = document.getElementById('dn' + i);
+            if (n) { n.classList.add('on'); n.classList.remove('current'); }
+        }
+        const fin = document.getElementById('diffFinal');
+        fin.innerHTML = `
+            <div class="df-card ${op.rarity}" style="border-color:${rc.color}; box-shadow:0 0 16px ${rc.glow};">
+                <div style="display:flex; gap:12px; align-items:center; text-align:left;">
+                    ${avatarImg(op.id, 62, 'border-color:' + rc.color)}
+                    <div style="flex:1; min-width:0;">
+                        <div style="color:${rc.color}; font-size:12px; font-weight:bold;">${rc.label} · ${'★'.repeat(collection[op.id].stars)}星</div>
+                        <div style="color:#fff; font-size:17px; font-weight:bold;">${op.name}</div>
+                        <div style="font-size:10px; color:${s.isNew ? '#2ecc71' : '#888'};">${s.isNew ? '🆕 NEW 入藏！' : '重复获得 · 信物 +' + s.frag}</div>
+                    </div>
+                </div>
+                <div class="df-function">🧪 <b style="color:#4facfe;">细胞作用</b>：${FUNCTION_TEXT[op.id]}</div>
+                <div class="df-range">
+                    <div style="text-align:center;">
+                        ${rangeMiniHtml(op.rangeType, 9)}
+                        <div class="range-legend">🔵自身 🟠作用范围</div>
+                    </div>
+                    <div style="flex:1; text-align:left;">
+                        <b style="color:#ff9f43;">🎯 ${ri.name}</b> <span style="color:#888; font-size:10px;">（${ri.desc}）</span><br>
+                        <span style="color:#ffb142;">⚡${op.cost} ATP · ⏱寿命${op.maxLifeSec}s</span><br>
+                        <span style="color:#aaa;">${op.desc}</span>
+                    </div>
+                </div>
+            </div>
+            <button class="btn-primary" onclick="closeDiffusion()">继续 ▸</button>`;
+        fin.style.display = 'block';
+        document.getElementById('diffSkip').style.display = 'none';
+        // 稀有度音效（与揭示同步）
+        if (op.rarity === 'legendary') SFX.play('legendary');
+        else if (op.rarity === 'epic') SFX.play('epic');
+        else SFX.play('reveal');
+    }
+
+    function skipDiffusion() { if (diffState && !diffState.finished) finishDiffusion(); }
+
+    function closeDiffusion() {
+        const overlay = document.getElementById('diffOverlay');
+        if (overlay) overlay.style.display = 'none';
+        if (diffState) {
+            diffState.timers.forEach(clearTimeout);
+            const cb = diffState.done;
+            diffState = null;
+            if (cb) cb();
+        }
+    }
+
     function doGacha(count) {
         let cost = count === 10 ? 9 : 1;   // 十连九折
         if (marrow < cost) { alert('骨髓造血原液不足！可通关或击杀Boss获取，或用营养兑换。'); return; }
@@ -953,7 +1253,10 @@
 
         refreshDeckOperators();
         updateUI();
-        renderGachaResult(summary);
+        // 先播放造血干细胞分化动画（展示最高稀有度干员），结束后展示结果
+        let rarityOrder = { common: 0, rare: 1, epic: 2, legendary: 3 };
+        let best = summary.reduce((a, b) => rarityOrder[a.op.rarity] >= rarityOrder[b.op.rarity] ? a : b);
+        playDiffusion(best, () => renderGachaResult(summary));
     }
 
     function renderGachaResult(summary) {
@@ -984,6 +1287,7 @@
                 <div class="card-avatar">${avatarImg(op.id, isSingle ? 84 : 56, 'border-color:' + rc.color)}</div>
                 <div class="rarity-label" style="color:${rc.color};">${rc.label}</div>
                 <div class="card-name">${op.name}</div>
+                <div class="card-range">🎯 ${RANGE_INFO[op.rangeType].name}</div>
                 <div class="card-star">${'★'.repeat(collection[op.id].stars)}</div>
                 ${note}
             </div>`;
@@ -1144,6 +1448,7 @@
             return `<div class="collection-item" style="border-left:3px solid ${rc.color};">
                 <div class="ci-row">
                     ${avatarImg(id, 38, 'border-color:' + rc.color)}
+                    <div class="ci-range">${rangeMiniHtml(op.rangeType, 6)}<span class="range-legend">🎯${RANGE_INFO[op.rangeType].name}</span></div>
                     <div class="ci-main">
                         <div class="ci-top">
                             <b style="color:${rc.color};">${op.name}${deck.includes(id) ? '<span class="up-badge">编队中</span>' : ''}</b>
@@ -1151,6 +1456,7 @@
                         </div>
                         <div class="ci-stars">${'★'.repeat(c.stars)}${'☆'.repeat(5 - c.stars)}</div>
                         <div class="ci-info">信物 ${c.fragments} · ${op.desc}</div>
+                        <div class="ci-func">🧪 ${FUNCTION_TEXT[id]}</div>
                     </div>
                 </div>
                 <div class="ci-actions">
@@ -1211,6 +1517,7 @@
         if(!list) return;
         list.innerHTML = playerOperators.map((op, idx) => `
             <div class="operator-card ${selectedOp === op ? 'selected' : ''}" onclick="selectOperator(${idx})">
+                <div class="op-range" title="${RANGE_INFO[op.rangeType].name}">${rangeMiniHtml(op.rangeType, 3)}</div>
                 <div class="op-avatar">${avatarImg(op.id, 34, 'border-color:' + (rarityConfig[op.rarity] ? rarityConfig[op.rarity].color : '#38384d'))}</div>
                 <div class="name">${op.name}</div>
                 <div class="cost">⚡ ${op.cost} ATP · ${'★'.repeat(op.stars)}</div>
@@ -1222,7 +1529,7 @@
     function selectOperator(idx) {
         selectedOp = playerOperators[idx];
         SFX.play('tap');
-        document.getElementById('tipMsg').innerText = `已选择: ${selectedOp.name} (${selectedOp.desc})`;
+        document.getElementById('tipMsg').innerText = `已选择: ${selectedOp.name} · 🎯${RANGE_INFO[selectedOp.rangeType].name} (${selectedOp.desc})`;
         renderOperators();
     }
 
