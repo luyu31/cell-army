@@ -1249,15 +1249,24 @@
             }
         }
 
-        refreshDeckOperators();
-        renderGachaResult(summary);
-        refreshGachaUI();
+        try {
+            refreshDeckOperators();
+            renderGachaResult(summary);
+            refreshGachaUI();
+            updateUI();
 
-        // 播放造血干细胞分化动画
-        if(count === 10) {
-            playGachaTenAnim(summary, guaranteeTriggered, cost);
-        } else {
-            playGachaSingleAnim(summary[0], cost);
+            // 播放造血干细胞分化动画（动画内部有rAF/跳过兜底，异常则直接展示结果）
+            if(count === 10) {
+                playGachaTenAnim(summary, guaranteeTriggered, cost);
+            } else {
+                playGachaSingleAnim(summary[0], cost);
+            }
+        } catch(e) {
+            // 任何演出异常都不能让扣费发生后界面卡死：确保状态/显示一致并给出结果
+            console.error('gacha anim error:', e);
+            try { gaClearTimers(); gaCancelRaf(); gaOverlay.classList.remove('ga-on'); } catch(_) {}
+            updateUI(); refreshGachaUI();
+            if(count !== 10) renderSingleFinale(summary[0]);
         }
     }
 
@@ -1297,7 +1306,7 @@
     function exchangeNutrients() {
         if (nutrients < 20) { alert('营养不足（需20营养）！'); return; }
         nutrients -= 20;
-        marrow += 1;
+        changeMarrow(1, { pulse: 'gain' });
         updateUI();
         refreshGachaUI();
     }
@@ -2042,9 +2051,22 @@
         const tDif = tTel + D[4];                 // 分化完成 8200
         let lastPhase = -1, lastPhaseForSound = -1;
         const t0 = performance.now();
+        const tFlash = tDif + 850;
+        let firedFlash = false, firedFinale = false;
+        function doFlash() {
+            gaSound.reveal(op.rarity);
+            gaFireFlash(op.rarity); gaEnvFlash(op.rarity);
+            gaSpawnFireworks(op.rarity);
+        }
         function frame(now) {
             const t = now - t0;
-            if (t > tDif + 2150) { gaRaf = 0; return; }
+            // 关键推进由 rAF 时间轴保证：即使 setTimeout 丢失/切后台，恢复后自动补到闪光与结果
+            if(!firedFlash && t >= tFlash) { firedFlash = true; doFlash(); }
+            if(!firedFinale && t >= tFlash + 900) {
+                firedFinale = true;
+                renderSingleFinale(s);   // 内部会 gaCancelRaf
+                return;
+            }
             gaRaf = requestAnimationFrame(frame);
             gaFit(cv, ctx);
             ctx.clearRect(-340, -260, 680, 520);
@@ -2095,16 +2117,9 @@
         }
         gaRaf = requestAnimationFrame(frame);
 
-        // 预兆暗角：后期渗入（传奇金/史诗紫）
+        // 预兆暗角与标题：纯装饰，用定时器锦上添花；闪光与结果由上方 rAF 时间轴保证
         gaLater(() => gaShowOmen(op.rarity), tAna + 200);
         gaLater(() => { const ti = document.getElementById('gaTitle'); if (ti) ti.textContent = '细胞因子定向 · 终末分化'; }, tDif - 400);
-        const tFlash = tDif + 850;
-        gaLater(() => {
-            gaSound.reveal(op.rarity);
-            gaFireFlash(op.rarity); gaEnvFlash(op.rarity);
-            gaSpawnFireworks(op.rarity);
-        }, tFlash);
-        gaLater(() => renderSingleFinale(s), tFlash + 900);
     }
 
     function renderSingleFinale(s) {
@@ -2160,9 +2175,20 @@
         const GEN1_T = 4860, ARRANGE_T = 7160;
         let lastPhase = -1, lastPhaseForSound = -1;
         const t0 = performance.now();
+        let enteredGrid = false, startedReveal = false;
         function frame(now) {
             const t = now - t0;
-            if (t > 8460) { gaRaf = 0; return; }
+            // 进网格与揭晓由 rAF 时间轴保证，setTimeout 丢失/切后台恢复也能继续
+            if(!enteredGrid && t >= 8260) {
+                enteredGrid = true;
+                gaWhiteFlash(); buildTenGrid(summary, guaranteeTriggered);
+            }
+            if(enteredGrid && !startedReveal && t >= 8560) {
+                startedReveal = true;
+                startTenReveal(summary, guaranteeTriggered);  // 内部接管 rAF
+                return;
+            }
+            if(startedReveal) { gaRaf = 0; return; }
             gaRaf = requestAnimationFrame(frame);
             gaFit(cv, ctx);
             ctx.clearRect(-340, -260, 680, 520);
@@ -2211,8 +2237,7 @@
         gaLater(() => gaCountPop('×4'), ARRANGE_T);
         gaLater(() => gaCountPop('×8'), 7560);
         gaLater(() => gaCountPop('×10'), 7960);
-        gaLater(() => { gaCancelRaf(); gaWhiteFlash(); buildTenGrid(summary, guaranteeTriggered); }, 8260);
-        gaLater(() => startTenReveal(summary, guaranteeTriggered), 8560);
+        // 进网格与揭晓已改为上方 rAF 时间轴驱动，杜绝定时器丢失导致卡屏
     }
 
     function buildTenGrid(summary) {
@@ -2236,20 +2261,35 @@
         if (!gaContext) return;
         gaContext.pending = new Set(summary.map((s, i) => i));
         gaContext.chain = true;
+        gaContext.finished = false;
         // 普通→精英→史诗→传奇：金/紫压轴，制造悬念
         const order = summary.map((s, i) => i)
             .sort((a, b) => RARITY_RANK[summary[a].op.rarity] - RARITY_RANK[summary[b].op.rarity] || a - b);
-        // 串行揭晓：传奇定格1150ms、史诗550ms、其余220ms
+        // rAF 自推进：按真实帧间隔依次揭晓；跳过会清空 pending，循环立即收尾，绝不因定时器丢失卡住
         let k = 0;
-        function next() {
-            if(k >= order.length) { finishTenReveal(summary, guarantee); return; }
-            let idx = order[k++];
-            revealSlot(idx, summary[idx]);
-            let r = summary[idx].op.rarity;
-            let pause = r === 'legendary' ? 1180 : r === 'epic' ? 560 : 220;
-            gaLater(next, pause);
+        let lastT = performance.now() + 200;
+        function loop(now) {
+            if(!gaContext || gaContext.phase !== 'reveal') { gaRaf = 0; return; }
+            if(gaContext.pending === null || gaContext.pending.size === 0) {
+                gaRaf = 0;
+                finishTenReveal(summary, guarantee);
+                return;
+            }
+            if(now >= lastT && k < order.length) {
+                let idx = order[k++];
+                revealSlot(idx, summary[idx]);
+                let r = summary[idx].op.rarity;
+                lastT = now + (r === 'legendary' ? 1180 : r === 'epic' ? 560 : 220);
+            }
+            if(k >= order.length && gaContext.pending.size === 0) {
+                gaRaf = 0;
+                finishTenReveal(summary, guarantee);
+                return;
+            }
+            gaRaf = requestAnimationFrame(loop);
         }
-        gaLater(next, 200);
+        gaCancelRaf();
+        gaRaf = requestAnimationFrame(loop);
     }
 
     function gaSpotBanner(text, cls, hold) {
@@ -2307,7 +2347,11 @@
     }
 
     function finishTenReveal(summary, guarantee) {
-        if (gaContext) gaContext.pending = null;
+        if (!gaContext) return;
+        if (gaContext.finished) return;   // 幂等：跳过与rAF收尾可能同时到达
+        gaContext.finished = true;
+        gaContext.pending = null;
+        gaCancelRaf();
         const info = document.getElementById('gaTenInfo');
         if (info) {
             info.innerHTML = tenSummaryText(summary, guarantee);
@@ -2346,12 +2390,14 @@
                 gaClearTimers(); gaCancelRaf();
                 buildTenGrid(gaContext.summary, gaContext.guarantee);
                 gaContext.pending = new Set(gaContext.summary.map((s, i) => i));
+                gaContext.chain = false;   // 跳过时批量揭示，不逐张播音
                 gaContext.summary.forEach((s, i) => revealSlot(i, s));
                 finishTenReveal(gaContext.summary, gaContext.guarantee);
-            } else if (gaContext.pending === null) {
+            } else if (gaContext.pending === null || gaContext.finished) {
                 gaCloseAnim();
             } else {
-                gaClearTimers();
+                gaClearTimers(); gaCancelRaf();
+                gaContext.chain = false;   // 跳过剩余：静音批量揭示
                 [...gaContext.pending].forEach(i => revealSlot(i, gaContext.summary[i]));
                 finishTenReveal(gaContext.summary, gaContext.guarantee);
             }
@@ -2616,9 +2662,10 @@
     }, { passive: false });
 
     // ==================== 敌人生成 ====================
-    let spawnTimerId = null;
+    let spawnTimerId = null;   // 兼容旧引用：主循环时间累积模式下始终为 null
     function clearSpawnTimer() {
         if(spawnTimerId !== null) { clearTimeout(spawnTimerId); clearInterval(spawnTimerId); spawnTimerId = null; }
+        spawnState = null;
     }
     function updateWaveButton() {
         const btn = document.getElementById('startWaveBtn');
@@ -2663,40 +2710,51 @@
         return en;
     }
 
+    // 出怪调度状态：由主循环按"时间累积"驱动，避免递归setTimeout在WebView卡顿/切后台时丢链导致永久卡关
+    let spawnState = null;
     function startWave() {
         if(waveInProgress) return;
+        clearSpawnTimer();              // 先清理任何残留调度
         waveInProgress = true;
         waveSpawningDone = false;
         updateWaveButton();
         let lvlData = levels[currentLevel - 1];
-        let spawned = 0;
         let allowed = lvlData.allowedEnemies || ['influenza'];
-        // 关卡难度越高出怪越快，且同一波内逐渐加压（后半程更密集）
-        let baseInterval = Math.max(620, 1520 - (currentLevel - 1) * 46);
-        // 保底Boss出场表：nth（第几个怪）→ 类型
         let bossMap = {};
         (lvlData.bosses || []).forEach(b => { bossMap[b.nth] = b.type; });
+        spawnState = {
+            count: lvlData.enemyCount,
+            spawned: 0,
+            allowed: allowed,
+            bossMap: bossMap,
+            baseInterval: Math.max(620, 1520 - (currentLevel - 1) * 46),
+            nextAt: performance.now() + 500
+        };
+    }
 
-        clearSpawnTimer();
-        function scheduleNext(delay) {
-            spawnTimerId = setTimeout(() => {
-                if(!waveInProgress) return;
-                if(spawned < lvlData.enemyCount) {
-                    spawned++;
-                    let typeKey = bossMap[spawned] || allowed[Math.floor(Math.random() * allowed.length)];
-                    spawnEnemy(typeKey);
-                    let progress = spawned / lvlData.enemyCount;
-                    let nextDelay = baseInterval * (1 - progress * 0.5);  // 波末间隔缩短45%
-                    // 后1/4敌人组成"压境潮"，额外提速
-                    if(progress > 0.75) nextDelay *= 0.8;
-                    scheduleNext(nextDelay);
-                } else {
-                    spawnTimerId = null;
-                    waveSpawningDone = true;
-                }
-            }, delay);
+    // 主循环每帧调用：按时间轴出怪；卡顿/切后台恢复后沿时间轴补发（单帧≤3个防爆屏），链永不中断、怪永不丢失
+    function tickSpawn(now) {
+        if(!waveInProgress || !spawnState) return;
+        let burst = 0;
+        while(spawnState.spawned < spawnState.count && now >= spawnState.nextAt && burst < 3) {
+            spawnState.spawned++;
+            let typeKey = spawnState.bossMap[spawnState.spawned]
+                      || spawnState.allowed[Math.floor(Math.random() * spawnState.allowed.length)];
+            spawnEnemy(typeKey);
+            burst++;
+            let progress = spawnState.spawned / spawnState.count;
+            let delay = spawnState.baseInterval * (1 - progress * 0.5);  // 波末逐段加压
+            if(progress > 0.75) delay *= 0.8;                            // 后1/4压境潮
+            spawnState.nextAt += Math.max(250, delay);                   // 沿计划时间轴推进
         }
-        scheduleNext(500);
+        // 若仍有大量积压（预算用尽），把后续排队点拉到当前时刻之后，确保快速追平
+        if(spawnState.spawned < spawnState.count && spawnState.nextAt < now - 300) {
+            spawnState.nextAt = now + 60;
+        }
+        if(spawnState.spawned >= spawnState.count) {
+            waveSpawningDone = true;
+            spawnState = null;
+        }
     }
 
     // ==================== 波次结算（自定义弹窗，确保关卡状态完整重置） ====================
@@ -2719,7 +2777,7 @@
         updateWaveButton();
         let lvlData = levels[currentLevel - 1];
         nutrients += lvlData.rewardNut;
-        marrow += 2;   // 通关固定奖励2个骨髓造血原液
+        changeMarrow(2, { pulse: 'gain' });   // 通关固定奖励2个骨髓造血原液
         updateUI();
 
         let hasNext = currentLevel < levels.length;
@@ -2754,13 +2812,17 @@
     }
 
     function checkWaveEnd() {
-        if(waveInProgress && waveSpawningDone && spawnTimerId === null && enemies.length === 0) {
+        // 出怪已全部完成（时间累积调度由主循环驱动，不依赖定时器句柄）且场上无敌人即胜利
+        if(waveInProgress && waveSpawningDone && !spawnState && enemies.length === 0) {
             onVictory();
         }
     }
 
     // ==================== 游戏逻辑更新 ====================
-    function updateGame() {
+    function updateGame(nowTs) {
+        // 时间累积出怪（每帧驱动，杜绝递归定时器丢链）
+        tickSpawn(nowTs || performance.now());
+
         // ATP 自然恢复
         if(Math.random() < 0.035) {
             atp = Math.min(60, atp + 1);
@@ -2940,10 +3002,8 @@
             if(en.hp <= 0) {
                 // Boss掉落：击杀肝炎/肿瘤Boss额外奖励骨髓造血原液（立即刷新并高亮）
                 if(en.isBoss) {
-                    marrow += 1;
+                    changeMarrow(1, { pulse: 'gain' });
                     spawnFloatingText(en.x, en.y - 30, "原液+1!", '#ff6ec7');
-                    updateUI();
-                    pulseMarrow('gain');
                 }
 
                 // 分裂能力：轮状病毒死亡时生成2个子体
@@ -3025,6 +3085,9 @@
             s.life--;
             if(s.life <= 0) skillEffects.splice(i, 1);
         }
+
+        // 每帧幂等兜底：出怪完成且场上清空即结算，不依赖某个死亡/突破事件，杜绝永久卡关
+        checkWaveEnd();
     }
 
     // ==================== 敌人绘制 ====================
@@ -3570,11 +3633,24 @@
     }
 
     // ==================== UI 更新 ====================
+    // 每个数值独立写入，任一元素缺失都不会中断其余刷新（尤其保证骨髓原液始终同步）
+    function setText(id, val) {
+        let el = document.getElementById(id);
+        if(el) el.innerText = val;
+    }
     function updateUI() {
-        document.getElementById('baseHp').innerText = baseHp;
-        document.getElementById('atpVal').innerText = atp;
-        document.getElementById('nutVal').innerText = nutrients;
-        document.getElementById('marrowVal').innerText = marrow;
+        setText('marrowVal', marrow);
+        setText('gachaMarrow', marrow);
+        setText('baseHp', baseHp);
+        setText('atpVal', atp);
+        setText('nutVal', nutrients);
+    }
+    // 骨髓原液唯一变更入口：数值与两处显示强一致，杜绝"扣了但显示没变"
+    function changeMarrow(delta, opts) {
+        marrow = Math.max(0, marrow + delta);
+        updateUI();
+        if(opts && opts.pulse) pulseMarrow(opts.pulse);
+        return marrow;
     }
 
     // 骨髓原液增减的高亮反馈（让玩家明确感知抽卡消耗/Boss掉落）
@@ -3589,28 +3665,30 @@
         if(gm) { gm.style.color = kind === 'gain' ? '#4ce08a' : '#ff5c8a'; setTimeout(() => { gm.style.color = '#ff6ec7'; }, 900); }
     }
     function floatMarrowText(text, color, anchorEl) {
-        let el = document.createElement('div');
-        el.className = 'marrow-float';
-        el.textContent = text;
-        el.style.color = color;
-        let r;
-        if(anchorEl) r = anchorEl.getBoundingClientRect();
-        else r = document.querySelector('.marrow-badge').getBoundingClientRect();
-        el.style.left = (r.left + r.width / 2) + 'px';
-        el.style.top = (r.top - 4) + 'px';
-        document.body.appendChild(el);
-        setTimeout(() => el.remove(), 1250);
+        try {
+            let anchor = anchorEl || document.querySelector('.marrow-badge');
+            if(!anchor) return;
+            let r = anchor.getBoundingClientRect();
+            let el = document.createElement('div');
+            el.className = 'marrow-float';
+            el.textContent = text;
+            el.style.color = color;
+            el.style.left = (r.left + r.width / 2) + 'px';
+            el.style.top = (r.top - 4) + 'px';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1250);
+        } catch(e) { /* 特效失败不影响数值 */ }
     }
-    // 抽卡扣费：更新数字 + 两处徽标高亮 + 浮动 -N 提示，确保消耗对玩家清晰可见
+    // 抽卡扣费：数值+两处显示强一致，并高亮/浮动提示；特效异常绝不阻断扣费与显示
     function spendMarrow(cost) {
-        marrow -= cost;
-        updateUI();
-        let gm = document.getElementById('gachaMarrow');
-        if(gm) gm.innerText = marrow;
-        pulseMarrow('spend');
-        let topBadge = document.querySelector('.marrow-badge');
-        if(topBadge) floatMarrowText('−' + cost + ' 🦴', '#ff5c8a', topBadge);
-        if(gm) setTimeout(() => floatMarrowText('−' + cost, '#ff5c8a', gm), 130);
+        changeMarrow(-cost);
+        try {
+            pulseMarrow('spend');
+            let topBadge = document.querySelector('.marrow-badge');
+            if(topBadge) floatMarrowText('−' + cost + ' 🦴', '#ff5c8a', topBadge);
+            let gm = document.getElementById('gachaMarrow');
+            if(gm) setTimeout(() => floatMarrowText('−' + cost, '#ff5c8a', gm), 130);
+        } catch(e) {}
     }
 
     function resetGame() {
