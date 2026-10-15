@@ -154,6 +154,33 @@
         .ci-func { font-size: 10px; color: #999; margin-top: 2px; line-height: 1.5; }
         .ci-range { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .op-range { position: absolute; top: 2px; right: 2px; background: rgba(14, 14, 20, 0.72); border-radius: 4px; padding: 1px; line-height: 0; }
+
+        /* ===== 出金/精英分化提示（稀有度差异化） ===== */
+        .diff-panel.gold { border-color: #ffd700; box-shadow: 0 0 46px rgba(255, 215, 0, 0.38); }
+        .diff-panel.gold .diff-title { color: #ffd700; text-shadow: 0 0 12px rgba(255, 215, 0, 0.6); }
+        .diff-panel.epic { border-color: #b06cf7; box-shadow: 0 0 46px rgba(176, 108, 247, 0.32); }
+        .diff-panel.epic .diff-title { color: #c58af9; text-shadow: 0 0 12px rgba(176, 108, 247, 0.55); }
+        .diff-arrow.gold { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
+        .diff-arrow.epic { color: #c58af9; text-shadow: 0 0 10px #b06cf7; }
+        .diff-node.burst { animation: nodeBurst 0.7s ease; }
+        @keyframes nodeBurst { 0% { transform: scale(1); } 40% { transform: scale(1.45); box-shadow: 0 0 30px #ffd700; } 100% { transform: scale(1); } }
+        .burst-flash { position: absolute; inset: 0; pointer-events: none; border-radius: 16px; background: radial-gradient(circle at 50% 28%, rgba(255, 215, 0, 0.55), transparent 62%); animation: legendFlash 1.2s ease forwards; z-index: 6; }
+        .burst-flash.epic { background: radial-gradient(circle at 50% 28%, rgba(176, 108, 247, 0.5), transparent 62%); }
+        .burst-rays { position: absolute; left: 50%; top: 28%; width: 230px; height: 230px; margin: -115px 0 0 -115px; border-radius: 50%; pointer-events: none; background: repeating-conic-gradient(from 0deg, rgba(255, 215, 0, 0.45) 0deg 5deg, transparent 5deg 22deg); animation: raySpin 1.3s ease-out forwards; z-index: 5; }
+        .burst-rays.epic { background: repeating-conic-gradient(from 0deg, rgba(176, 108, 247, 0.4) 0deg 5deg, transparent 5deg 22deg); }
+        @keyframes raySpin { from { transform: scale(0.25) rotate(0deg); opacity: 1; } to { transform: scale(2.6) rotate(60deg); opacity: 0; } }
+
+        /* ===== 十连分化专属舞台 ===== */
+        .multi-stage { display: none; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 330px; margin: 0 auto; min-height: 64px; }
+        .multi-stage.show { display: flex; }
+        .mini-cell { width: 50px; height: 50px; border-radius: 50%; background: #232332; border: 2px solid #38384d; display: flex; align-items: center; justify-content: center; opacity: 0; transform: scale(0.3); transition: all 0.4s cubic-bezier(0.2, 0.7, 0.3, 1.4); position: relative; }
+        .mini-cell.on { opacity: 1; transform: scale(1); }
+        .mini-cell.pop { animation: miniPop 0.5s cubic-bezier(0.2, 0.7, 0.3, 1.5); }
+        @keyframes miniPop { 0% { transform: scale(0.2); } 55% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        .mini-cell img, .mini-cell svg { width: 38px; height: 38px; }
+        .mini-cell.best { border-color: #ffd700; box-shadow: 0 0 16px rgba(255, 215, 0, 0.65); }
+        .mini-cell.best.epic { border-color: #c58af9; box-shadow: 0 0 16px rgba(176, 108, 247, 0.65); }
+        .mini-cell .new-dot { position: absolute; top: -3px; right: -3px; font-size: 8px; background: #2ecc71; color: #fff; border-radius: 50%; width: 14px; height: 14px; line-height: 14px; }
         .rarity-label { font-size: 10px; font-weight: bold; }
         .card-name { font-size: 12px; color: #fff; font-weight: bold; margin: 4px 0 2px; }
         .card-star { font-size: 11px; color: #ffb142; }
@@ -372,7 +399,7 @@
     <div class="diff-panel">
         <div class="diff-title" id="diffTitle">🧬 造血干细胞分化</div>
         <button class="btn-secondary diff-skip" id="diffSkip" onclick="skipDiffusion()">跳过 ▸</button>
-        <div class="diff-stage">
+        <div class="diff-stage" id="diffStage">
             <div class="diff-node" id="dn1"></div>
             <div class="diff-arrow" id="da1">➜</div>
             <div class="diff-node" id="dn2"></div>
@@ -381,6 +408,7 @@
             <div class="diff-arrow" id="da3">➜</div>
             <div class="diff-node" id="dn4"></div>
         </div>
+        <div class="multi-stage" id="multiStage"></div>
         <div class="diff-label" id="diffLabel"></div>
         <div class="diff-sub" id="diffSub"></div>
         <div class="diff-final" id="diffFinal"></div>
@@ -1093,53 +1121,127 @@
         return s + '</svg>';
     }
 
-    // 播放分化动画：HSC → 髓系/淋巴系祖细胞 → 特异性前体 → 最终细胞（遵循造血谱系）
-    function playDiffusion(s, done) {
+    // 播放分化动画。mode: 'single' 单抽完整谱系动画 | 'multi' 十连增殖分化动画
+    // 稀有度差异化：精英(紫)/传说(金)在动画全程有色彩暗示，最终分化一刻金光/紫光爆发
+    function playDiffusion(s, done, mode, allSummary) {
         const overlay = document.getElementById('diffOverlay');
         if (!overlay || !LINEAGE[s.op.id]) { if (done) done(); return; }
         const lin = LINEAGE[s.op.id];
-        diffState = { timers: [], s, done, finished: false };
+        mode = mode || 'single';
+        diffState = { timers: [], s, done, finished: false, mode, all: allSummary || [s] };
 
-        const nodeArt = {
-            hsc: stemCellSvg('#9aa7ff', '#5c6cff'),
-            cmp: stemCellSvg('#ffb26b', '#e67e22'),
-            clp: stemCellSvg('#6fc1ff', '#2d7bd6'),
-            gmp: stemCellSvg('#c9a6e8', '#9b59b6')
-        };
-        // 重置舞台
-        for (let i = 0; i < 4; i++) {
-            const n = document.getElementById('dn' + (i + 1));
-            if (!n) continue;
-            n.className = 'diff-node';
-            n.innerHTML = lin.steps[i].node === 'final' ? avatarImg(s.op.id, 44) : nodeArt[lin.steps[i].node];
-        }
-        for (let i = 1; i <= 3; i++) { const a = document.getElementById('da' + i); if (a) a.classList.remove('on'); }
-        document.getElementById('diffTitle').innerText = `🧬 造血干细胞分化 · ${lin.line}途径`;
-        document.getElementById('diffLabel').innerText = '';
-        document.getElementById('diffSub').innerText = '';
+        const panel = overlay.querySelector('.diff-panel');
+        const isGold = s.op.rarity === 'legendary';
+        const isEpic = s.op.rarity === 'epic';
+        // 稀有度暗示：面板边框/标题提前染色（金=传说 紫=精英）
+        panel.classList.remove('gold', 'epic');
+        if (isGold) panel.classList.add('gold');
+        else if (isEpic) panel.classList.add('epic');
+
+        const stage = document.getElementById('diffStage');
+        const multi = document.getElementById('multiStage');
         const fin = document.getElementById('diffFinal');
         fin.style.display = 'none';
         fin.innerHTML = '';
         document.getElementById('diffSkip').style.display = '';
+        document.getElementById('diffLabel').innerText = '';
+        document.getElementById('diffSub').innerText = '';
         overlay.style.display = 'flex';
         SFX.play('gacha');
 
-        const STEP_MS = 850;
-        lin.steps.forEach((st, i) => {
+        if (mode === 'multi') {
+            // ===== 十连专属：骨髓微环境中 10 个 HSC 同步增殖分化 =====
+            stage.style.display = 'none';
+            multi.classList.add('show');
+            multi.innerHTML = '';
+            document.getElementById('diffTitle').innerText = '🧬 骨髓造血微环境 · 十连增殖分化';
+            document.getElementById('diffLabel').innerText = '10 个造血干细胞进入分化周期…';
+            document.getElementById('diffSub').innerText = '分化方向由细胞因子微环境决定';
+
+            // 构造 10 个迷你细胞节点（初始为干细胞形态）
+            diffState.all.forEach((it, i) => {
+                const d = document.createElement('div');
+                d.className = 'mini-cell';
+                d.id = 'mc' + i;
+                d.innerHTML = stemCellSvg('#9aa7ff', '#5c6cff');
+                multi.appendChild(d);
+            });
+
+            const STAGGER = 130;
+            diffState.all.forEach((it, i) => {
+                diffState.timers.push(setTimeout(() => {
+                    const d = document.getElementById('mc' + i);
+                    if (!d) return;
+                    d.classList.add('on');
+                    diffState.timers.push(setTimeout(() => {
+                        const rc2 = rarityConfig[it.op.rarity];
+                        d.innerHTML = avatarImg(it.op.id, 38, 'border-color:' + rc2.color) + (it.isNew ? '<span class="new-dot">N</span>' : '');
+                        d.style.borderColor = rc2.color;
+                        d.classList.add('pop');
+                        if (i % 2 === 0) SFX.play('divide');
+                    }, 220));
+                }, 250 + i * STAGGER));
+            });
+
+            const totalMs = 250 + diffState.all.length * STAGGER + 700;
             diffState.timers.push(setTimeout(() => {
-                if (i > 0) { const a = document.getElementById('da' + i); if (a) a.classList.add('on'); }
-                for (let j = 0; j < 4; j++) {
-                    const n = document.getElementById('dn' + (j + 1));
-                    if (n) n.classList.toggle('current', j === i);
-                }
-                const node = document.getElementById('dn' + (i + 1));
-                if (node) node.classList.add('on');
-                document.getElementById('diffLabel').innerText = st.label;
-                document.getElementById('diffSub').innerText = st.sub;
-                SFX.play('divide');
-            }, 300 + i * STEP_MS));
-        });
-        diffState.timers.push(setTimeout(() => finishDiffusion(), 300 + lin.steps.length * STEP_MS + 250));
+                document.getElementById('diffLabel').innerText = `分化完成！最优个体：${s.op.name}`;
+                finishDiffusion();
+            }, totalMs));
+        } else {
+            // ===== 单抽：完整造血谱系分化之旅 =====
+            const nodeArt = {
+                hsc: stemCellSvg('#9aa7ff', '#5c6cff'),
+                cmp: stemCellSvg('#ffb26b', '#e67e22'),
+                clp: stemCellSvg('#6fc1ff', '#2d7bd6'),
+                gmp: stemCellSvg('#c9a6e8', '#9b59b6')
+            };
+            multi.classList.remove('show');
+            multi.innerHTML = '';
+            stage.style.display = 'flex';
+            // 重置舞台
+            for (let i = 0; i < 4; i++) {
+                const n = document.getElementById('dn' + (i + 1));
+                if (!n) continue;
+                n.className = 'diff-node';
+                n.innerHTML = lin.steps[i].node === 'final' ? avatarImg(s.op.id, 44) : nodeArt[lin.steps[i].node];
+            }
+            for (let i = 1; i <= 3; i++) {
+                const a = document.getElementById('da' + i);
+                if (a) { a.classList.remove('on', 'gold', 'epic'); if (isGold) a.classList.add('gold'); else if (isEpic) a.classList.add('epic'); }
+            }
+            document.getElementById('diffTitle').innerText = `🧬 造血干细胞分化 · ${lin.line}途径`;
+
+            const STEP_MS = 850;
+            lin.steps.forEach((st, i) => {
+                diffState.timers.push(setTimeout(() => {
+                    if (i > 0) { const a = document.getElementById('da' + i); if (a) a.classList.add('on'); }
+                    for (let j = 0; j < 4; j++) {
+                        const n = document.getElementById('dn' + (j + 1));
+                        if (n) n.classList.toggle('current', j === i);
+                    }
+                    const node = document.getElementById('dn' + (i + 1));
+                    if (node) node.classList.add('on');
+                    document.getElementById('diffLabel').innerText = st.label;
+                    document.getElementById('diffSub').innerText = st.sub;
+                    SFX.play('divide');
+                    // 最终分化一刻：稀有度光效爆发（金光/紫光）
+                    if (i === lin.steps.length - 1 && (isGold || isEpic)) {
+                        if (node) node.classList.add('burst');
+                        const flash = document.createElement('div');
+                        flash.className = 'burst-flash' + (isEpic ? ' epic' : '');
+                        const rays = document.createElement('div');
+                        rays.className = 'burst-rays' + (isEpic ? ' epic' : '');
+                        panel.appendChild(flash);
+                        panel.appendChild(rays);
+                        setTimeout(() => { flash.remove(); rays.remove(); }, 1400);
+                        if (isGold) SFX.play('legendary');
+                        else SFX.play('epic');
+                    }
+                }, 300 + i * STEP_MS));
+            });
+            diffState.timers.push(setTimeout(() => finishDiffusion(), 300 + lin.steps.length * STEP_MS + 250));
+        }
     }
 
     // 动画结束：展示最终细胞 + 其生物化学作用 + 攻击范围特性
@@ -1153,9 +1255,24 @@
         const rc = rarityConfig[op.rarity];
         const ri = RANGE_INFO[op.rangeType];
 
-        for (let i = 1; i <= 4; i++) {
-            const n = document.getElementById('dn' + i);
-            if (n) { n.classList.add('on'); n.classList.remove('current'); }
+        if (diffState.mode !== 'multi') {
+            for (let i = 1; i <= 4; i++) {
+                const n = document.getElementById('dn' + i);
+                if (n) { n.classList.add('on'); n.classList.remove('current'); }
+            }
+        } else {
+            // 十连：确保全部迷你细胞已揭示（跳过时兜底）
+            diffState.all.forEach((it, i) => {
+                const d = document.getElementById('mc' + i);
+                if (d) {
+                    d.classList.add('on');
+                    const rc2 = rarityConfig[it.op.rarity];
+                    if (d.querySelector('img') === null) {
+                        d.innerHTML = avatarImg(it.op.id, 38, 'border-color:' + rc2.color) + (it.isNew ? '<span class="new-dot">N</span>' : '');
+                        d.style.borderColor = rc2.color;
+                    }
+                }
+            });
         }
         const fin = document.getElementById('diffFinal');
         fin.innerHTML = `
@@ -1184,7 +1301,7 @@
             <button class="btn-primary" onclick="closeDiffusion()">继续 ▸</button>`;
         fin.style.display = 'block';
         document.getElementById('diffSkip').style.display = 'none';
-        // 稀有度音效（与揭示同步）
+        // 稀有度音效（与揭示同步；单抽的爆发音效已在分化一刻播放，此处十连补播）
         if (op.rarity === 'legendary') SFX.play('legendary');
         else if (op.rarity === 'epic') SFX.play('epic');
         else SFX.play('reveal');
@@ -1254,9 +1371,10 @@
         refreshDeckOperators();
         updateUI();
         // 先播放造血干细胞分化动画（展示最高稀有度干员），结束后展示结果
+        // 单抽：完整谱系分化之旅；十连：骨髓微环境增殖分化（动画差异化）
         let rarityOrder = { common: 0, rare: 1, epic: 2, legendary: 3 };
         let best = summary.reduce((a, b) => rarityOrder[a.op.rarity] >= rarityOrder[b.op.rarity] ? a : b);
-        playDiffusion(best, () => renderGachaResult(summary));
+        playDiffusion(best, () => renderGachaResult(summary), count === 10 ? 'multi' : 'single', summary);
     }
 
     function renderGachaResult(summary) {
@@ -1645,10 +1763,13 @@
                 });
                 if(typeKey === 'hepatitisBoss') SFX.play('boss');
                 spawned++;
-            } else {
-                clearInterval(waveSpawnTimer);
-                waveSpawnTimer = null;
-                waveSpawningDone = true;
+                // 修复：最后一只敌人刷出的瞬间即标记刷怪完成（不等下一个周期），
+                // 避免最后一只在 1.5s 窗口内被击杀时通关判定永不触发导致卡关
+                if(spawned >= lvlData.enemyCount) {
+                    clearInterval(waveSpawnTimer);
+                    waveSpawnTimer = null;
+                    waveSpawningDone = true;
+                }
             }
         }, spawnInterval);
     }
@@ -1904,6 +2025,11 @@
             }
             s.life--;
             if(s.life <= 0) skillEffects.splice(i, 1);
+        }
+
+        // 通关兜底判定：敌人已清空且刷怪已结束（事件式判定遗漏时的保险，防止卡关无法进入下一关）
+        if(waveInProgress && waveSpawningDone && enemies.length === 0) {
+            completeWave();
         }
     }
 
