@@ -202,77 +202,86 @@
             .modal-body { padding: 10px 12px; }
         }
 
-        /* ==================== 抽卡分化动画 ==================== */
+        /* ==================== 抽卡：有丝分裂分化动画 v1.3 ==================== */
         .ga-overlay {
             position: fixed; inset: 0; z-index: 2000; display: none;
             align-items: center; justify-content: center; overflow: hidden;
-            background: radial-gradient(circle at 50% 45%, #2a0a12 0%, #0a0608 70%);
+            background: radial-gradient(circle at 50% 42%, #2a0a12 0%, #070409 72%);
         }
-        .ga-scene { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .ga-overlay.ga-on { display: flex; animation: gaFade .45s ease; }
+        @keyframes gaFade { from { opacity: 0; } to { opacity: 1; } }
+        .ga-scene { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+        .ga-stage { position: absolute; inset: 0; }
+        #gaCanvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+        .ga-vignette { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(circle at 50% 46%, transparent 40%, rgba(0,0,0,.62) 100%); }
         .ga-skip {
-            position: absolute; top: 12px; right: 12px; z-index: 30;
+            position: absolute; top: 10px; right: 12px; z-index: 30;
             background: rgba(40,40,55,0.85); color: #ccc; border: 1px solid #4a4a5e; border-radius: 18px;
-            padding: 8px 16px; font-size: 13px; cursor: pointer;
+            padding: 7px 15px; font-size: 13px; cursor: pointer;
         }
         .ga-skip:active { background: #4facfe; color: #fff; }
+        .ga-taphint { position: absolute; left: 14px; bottom: 9px; z-index: 30; font-size: 11px; color: #8a6f76; letter-spacing: 1px; pointer-events: none; }
 
-        .ga-title { position: absolute; top: 46px; left: 0; right: 0; text-align: center; color: #ff9a9a; font-size: 15px; font-weight: bold; letter-spacing: 1px; text-shadow: 0 0 12px rgba(255,80,80,.6); }
-        .ga-breadcrumb { position: absolute; bottom: 14%; left: 5%; right: 5%; text-align: center; font-size: 12px; color: #d8a0a0; line-height: 1.8; }
-        .ga-breadcrumb .step { display: inline-block; margin: 0 3px; padding: 3px 9px; border-radius: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); }
-        .ga-breadcrumb .step.on { background: rgba(79,172,254,0.18); border-color: #4facfe; color: #bfe0ff; }
-        .ga-breadcrumb .signal { display: block; margin-top: 7px; color: #8fb9d8; font-size: 11px; }
-
-        /* 造血干细胞 HSC */
-        .ga-hsc {
-            position: relative; width: 120px; height: 120px; border-radius: 50%;
-            background: radial-gradient(circle at 38% 32%, #c23a4a, #6e1220 70%, #3d0a12);
-            box-shadow: 0 0 30px rgba(220,60,80,.55), inset 0 0 18px rgba(0,0,0,.45);
-            display: flex; align-items: center; justify-content: center;
-            animation: hscPulse 1.6s ease-in-out infinite;
+        .ga-title {
+            position: absolute; top: 7%; left: 0; right: 0; text-align: center;
+            color: #ff9a9a; font-size: 15px; font-weight: bold; letter-spacing: 2px;
+            text-shadow: 0 0 12px rgba(255,80,80,.6); animation: gaTitleIn .7s ease;
         }
-        .ga-hsc .ga-nucleus {
-            width: 52px; height: 52px; border-radius: 50%;
-            background: radial-gradient(circle at 40% 35%, #7a2a48, #2e0a20 75%);
-            box-shadow: inset 0 0 8px rgba(0,0,0,.6);
+        @keyframes gaTitleIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+        .ga-phasebar { position: absolute; bottom: 12.5%; left: 3%; right: 3%; text-align: center; font-size: 12px; }
+        .ga-phasebar .step {
+            display: inline-block; margin: 2px 2px; padding: 3px 8px; border-radius: 11px;
+            background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12); color: #9c848a;
+            transition: all .35s; white-space: nowrap;
         }
-        .ga-hsc .ga-tag { position: absolute; bottom: -26px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 12px; color: #ffb3bd; font-weight: bold; }
-        .ga-hsc .ga-sub { position: absolute; bottom: -44px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 10px; color: #b07880; }
-        @keyframes hscPulse { 0%,100% { transform: scale(1); box-shadow: 0 0 26px rgba(220,60,80,.45), inset 0 0 18px rgba(0,0,0,.45);} 50% { transform: scale(1.07); box-shadow: 0 0 44px rgba(220,60,80,.8), inset 0 0 18px rgba(0,0,0,.45);} }
-
-        /* 祖细胞芽生 */
-        .ga-bud {
-            position: absolute; width: 64px; height: 64px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 9px; color: #d8ecff; text-align: center; line-height: 1.2;
-            opacity: 0;
+        .ga-phasebar .step.on { background: rgba(255,90,110,.16); border-color: #ff6e83; color: #ffd2d9; box-shadow: 0 0 10px rgba(255,90,110,.35); }
+        .ga-signal { position: absolute; bottom: 5%; left: 6%; right: 6%; text-align: center; font-size: 11.5px; color: #b08a93; line-height: 1.6; min-height: 28px; }
+        .ga-signal b { color: #8fd0ff; }
+        @media (max-height: 430px) {
+            .ga-title { font-size: 13px; top: 4%; }
+            .ga-phasebar { bottom: 10.5%; font-size: 10.5px; }
+            .ga-phasebar .step { padding: 2px 6px; }
+            .ga-signal { font-size: 10px; bottom: 2.5%; }
         }
-        .ga-bud.myeloid { background: radial-gradient(circle at 38% 32%, #e8943f, #8a4210 70%, #4a2206); box-shadow: 0 0 22px rgba(240,150,60,.6); }
-        .ga-bud.lymphoid { background: radial-gradient(circle at 38% 32%, #4fb0e8, #145a86 70%, #08324c); box-shadow: 0 0 22px rgba(79,172,254,.6); }
-        .ga-bud .n2 { position: absolute; width: 26px; height: 26px; border-radius: 50%; background: rgba(20,10,30,.55); }
-        .ga-bud.show { animation: budIn 0.7s ease forwards; }
-        @keyframes budIn { 0% { opacity: 0; transform: scale(0.2);} 100% { opacity: 1; transform: scale(1);} }
 
-        /* 分化闪光 */
-        .ga-flash { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; }
+        /* 分化高潮：爆裂 / 射线 / 光柱 / 冲击波 / 粒子 / 稀有文字 */
+        .ga-flash { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; z-index: 10; }
         .ga-flash .burst { position: absolute; width: 40px; height: 40px; border-radius: 50%; opacity: 0; }
-        .ga-flash.go .burst { animation: burst 0.9s ease-out forwards; }
-        @keyframes burst { 0% { opacity: .95; transform: scale(0.2);} 100% { opacity: 0; transform: scale(22);} }
-        .ga-rays { position: absolute; width: 700px; height: 700px; opacity: 0; }
-        .ga-flash.go .ga-rays { animation: raysIn 1.1s ease-out forwards; }
-        @keyframes raysIn { 0% { opacity: 0; transform: rotate(0) scale(.3);} 35% { opacity: .9;} 100% { opacity: 0; transform: rotate(40deg) scale(1.15);} }
+        .ga-flash.go .burst { animation: burst 1.15s ease-out forwards; }
+        @keyframes burst { 0% { opacity: .95; transform: scale(0.2); } 100% { opacity: 0; transform: scale(24); } }
+        .ga-rays { position: absolute; width: 760px; height: 760px; opacity: 0; }
+        .ga-flash.go .ga-rays { animation: raysIn 1.5s ease-out forwards; }
+        @keyframes raysIn { 0% { opacity: 0; transform: rotate(0) scale(.25); } 30% { opacity: .95; } 100% { opacity: 0; transform: rotate(46deg) scale(1.2); } }
+        .ga-ring { position: absolute; border-radius: 50%; opacity: 0; box-sizing: border-box; }
+        .ga-flash.go .ga-ring { animation: ringOut 1.35s cubic-bezier(.15,.6,.3,1) forwards; }
+        .ga-flash.go .ga-ring.r2 { animation-delay: .22s; }
+        @keyframes ringOut { 0% { opacity: .9; width: 30px; height: 30px; border-width: 5px; } 100% { opacity: 0; width: 620px; height: 620px; border-width: 1px; } }
+        .ga-beam {
+            position: absolute; top: -14%; width: 120px; height: 128%; z-index: 9;
+            transform: translateX(-50%) scaleY(0); transform-origin: 50% 0; opacity: 0;
+            filter: blur(7px); pointer-events: none; border-radius: 80px;
+        }
+        .ga-beam.gold { background: linear-gradient(to bottom, rgba(255,230,140,0) 0%, rgba(255,215,90,.16) 42%, rgba(255,242,175,.8) 100%); }
+        .ga-beam.purple { background: linear-gradient(to bottom, rgba(200,140,255,0) 0%, rgba(170,90,230,.14) 42%, rgba(224,184,255,.72) 100%); }
+        .ga-beam.go { animation: beamDrop 1.6s cubic-bezier(.2,.7,.3,1) forwards; }
+        @keyframes beamDrop { 0% { opacity: 0; transform: translateX(-50%) scaleY(0); } 22% { opacity: 1; transform: translateX(-50%) scaleY(1); } 72% { opacity: .85; } 100% { opacity: .22; transform: translateX(-50%) scaleY(1); } }
+        .ga-goldword { position: absolute; font-size: 44px; font-weight: 900; color: #ffd84d; text-shadow: 0 0 18px #ffae00, 0 0 44px #ff8800; opacity: 0; transform: scale(0.4); letter-spacing: 8px; z-index: 11; }
+        .ga-flash.go .ga-goldword { animation: goldWord 1.6s cubic-bezier(.2,1.6,.4,1) forwards; }
+        @keyframes goldWord { 0% { opacity: 0; transform: scale(0.3) translateY(24px); } 35% { opacity: 1; transform: scale(1.18) translateY(0); } 62% { transform: scale(1); } 100% { opacity: .94; } }
+        .ga-particle { position: absolute; width: 7px; height: 7px; border-radius: 50%; bottom: 46%; opacity: 0; z-index: 10; }
+        .ga-flash.go .ga-particle { animation: gaFloat 1.9s ease-out forwards; }
+        @keyframes gaFloat { 0% { opacity: 1; transform: translateY(0) scale(1); } 100% { opacity: 0; transform: translateY(-250px) scale(.3); } }
 
-        .ga-goldword { position: absolute; font-size: 40px; font-weight: 900; color: #ffd84d; text-shadow: 0 0 18px #ffae00, 0 0 40px #ff8800; opacity: 0; transform: scale(0.4); letter-spacing: 6px; }
-        .ga-flash.go .ga-goldword { animation: goldWord 1.3s cubic-bezier(.2,1.6,.4,1) forwards; }
-        @keyframes goldWord { 0% { opacity: 0; transform: scale(0.3) translateY(20px);} 40% { opacity: 1; transform: scale(1.15) translateY(0);} 70% { transform: scale(1);} 100% { opacity: .92;} }
-
-        .ga-particle { position: absolute; width: 7px; height: 7px; border-radius: 50%; bottom: 46%; opacity: 0; }
-        .ga-flash.go .ga-particle { animation: gaFloat 1.5s ease-out forwards; }
-        @keyframes gaFloat { 0% { opacity: 1; transform: translateY(0) scale(1);} 100% { opacity: 0; transform: translateY(-230px) scale(.3);} }
+        /* 扩增数字弹字（十连） */
+        .ga-countpop { position: absolute; left: 50%; top: 40%; transform: translateX(-50%); font-size: 40px; font-weight: 900; color: #ffb3bd; text-shadow: 0 0 20px rgba(255,90,110,.75); opacity: 0; pointer-events: none; z-index: 8; }
+        .ga-countpop.go { animation: countPop .8s cubic-bezier(.2,1.4,.4,1) forwards; }
+        @keyframes countPop { 0% { opacity: 0; transform: translateX(-50%) scale(.4); } 30% { opacity: 1; transform: translateX(-50%) scale(1.12); } 72% { opacity: 1; } 100% { opacity: 0; transform: translateX(-50%) scale(.92); } }
 
         /* 成熟细胞结果卡 */
-        .ga-result { position: relative; display: none; flex-direction: column; align-items: center; gap: 8px; width: min(560px, 94vw); max-height: 92%; }
-        .ga-result.show { display: flex; animation: cardZoom .55s cubic-bezier(.2,1.5,.4,1) forwards; }
-        @keyframes cardZoom { 0% { transform: scale(.3); opacity: 0;} 100% { transform: scale(1); opacity: 1;} }
-        .ga-cell-emblem { width: 108px; height: 108px; border-radius: 50%; padding: 4px; background: conic-gradient(#555, #888, #555); position: relative; }
+        .ga-result { position: relative; display: none; flex-direction: column; align-items: center; gap: 8px; width: min(560px, 94vw); max-height: 94%; }
+        .ga-result.show { display: flex; animation: cardZoom .6s cubic-bezier(.2,1.5,.4,1) forwards; }
+        @keyframes cardZoom { 0% { transform: scale(.3); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .ga-cell-emblem { width: 104px; height: 104px; border-radius: 50%; padding: 4px; background: conic-gradient(#555, #888, #555); position: relative; }
         .ga-cell-emblem img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; background: #fff; }
         .ga-cell-emblem.legendary { background: conic-gradient(#ffae00, #fff4b0, #ffae00, #c77b00, #ffae00); animation: goldSpin 2.2s linear infinite; box-shadow: 0 0 30px rgba(255,200,60,.75); }
         .ga-cell-emblem.epic { background: conic-gradient(#9b59b6, #e0b8ff, #9b59b6); box-shadow: 0 0 24px rgba(180,100,230,.6); animation: goldSpin 3s linear infinite; }
@@ -291,44 +300,50 @@
         .ga-confirm { margin-top: 4px; background: #4facfe; color: #fff; border: none; border-radius: 22px; padding: 12px 44px; font-size: 15px; font-weight: bold; cursor: pointer; }
         .ga-confirm:active { background: #2f8bd1; }
 
-        /* 十连：有丝分裂 + 5x2 格子 */
-        .ga-ten-wrap { width: min(680px, 96vw); display: none; flex-direction: column; align-items: center; gap: 8px; max-height: 94%; }
-        .ga-ten-wrap.show { display: flex; }
-        .ga-mitosis { position: relative; width: 130px; height: 130px; }
-        .ga-mitosis .half { position: absolute; top: 25px; width: 80px; height: 80px; border-radius: 50%; background: radial-gradient(circle at 38% 32%, #c23a4a, #6e1220 70%); box-shadow: 0 0 20px rgba(220,60,80,.5); }
-        .ga-mitosis .half.left { left: 25px; }
-        .ga-mitosis .half.right { left: 25px; }
-        .ga-mitosis.go .half.left { animation: splitL 1s ease forwards; }
-        .ga-mitosis.go .half.right { animation: splitR 1s ease forwards; }
-        @keyframes splitL { to { left: -5px; } }
-        @keyframes splitR { to { left: 55px; } }
-
-        .ga-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; }
+        /* 十连：克隆扩增后 5x2 网格翻面揭晓 */
+        .ga-ten-wrap { width: min(620px, 94vw, 142vh); display: none; flex-direction: column; align-items: center; gap: 7px; max-height: 96%; padding-top: 30px; overflow-y: auto; }
+        .ga-ten-wrap.show { display: flex; animation: cardZoom .5s ease; }
+        .ga-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; width: 100%; }
         .ga-slot {
             aspect-ratio: 1; border-radius: 12px; border: 2px solid #3a3a4d; background: #1c1c28;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
-            padding: 3px; cursor: pointer; position: relative; opacity: .35;
+            position: relative; padding: 3px; cursor: pointer; overflow: hidden;
         }
-        .ga-slot.revealed { opacity: 1; animation: slotPing .45s ease; }
-        @keyframes slotPing { 0% { transform: scale(.6);} 60% { transform: scale(1.08);} 100% { transform: scale(1);} }
+        .ga-slot .face { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; }
+        .ga-slot .face-back .unk {
+            width: 56%; aspect-ratio: 1; border-radius: 50%;
+            background: radial-gradient(circle at 38% 32%, #c23a4a, #6e1220 72%);
+            box-shadow: 0 0 12px rgba(220,60,80,.5);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 15px; font-weight: bold; color: #ffc6cf;
+            animation: unkPulse 1.3s ease-in-out infinite;
+        }
+        .ga-slot .face-back .q { font-size: 9.5px; color: #c99; }
+        @keyframes unkPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.09); } }
+        .ga-slot.go .face-back { animation: faceOut .38s ease forwards; }
+        @keyframes faceOut { to { transform: scaleX(0); opacity: 0; } }
+        .ga-slot .face-final { display: none; }
+        .ga-slot.go .face-final { display: flex; animation: faceIn .4s ease .19s backwards; }
+        @keyframes faceIn { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+        .ga-slot.go.legendary { border-color: #ffd700; box-shadow: 0 0 18px rgba(255,200,60,.75); background: #2a2410; }
+        .ga-slot.go.epic { border-color: #9b59b6; box-shadow: 0 0 13px rgba(180,100,230,.55); }
+        .ga-slot.go.rare { border-color: #4facfe; box-shadow: 0 0 10px rgba(79,172,254,.42); }
+        .ga-slot.go.common { border-color: #5c6a70; }
+        .ga-slot.go.legendary .face-final img { animation: slotPing .55s ease .19s; }
+        @keyframes slotPing { 0% { transform: scale(.55); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
         .ga-slot img { width: 58%; height: 58%; border-radius: 50%; object-fit: cover; background: #fff; }
         .ga-slot .sn { font-size: 10px; color: #fff; font-weight: bold; text-align: center; line-height: 1.1; }
-        .ga-slot .tag { position: absolute; top: 2px; right: 4px; font-size: 9px; font-weight: bold; }
-        .ga-slot.legendary { border-color: #ffd700; box-shadow: 0 0 16px rgba(255,200,60,.65); background: #2a2410; }
-        .ga-slot.epic { border-color: #9b59b6; box-shadow: 0 0 12px rgba(180,100,230,.5); }
-        .ga-slot.rare { border-color: #4facfe; box-shadow: 0 0 10px rgba(79,172,254,.4); }
-        .ga-slot.common { border-color: #5c6a70; }
+        .ga-slot .tag { position: absolute; top: 2px; right: 4px; font-size: 9px; font-weight: bold; z-index: 2; }
         .ga-ten-info { font-size: 12px; color: #aaa; text-align: center; min-height: 18px; }
         .ga-ten-info b { color: #ffd84d; }
-        .ga-detail { background: rgba(20,22,34,.92); border: 1px solid #38384d; border-radius: 10px; padding: 8px 12px; font-size: 11.5px; color: #c9d3e0; line-height: 1.65; width: 100%; max-height: 20vh; overflow-y: auto; display: none; }
+        .ga-detail { background: rgba(20,22,34,.92); border: 1px solid #38384d; border-radius: 10px; padding: 8px 12px; font-size: 11.5px; color: #c9d3e0; line-height: 1.65; width: 100%; max-height: 17vh; overflow-y: auto; display: none; }
         .ga-detail.show { display: block; }
 
-        /* 全屏金光环境闪 */
+        /* 全屏环境光闪 */
         .ga-screenflash { position: absolute; inset: 0; pointer-events: none; opacity: 0; }
         .ga-screenflash.gold { background: radial-gradient(circle, rgba(255,215,80,.5), rgba(255,150,0,.18) 45%, transparent 75%); }
         .ga-screenflash.purple { background: radial-gradient(circle, rgba(190,110,255,.4), rgba(130,60,200,.14) 45%, transparent 75%); }
+        .ga-screenflash.white { background: radial-gradient(circle, rgba(255,255,255,.9), rgba(255,255,255,.3) 48%, transparent 75%); }
         .ga-screenflash.fire { animation: screenFlash .9s ease-out forwards; }
-        @keyframes screenFlash { 0% { opacity: 0;} 25% { opacity: 1;} 100% { opacity: 0;} }
     </style>
 </head>
 <body>
@@ -1156,125 +1171,563 @@
         document.getElementById('gachaModal').style.display = 'none';
     }
 
-    // ==================== 抽卡：造血干细胞分化动画 ====================
+    // ==================== 抽卡：有丝分裂分化动画 v1.3 ====================
     const gaOverlay = document.getElementById('gachaAnim');
     const gaScene = document.getElementById('gaScene');
     const gaScreenFlash = document.getElementById('gaScreenFlash');
-    let gaTimers = [];
+    const gaDpr = Math.min(window.devicePixelRatio || 1, 2);
+    let gaTimers = [], gaRaf = 0;
     function gaLater(fn, ms) { gaTimers.push(setTimeout(fn, ms)); }
     function gaClearTimers() { gaTimers.forEach(t => clearTimeout(t)); gaTimers = []; }
-    let gaContext = null;   // {type:'single'|'ten', summary, guarantee}
+    function gaCancelRaf() { if (gaRaf) { cancelAnimationFrame(gaRaf); gaRaf = 0; } }
+    let gaContext = null;   // {type:'single'|'ten', phase:'anim'|'finale'|'reveal', summary, guarantee, pending}
     document.getElementById('gaSkip').addEventListener('click', gaSkipToEnd);
-    function gaSkipToEnd() {
-        if(!gaContext) { gaCloseAnim(); return; }
-        if(gaContext.type === 'single') {
-            gaClearTimers();
-            renderSingleFinale(gaContext.summary);
-        } else {
-            gaClearTimers();
-            buildTenFinale(gaContext.summary, gaContext.guarantee);
+
+    // ---------- 数学 / 颜色工具 ----------
+    const TAU = Math.PI * 2;
+    const clamp01 = v => Math.max(0, Math.min(1, v));
+    const easeOut = t => 1 - Math.pow(1 - t, 3);
+    const easeInOut = t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const lerp = (a, b, u) => a + (b - a) * u;
+    const segP = (t, a, b) => clamp01((t - a) / (b - a));
+    function parseColor(c) {
+        if (c[0] === '#') {
+            const h = c.slice(1);
+            return [parseInt(h.substr(0, 2), 16), parseInt(h.substr(2, 2), 16), parseInt(h.substr(4, 2), 16)];
+        }
+        const m = c.match(/[\d.]+/g);   // 兼容 rgb(...) / rgba(...)，避免嵌套混合时解析出 NaN
+        return [+m[0], +m[1], +m[2]];
+    }
+    function mixHex(h1, h2, k) {
+        const a = parseColor(h1), b = parseColor(h2);
+        return `rgb(${Math.round(lerp(a[0], b[0], k))},${Math.round(lerp(a[1], b[1], k))},${Math.round(lerp(a[2], b[2], k))})`;
+    }
+
+    const RARITY_COLOR = { legendary: '#ffd84d', epic: '#b464ff', rare: '#4facfe', common: '#cfd9e2' };
+    const RARITY_RANK = { common: 0, rare: 1, epic: 2, legendary: 3 };
+    const LINEAGE_RGB = {
+        myeloid:  { a: '#f0a050', b: '#8a4210' },
+        lymphoid: { a: '#5cb8f0', b: '#145a86' }
+    };
+    const HSC_A = '#d04556', HSC_B = '#6e1220';
+
+    // 有丝分裂阶段（与真实细胞生物学一致）
+    const MIT_PHASES = ['间期 G1/S/G2', '前期', '中期', '后期', '末期·胞质分裂', '定向分化'];
+    const MIT_SIGNALS = [
+        '骨髓龛分泌 <b>SCF / TPO</b> 维持干性；进入细胞周期后，S 期完成 DNA 半保留复制，中心体倍增',
+        '染色质螺旋凝缩为可见<b>染色体</b>；核被膜解体，两组中心体移向两极，星射线与纺锤体微管形成',
+        '动粒微管牵引染色体排列于<b>赤道板</b>；纺锤体装配检验点核对每条染色体的双极附着',
+        '分离酶裂解黏连蛋白，<b>姐妹染色单体</b>分离，分别被微管拉向细胞两极',
+        '核被膜重建、染色体解凝缩；肌动蛋白-肌球蛋白<b>收缩环</b>内陷形成分裂沟，胞质分裂完成'
+    ];
+    function mitPhaseIndex(lt, D) {
+        if (lt < 0) return 0;
+        const a = D[0], b = a + D[1], c = b + D[2], d = c + D[3];
+        if (lt >= d + D[4]) return 5;
+        if (lt >= d) return 4;
+        if (lt >= c) return 3;
+        if (lt >= b) return 2;
+        if (lt >= a) return 1;
+        return 0;
+    }
+
+    // 骨髓微环境漂浮微粒
+    const gaMotes = Array.from({ length: 44 }, () => ({
+        x: (Math.random() - .5) * 620, y: (Math.random() - .5) * 380,
+        r: Math.random() * 1.6 + .5, sp: 5 + Math.random() * 13,
+        drift: (Math.random() - .5) * 8,
+        hue: Math.random() < .22 ? '120,200,255' : '255,120,140',
+        a: .12 + Math.random() * .3
+    }));
+    function drawMotes(ctx, dt, t) {
+        for (const m of gaMotes) {
+            m.y -= m.sp * dt;
+            m.x += Math.sin(t / 1300 + m.r * 9) * m.drift * dt;
+            if (m.y < -200) { m.y = 200; m.x = (Math.random() - .5) * 620; }
+            ctx.beginPath();
+            ctx.fillStyle = `rgba(${m.hue},${m.a})`;
+            ctx.arc(m.x, m.y, m.r, 0, TAU);
+            ctx.fill();
         }
     }
 
-    function rarityFlashColor(r) {
-        return r === 'legendary' ? '#ffd84d' : r === 'epic' ? '#b464ff' : r === 'rare' ? '#4facfe' : '#9fb6c4';
+    // 4 条示意染色体（前期散布位 / 中期赤道板位）
+    const CHROM_PRO = [{ x: -13, y: -11, r: -.5 }, { x: 12, y: -17, r: .4 }, { x: -9, y: 13, r: .3 }, { x: 13, y: 8, r: -.35 }];
+    const CHROM_Y = [-25, -9, 9, 25], CHROM_LEN = [25, 30, 28, 24], CHROM_ROT = [-.3, .2, -.15, .28];
+    // 核内染色质微粒
+    const CHROMA = Array.from({ length: 12 }, (_, i) => {
+        const a = i / 12 * TAU + .37, rr = .25 + ((i * 37) % 10) / 10 * .6;
+        return { x: Math.cos(a) * rr, y: Math.sin(a) * rr, s: .9 + ((i * 13) % 7) / 7 * 1.2 };
+    });
+
+    // 含两条姐妹染色单体的复制后染色体（X 形）
+    function drawChromX(ctx, x, y, rot, len, a, s) {
+        if (a <= 0) return;
+        ctx.save();
+        ctx.translate(x, y); ctx.rotate(rot); ctx.scale(s, s);
+        ctx.lineCap = 'round'; ctx.lineWidth = 4.2;
+        ctx.strokeStyle = `rgba(150,102,205,${a})`;
+        for (const off of [-2.6, 2.6]) {
+            ctx.beginPath();
+            ctx.moveTo(off, -len / 2);
+            ctx.quadraticCurveTo(off * 2.2, 0, off, len / 2);
+            ctx.stroke();
+        }
+        ctx.fillStyle = `rgba(216,182,255,${a})`;
+        ctx.beginPath(); ctx.arc(0, 0, 3.1, 0, TAU); ctx.fill();
+        ctx.restore();
     }
+    // 单条染色单体（V 形，着丝粒朝前、两臂拖后）
+    function drawChromatid(ctx, x, y, rot, len, a, s) {
+        if (a <= 0) return;
+        ctx.save();
+        ctx.translate(x, y); ctx.rotate(rot); ctx.scale(s, s);
+        ctx.lineCap = 'round'; ctx.lineWidth = 4.2;
+        ctx.strokeStyle = `rgba(150,102,205,${a})`;
+        ctx.beginPath();
+        ctx.moveTo(-4.4, -len / 2);
+        ctx.quadraticCurveTo(-1.2, 1, 0, 0);
+        ctx.quadraticCurveTo(1.2, 1, 4.4, -len / 2);
+        ctx.stroke();
+        ctx.fillStyle = `rgba(216,182,255,${a})`;
+        ctx.beginPath(); ctx.arc(0, 0, 2.9, 0, TAU); ctx.fill();
+        ctx.restore();
+    }
+
+    function drawNucleus(ctx, x, y, r, alpha, tt, pInt) {
+        if (alpha <= 0) return;
+        ctx.save();
+        ctx.fillStyle = `rgba(58,16,34,${.55 * alpha})`;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
+        ctx.strokeStyle = `rgba(255,180,190,${.5 * alpha})`;
+        ctx.setLineDash([4, 4]); ctx.lineWidth = 1.3;
+        ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = `rgba(255,190,205,${.5 * alpha})`;
+        for (const c of CHROMA) {
+            ctx.beginPath(); ctx.arc(x + c.x * r, y + c.y * r, c.s, 0, TAU); ctx.fill();
+        }
+        ctx.fillStyle = `rgba(255,170,190,${.35 * alpha})`;   // 核仁
+        ctx.beginPath(); ctx.arc(x + r * .28, y - r * .2, r * .16, 0, TAU); ctx.fill();
+        if (pInt > .45 && pInt < .92) {                          // S 期 DNA 复制指示弧
+            ctx.strokeStyle = `rgba(120,210,255,${.35 + .3 * Math.sin(tt / 180)})`;
+            ctx.lineWidth = 2;
+            const st = tt / 380 % TAU;
+            ctx.beginPath(); ctx.arc(x, y, r + 4, st, st + 1.5); ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+    function drawCentrosome(ctx, x, y) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(220,200,255,.28)'; ctx.lineWidth = .8;
+        for (let i = 0; i < 9; i++) {
+            const a = i / 9 * TAU;
+            ctx.beginPath(); ctx.moveTo(x, y);
+            ctx.lineTo(x + Math.cos(a) * 11, y + Math.sin(a) * 11); ctx.stroke();
+        }
+        ctx.strokeStyle = '#e8d8ff'; ctx.lineWidth = 2.4; ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(x - 3, y - 3); ctx.lineTo(x + 3, y + 3);
+        ctx.moveTo(x + 3, y - 3); ctx.lineTo(x - 3, y + 3);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    // 胞体轮廓：两极分离 sep + 中央分裂沟 pinch
+    function cellBodyPath(ctx, R, sep, pinch, wob) {
+        ctx.beginPath();
+        const N = 60;
+        for (let i = 0; i <= N; i++) {
+            const th = i / N * TAU;
+            const x0 = Math.cos(th), y0 = Math.sin(th);
+            const rr = 1 + wob * (Math.sin(th * 3 + 1.7) * .5 + Math.sin(th * 5) * .5);
+            const fur = pinch * Math.exp(-Math.pow(x0 * 2.3, 2));
+            const x = x0 * R * rr + Math.sign(x0) * sep * Math.pow(Math.abs(x0), .72);
+            const y = y0 * R * rr * (1 - fur * .96);
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+    }
+    function fillBody(ctx, R, sep, pinch, lobes, wob) {
+        ctx.save();
+        cellBodyPath(ctx, R, sep, pinch, wob);
+        const w = R + sep + 2;
+        const g = ctx.createLinearGradient(-w, 0, w, 0);
+        g.addColorStop(0, lobes[0].a);
+        g.addColorStop(.5, mixHex(lobes[0].a, lobes[1].a, .5));
+        g.addColorStop(1, lobes[1].a);
+        ctx.fillStyle = g;
+        ctx.fill();
+        cellBodyPath(ctx, R, sep, pinch, wob);
+        ctx.clip();
+        const dg = ctx.createRadialGradient(0, 0, R * .2, 0, 0, R * 1.6);
+        dg.addColorStop(0, 'rgba(0,0,0,0)');
+        dg.addColorStop(1, 'rgba(24,3,8,.5)');
+        ctx.fillStyle = dg;
+        ctx.fillRect(-w * 1.2, -R * 1.3, w * 2.4, R * 2.6);
+        ctx.restore();
+        ctx.save();
+        cellBodyPath(ctx, R, sep, pinch, wob);
+        ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,170,180,.5)';
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    // 静止子细胞（分裂完成后）
+    function drawDaughter(ctx, x, y, R, tintK, lineage, alpha, aura, glowK, tt) {
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        const a = lineage ? mixHex(HSC_A, LINEAGE_RGB[lineage].a, tintK) : HSC_A;
+        const b = lineage ? mixHex(HSC_B, LINEAGE_RGB[lineage].b, tintK) : HSC_B;
+        const g = ctx.createRadialGradient(x - R * .25, y - R * .25, R * .1, x, y, R * 1.05);
+        g.addColorStop(0, a); g.addColorStop(.72, b); g.addColorStop(1, '#3d0a12');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(x, y, R, 0, TAU); ctx.fill();
+        ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,170,180,.5)'; ctx.stroke();
+        if (aura && glowK > .02) {
+            ctx.strokeStyle = aura;
+            ctx.globalAlpha = alpha * glowK * .6;
+            ctx.lineWidth = 4; ctx.shadowColor = aura; ctx.shadowBlur = 20;
+            ctx.beginPath(); ctx.arc(x, y, R, 0, TAU); ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = alpha;
+        }
+        drawNucleus(ctx, x, y, R * .42, .9, tt, 1);
+        ctx.restore();
+    }
+
+    // 十连扩增阶段的小细胞（带稀有度先兆色调）
+    function drawCloneCell(ctx, x, y, R, tintK, rarity, pop, tt) {
+        ctx.save();
+        ctx.globalAlpha = pop;
+        ctx.translate(x, y);
+        ctx.scale(.4 + .6 * pop, .4 + .6 * pop);
+        const col = RARITY_COLOR[rarity];
+        const g = ctx.createRadialGradient(-R * .25, -R * .25, R * .1, 0, 0, R * 1.05);
+        g.addColorStop(0, rarity === 'common' ? HSC_A : mixHex(HSC_A, col, tintK * .55));
+        g.addColorStop(.72, HSC_B); g.addColorStop(1, '#3d0a12');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
+        ctx.lineWidth = 1.6; ctx.strokeStyle = 'rgba(255,170,180,.5)'; ctx.stroke();
+        if (tintK > .15 && rarity !== 'common') {
+            ctx.strokeStyle = col; ctx.globalAlpha = pop * tintK * .8;
+            ctx.lineWidth = 3; ctx.shadowColor = col; ctx.shadowBlur = 14;
+            ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.stroke();
+            ctx.shadowBlur = 0; ctx.globalAlpha = pop;
+        }
+        drawNucleus(ctx, 0, 0, R * .42, .9, tt, 1);
+        if (rarity === 'legendary' && tintK > .3) {
+            for (let i = 0; i < 5; i++) {
+                const ang = i / 5 * TAU + tt / 700;
+                ctx.fillStyle = `rgba(255,216,77,${.5 + .4 * Math.sin(tt / 240 + i)})`;
+                ctx.beginPath(); ctx.arc(Math.cos(ang) * (R + 5), Math.sin(ang) * (R + 5), 1.8, 0, TAU); ctx.fill();
+            }
+        }
+        ctx.restore();
+    }
+
+    // 趋化而来的细胞因子分子
+    function drawCytokines(ctx, p) {
+        if (p <= 0) return;
+        const sx = 250, sy = -86, tx = -48, ty = 4;
+        for (let i = 0; i < 6; i++) {
+            const u = clamp01(p * 1.35 - i * .07);
+            if (u <= 0) continue;
+            const e = easeInOut(u);
+            const x = lerp(sx, tx, e), y = lerp(sy, ty, e) - Math.sin(e * Math.PI) * 60;
+            const a = u < 1 ? .9 : Math.max(0, 1 - (u - 1) * 6);
+            ctx.strokeStyle = `rgba(120,210,255,${a * .4})`;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(x + 10, y + 6);
+            ctx.quadraticCurveTo(x + 22, y + 15, x + 34, y + 10);
+            ctx.stroke();
+            ctx.fillStyle = `rgba(150,225,255,${a})`;
+            ctx.shadowColor = '#7fd4ff'; ctx.shadowBlur = 10;
+            ctx.beginPath(); ctx.arc(x, y, 3.4, 0, TAU); ctx.fill();
+            ctx.shadowBlur = 0;
+        }
+    }
+
+    // ===== 核心：一个细胞的有丝分裂全过程 =====
+    // o: {ctx,cx,cy,R,durs,t,tt,axis,tintL,tintR,lineage,selfP,aura,rarity,restGlow,rest}
+    function drawMitosis(o) {
+        const ctx = o.ctx, D = o.durs, R = o.R, t = Math.max(0, o.t);
+        const tPro = D[0], tMeta = D[0] + D[1], tAna = D[0] + D[1] + D[2],
+              tTel = D[0] + D[1] + D[2] + D[3], Dtot = tTel + D[4];
+        const pInt = segP(t, 0, D[0]);
+        const pPro = segP(t, tPro, tMeta);
+        const pMeta = segP(t, tMeta, tAna);
+        const pAna = segP(t, tAna, tTel);
+        const pTel = segP(t, tTel, Dtot);
+        const lin = o.lineage ? LINEAGE_RGB[o.lineage] : null;
+        const lobe = k => ({ a: lin ? mixHex(HSC_A, lin.a, k) : HSC_A, b: lin ? mixHex(HSC_B, lin.b, k) : HSC_B });
+
+        ctx.save();
+        ctx.translate(o.cx, o.cy);
+        if (o.axis === 'y') ctx.rotate(Math.PI / 2);
+
+        // 分裂完成：绘制两个子细胞
+        if (t >= Dtot) {
+            if (o.rest === false) { ctx.restore(); return; }
+            const d = R * 1.02;
+            drawDaughter(ctx, -d, 0, R * .8, o.tintL || 0, o.lineage, 1, o.aura, o.restGlow || 0, o.tt);
+            const self = o.selfP || 0;
+            drawDaughter(ctx, d + self * 52, -self * 40, R * .8, o.tintR || 0, o.lineage,
+                         1 - self * .7, o.aura, o.restGlow || 0, o.tt);
+            ctx.restore();
+            return;
+        }
+
+        const cond = easeOut(pPro);                                   // 染色体凝缩度
+        const align = easeInOut(clamp01(pPro * .35 + pMeta));        // 向赤道板列队
+        const sep = (easeInOut(pAna) * .45 + easeInOut(pTel) * .57) * R;
+        const pinch = easeInOut(clamp01(pTel * 1.08));
+        const gx = Math.max(easeInOut(pAna) * R * .62, sep + R * .18);
+        const rF = lerp(1, .82, pTel);
+        const wob = (1 - cond) * .012 * (1 + Math.sin(o.tt / 600) * .4);
+
+        // 胞体（左瓣可被定向染色）
+        fillBody(ctx, R * rF, sep, pinch, [lobe(o.tintL || 0), lobe(o.tintR || 0)], wob);
+
+        // 分裂沟阴影
+        if (pinch > .02) {
+            ctx.strokeStyle = `rgba(12,3,7,${.25 + pinch * .5})`;
+            ctx.lineWidth = 2.5 + pinch * 3;
+            const rb = R * rF;
+            ctx.beginPath();
+            ctx.moveTo(-9, -rb * .82);
+            ctx.quadraticCurveTo(0, -rb * (.82 - pinch * .72), 9, -rb * .82);
+            ctx.moveTo(-9, rb * .82);
+            ctx.quadraticCurveTo(0, rb * (.82 - pinch * .72), 9, rb * .82);
+            ctx.stroke();
+        }
+
+        // 稀有度先兆光晕（后期开始渗出，金/紫）
+        if (o.aura) {
+            const auraK = clamp01(pAna * .25 + pTel * .6);
+            if (auraK > .02) {
+                ctx.save();
+                cellBodyPath(ctx, R * rF, sep, pinch, 0);
+                ctx.strokeStyle = o.aura;
+                ctx.globalAlpha = auraK * .55;
+                ctx.lineWidth = 5; ctx.shadowColor = o.aura; ctx.shadowBlur = 26;
+                ctx.stroke();
+                ctx.restore();
+            }
+            if ((o.rarity === 'legendary' && pAna > .12) || (o.rarity === 'epic' && pTel > .3)) {
+                const n = o.rarity === 'legendary' ? 18 : 9;
+                const col = o.rarity === 'legendary' ? [255, 216, 77] : [196, 130, 255];
+                for (let i = 0; i < n; i++) {
+                    const ang = i / n * TAU + o.tt / 1100;
+                    const prog = (o.tt * .045 + i * 26) % 52;
+                    const rr = R * .95 + prog;
+                    const al = .7 * (1 - prog / 52);
+                    ctx.beginPath();
+                    ctx.fillStyle = `rgba(${col[0]},${col[1]},${col[2]},${al})`;
+                    ctx.arc(Math.cos(ang) * rr, Math.sin(ang) * rr * .92, 1.9, 0, TAU);
+                    ctx.fill();
+                }
+            }
+        }
+
+        // 间期细胞核（随前期凝缩而消失）
+        if (cond < .95) drawNucleus(ctx, 0, 0, R * .5 * (1 - cond * .2), 1 - cond, o.tt, pInt);
+        // 末期两极子核重建
+        if (pTel > 0) {
+            drawNucleus(ctx, -sep, 0, R * .34 * rF, easeOut(pTel), o.tt, 1);
+            drawNucleus(ctx, sep, 0, R * .34 * rF, easeOut(pTel), o.tt, 1);
+        }
+
+        // 中心体与纺锤体
+        if (cond < .05) {
+            if (pInt > .5) { drawCentrosome(ctx, -6, -R * .5); drawCentrosome(ctx, 6, -R * .5); }
+            else drawCentrosome(ctx, 0, -R * .5);
+        } else {
+            const cm = easeInOut(pPro);
+            const inPoles = (pMeta + pAna + pTel) > 0;
+            for (const s of [-1, 1]) {
+                const px = inPoles ? s * (R + 16) : s * lerp(7, R + 16, cm);
+                const py = inPoles ? 0 : lerp(-R * .5, 0, cm) - Math.sin(cm * Math.PI) * R * .12;
+                drawCentrosome(ctx, px, py);
+            }
+            if (pPro > .25 && pTel < .9) {
+                ctx.strokeStyle = 'rgba(216,196,255,.32)';
+                ctx.lineWidth = 1;
+                const drawFiber = (pole, tg) => {
+                    ctx.beginPath();
+                    ctx.moveTo(pole, 0);
+                    ctx.quadraticCurveTo(tg.x * .5 + Math.sign(pole) * R * .12, tg.y * .55, tg.x, tg.y);
+                    ctx.stroke();
+                };
+                if (pAna < .06) {
+                    for (let i = 0; i < 4; i++) { drawFiber(-(R + 16), { x: 0, y: CHROM_Y[i] }); drawFiber(R + 16, { x: 0, y: CHROM_Y[i] }); }
+                } else {
+                    for (let i = 0; i < 4; i++) { drawFiber(-(R + 16), { x: -gx, y: CHROM_Y[i] }); drawFiber(R + 16, { x: gx, y: CHROM_Y[i] }); }
+                }
+            }
+        }
+
+        // 染色体
+        if (cond > 0 && pTel < .85) {
+            if (pAna < .03) {
+                for (let i = 0; i < 4; i++) {
+                    const pro = CHROM_PRO[i];
+                    const x = lerp(pro.x, 0, align), y = lerp(pro.y, CHROM_Y[i], align);
+                    const rot = lerp(pro.r, CHROM_ROT[i], align);
+                    const jit = pMeta > 0 ? Math.sin(o.tt / 280 + i * 2) * 1.6 : 0;
+                    drawChromX(ctx, x, y + jit, rot, CHROM_LEN[i], cond, .55 + .45 * cond);
+                }
+            } else {
+                const a = 1 - pTel * .92;
+                for (let i = 0; i < 4; i++) {
+                    drawChromatid(ctx, -gx, CHROM_Y[i], 1.5 + CHROM_ROT[i] * .25, CHROM_LEN[i], a, 1);
+                    drawChromatid(ctx, gx, CHROM_Y[i], -1.5 - CHROM_ROT[i] * .25, CHROM_LEN[i], a, 1);
+                }
+            }
+        }
+        ctx.restore();
+    }
+
+    // ---------- 舞台 / 循环 ----------
+    let gaLastW = 0, gaLastH = 0;
+    function gaBuildStage(titleText) {
+        gaLastW = 0; gaLastH = 0;
+        gaScene.innerHTML = `<div class="ga-stage" id="gaStage">
+            <canvas id="gaCanvas"></canvas>
+            <div class="ga-vignette"></div>
+            <div class="ga-title" id="gaTitle">${titleText}</div>
+            <div class="ga-phasebar" id="gaPhasebar"></div>
+            <div class="ga-signal" id="gaSignal"></div>
+            <div class="ga-taphint">轻点屏幕跳过 ▸</div>
+        </div>`;
+        const stage = document.getElementById('gaStage');
+        stage.addEventListener('click', gaSkipToEnd);
+        const cv = document.getElementById('gaCanvas');
+        return { stage, cv, ctx: cv.getContext('2d') };
+    }
+    function gaFit(cv, ctx) {
+        const w = cv.clientWidth, h = cv.clientHeight;
+        if (w !== gaLastW || h !== gaLastH) {
+            cv.width = Math.round(w * gaDpr); cv.height = Math.round(h * gaDpr);
+            gaLastW = w; gaLastH = h;
+        }
+        const scale = Math.min(w / 640, h / 430);
+        ctx.setTransform(gaDpr * scale, 0, 0, gaDpr * scale, w * gaDpr / 2, h * gaDpr * 0.46);
+    }
+    function gaSetPhase(idx, sigHTML) {
+        const bar = document.getElementById('gaPhasebar'), sig = document.getElementById('gaSignal');
+        if (bar) bar.innerHTML = MIT_PHASES.map((p, i) => `<span class="step ${i <= idx ? 'on' : ''}">${p}</span>`).join('');
+        if (sig && sigHTML !== undefined) sig.innerHTML = sigHTML;
+    }
+
+    // ---------- 高潮特效 ----------
     function rarityWord(r) {
         return r === 'legendary' ? '出 金 !' : r === 'epic' ? '紫 光 !' : '';
     }
-
-    // 全屏环境光：传奇金光 / 史诗紫光
     function gaEnvFlash(rarity) {
-        if(rarity !== 'legendary' && rarity !== 'epic') return;
-        let cls = rarity === 'legendary' ? 'gold' : 'purple';
-        gaScreenFlash.className = 'ga-screenflash ' + cls;
-        // 强制重排以重启动画
+        if (rarity !== 'legendary' && rarity !== 'epic') return;
+        gaScreenFlash.className = 'ga-screenflash ' + (rarity === 'legendary' ? 'gold' : 'purple');
         void gaScreenFlash.offsetWidth;
         gaScreenFlash.classList.add('fire');
     }
-
-    // 分化路径面包屑
-    function pathwayBreadcrumb(pathArr, activeCount) {
-        return pathArr.map((p, i) =>
-            `<span class="step ${i < activeCount ? 'on' : ''}">${p}</span>${i < pathArr.length - 1 ? ' → ' : ''}`
-        ).join('');
+    function gaWhiteFlash() {
+        gaScreenFlash.className = 'ga-screenflash white';
+        void gaScreenFlash.offsetWidth;
+        gaScreenFlash.classList.add('fire');
+    }
+    function gaFireFlash(rarity) {
+        const stage = document.getElementById('gaStage');
+        if (!stage) return;
+        const color = RARITY_COLOR[rarity];
+        const raysBg = rarity === 'legendary'
+            ? 'repeating-conic-gradient(from 0deg, rgba(255,216,77,.9) 0deg 8deg, transparent 8deg 20deg)'
+            : rarity === 'epic'
+              ? 'repeating-conic-gradient(from 0deg, rgba(180,100,255,.8) 0deg 8deg, transparent 8deg 20deg)'
+              : rarity === 'rare'
+                ? 'repeating-conic-gradient(from 0deg, rgba(79,172,254,.55) 0deg 10deg, transparent 10deg 24deg)'
+                : 'repeating-conic-gradient(from 0deg, rgba(207,217,226,.45) 0deg 12deg, transparent 12deg 26deg)';
+        let particles = '';
+        if (rarity === 'legendary' || rarity === 'epic') {
+            for (let i = 0; i < 20; i++) {
+                const col = rarity === 'legendary' ? (i % 2 ? '#ffd84d' : '#ffae4a') : '#c78fff';
+                const left = 6 + Math.random() * 88, delay = Math.random() * .4, dur = 1.2 + Math.random() * .8;
+                particles += `<span class="ga-particle" style="left:${left}%;background:${col};box-shadow:0 0 8px ${col};animation-delay:${delay}s;animation-duration:${dur}s;"></span>`;
+            }
+        }
+        const beam = (rarity === 'legendary' || rarity === 'epic')
+            ? `<div class="ga-beam ${rarity === 'legendary' ? 'gold' : 'purple'}" style="left:50%;"></div>` : '';
+        const rings = rarity === 'legendary'
+            ? `<div class="ga-ring" style="border:3px solid #ffd84d;box-shadow:0 0 24px rgba(255,200,60,.7);"></div>
+               <div class="ga-ring r2" style="border:2px solid #ffec9a;"></div>` : '';
+        stage.insertAdjacentHTML('beforeend', `
+            <div class="ga-flash" id="gaFlash">
+                ${beam}${rings}
+                <div class="burst" style="background:radial-gradient(circle, ${color}, transparent 70%);"></div>
+                <div class="ga-rays" style="background:${raysBg};border-radius:50%;mask-image:radial-gradient(circle,#000 18%,transparent 62%);-webkit-mask-image:radial-gradient(circle,#000 18%,transparent 62%);"></div>
+                ${rarityWord(rarity) ? `<div class="ga-goldword">${rarityWord(rarity)}</div>` : ''}
+                ${particles}
+            </div>`);
+        requestAnimationFrame(() => { const f = document.getElementById('gaFlash'); if (f) f.classList.add('go'); });
+    }
+    function gaCountPop(text) {
+        const stage = document.getElementById('gaStage');
+        if (!stage) return;
+        stage.insertAdjacentHTML('beforeend', `<div class="ga-countpop">${text}</div>`);
+        const el = stage.lastElementChild;
+        requestAnimationFrame(() => el.classList.add('go'));
+        setTimeout(() => el.remove(), 1100);
     }
 
-    // ---------- 单抽动画 ----------
+    // ---------- 单抽：完整有丝分裂 → 细胞因子定向 → 终末分化（约 10 秒） ----------
     function playGachaSingleAnim(s) {
-        gaClearTimers();
-        gaContext = { type: 'single', summary: s };
-        const op = s.op, sci = cellScience[op.id];
-        const flashColor = rarityFlashColor(op.rarity);
-        const lineageCls = sci.lineage === 'myeloid' ? 'myeloid' : 'lymphoid';
-        const progenitorName = sci.lineage === 'myeloid' ? '髓系祖细胞 CMP' : '淋巴系祖细胞 CLP';
-
-        gaOverlay.style.display = 'flex';
+        gaClearTimers(); gaCancelRaf();
+        gaContext = { type: 'single', summary: s, phase: 'anim' };
+        gaOverlay.classList.add('ga-on');
         gaScreenFlash.className = 'ga-screenflash';
-
-        // 阶段1：骨髓微环境中的造血干细胞
-        gaScene.innerHTML = `
-            <div class="ga-title">骨髓 · 造血微环境</div>
-            <div class="ga-hsc" id="gaHsc">
-                <span class="ga-nucleus"></span>
-                <span class="ga-tag">CD34⁺ 造血干细胞</span>
-                <span class="ga-sub">自我更新 · 多向分化潜能</span>
-            </div>
-            <div class="ga-breadcrumb" id="gaCrumb">${pathwayBreadcrumb(sci.pathway, 1)}<span class="signal">骨髓基质细胞分泌细胞因子，启动谱系特异性转录因子程序</span></div>`;
-
-        // 阶段2：不对称分裂 → 定向祖细胞芽生
-        gaLater(() => {
-            const crumb = document.getElementById('gaCrumb');
-            if(crumb) crumb.innerHTML = pathwayBreadcrumb(sci.pathway, 2) + `<span class="signal">${sci.signal}</span>`;
-            const hsc = document.getElementById('gaHsc');
-            if(hsc) hsc.insertAdjacentHTML('beforebegin',
-                `<div class="ga-bud ${lineageCls} show" id="gaBud" style="top: calc(50% + 52px); left: calc(50% + 52px);"><span class="n2"></span>${progenitorName}</div>`);
-        }, 1300);
-
-        // 阶段3：终末分化闪光（传奇金光 / 史诗紫光）
-        gaLater(() => {
-            const crumb = document.getElementById('gaCrumb');
-            if(crumb) crumb.innerHTML = pathwayBreadcrumb(sci.pathway, sci.pathway.length);
-            const hsc = document.getElementById('gaHsc'); if(hsc) hsc.style.display = 'none';
-            const bud = document.getElementById('gaBud'); if(bud) bud.style.display = 'none';
-            gaEnvFlash(op.rarity);
-
-            // 光芒射线（锥形渐变）
-            let raysBg = op.rarity === 'legendary'
-                ? 'repeating-conic-gradient(from 0deg, rgba(255,216,77,.9) 0deg 8deg, transparent 8deg 20deg)'
-                : op.rarity === 'epic'
-                  ? 'repeating-conic-gradient(from 0deg, rgba(180,100,255,.8) 0deg 8deg, transparent 8deg 20deg)'
-                  : 'repeating-conic-gradient(from 0deg, rgba(159,182,196,.5) 0deg 10deg, transparent 10deg 24deg)';
-            let particles = '';
-            if(op.rarity === 'legendary' || op.rarity === 'epic') {
-                for(let i = 0; i < 18; i++) {
-                    let col = op.rarity === 'legendary' ? (i % 2 ? '#ffd84d' : '#ffae4a') : '#c78fff';
-                    let left = 8 + Math.random() * 84, delay = Math.random() * 0.35, dur = 1.1 + Math.random() * 0.7;
-                    particles += `<span class="ga-particle" style="left:${left}%;background:${col};box-shadow:0 0 8px ${col};animation-delay:${delay}s;animation-duration:${dur}s;"></span>`;
-                }
+        const op = s.op, sci = cellScience[op.id];
+        const { cv, ctx } = gaBuildStage('CD34⁺ 造血干细胞 · 有丝分裂');
+        const D = [1900, 1550, 1400, 1400, 1550];
+        let lastPhase = -1;
+        const t0 = performance.now();
+        function frame(now) {
+            const t = now - t0;
+            if (t > 10100) { gaRaf = 0; return; }
+            gaRaf = requestAnimationFrame(frame);
+            gaFit(cv, ctx);
+            ctx.clearRect(-340, -260, 680, 520);
+            ctx.globalAlpha = Math.min(1, t / 450) * (1 - segP(t, 9150, 9700));
+            drawMotes(ctx, 1 / 60, t);
+            const phase = mitPhaseIndex(t, D);
+            if (phase !== lastPhase) {
+                lastPhase = phase;
+                gaSetPhase(phase, phase < 5 ? MIT_SIGNALS[phase] : sci.signal);
             }
-            gaScene.insertAdjacentHTML('beforeend', `
-                <div class="ga-flash" id="gaFlash">
-                    <div class="burst" style="background:radial-gradient(circle, ${flashColor}, transparent 70%);"></div>
-                    <div class="ga-rays" style="background:${raysBg};border-radius:50%;mask-image:radial-gradient(circle, #000 18%, transparent 62%);-webkit-mask-image:radial-gradient(circle, #000 18%, transparent 62%);"></div>
-                    ${rarityWord(op.rarity) ? `<div class="ga-goldword">${rarityWord(op.rarity)}</div>` : ''}
-                    ${particles}
-                </div>`);
-            requestAnimationFrame(() => { const f = document.getElementById('gaFlash'); if(f) f.classList.add('go'); });
-        }, 2600);
+            drawMitosis({
+                ctx, cx: 0, cy: 0, R: 46, durs: D, t, tt: t, axis: 'x',
+                lineage: sci.lineage,
+                tintL: segP(t, 8400, 9050),
+                selfP: segP(t, 8650, 9350),
+                aura: RARITY_COLOR[op.rarity], rarity: op.rarity,
+                restGlow: segP(t, 7800, 9050) * .5
+            });
+            drawCytokines(ctx, segP(t, 7800, 8500));
+            ctx.globalAlpha = 1;
+        }
+        gaRaf = requestAnimationFrame(frame);
 
-        // 阶段4：成熟细胞 + 该细胞的作用
-        gaLater(() => renderSingleFinale(s), 3650);
+        gaLater(() => { const ti = document.getElementById('gaTitle'); if (ti) ti.textContent = '细胞因子定向 · 终末分化'; }, 7800);
+        gaLater(() => { gaFireFlash(op.rarity); gaEnvFlash(op.rarity); }, 9050);
+        gaLater(() => renderSingleFinale(s), 9900);
     }
 
     function renderSingleFinale(s) {
+        gaCancelRaf();
+        if (gaContext) gaContext.phase = 'finale';
         const op = s.op, rc = rarityConfig[op.rarity], sci = cellScience[op.id];
-        const flash = document.getElementById('gaFlash'); if(flash) flash.remove();
-        const crumb = document.getElementById('gaCrumb'); if(crumb) crumb.style.display = 'none';
-        const hsc = document.getElementById('gaHsc'); if(hsc) hsc.style.display = 'none';
-        const bud = document.getElementById('gaBud'); if(bud) bud.style.display = 'none';
-        const old = document.getElementById('gaResult'); if(old) old.remove();
-        gaScene.insertAdjacentHTML('beforeend', `
+        gaScreenFlash.className = 'ga-screenflash';
+        gaScene.innerHTML = `
             <div class="ga-result" id="gaResult">
                 <div class="ga-cell-emblem ${op.rarity}"><img src="${avatarURLs[op.id]}" alt=""></div>
                 <div class="ga-cell-name" style="text-shadow:0 0 12px ${rc.color};">${op.name}</div>
@@ -1286,108 +1739,192 @@
                     <div>${sci.func}</div>
                 </div>
                 <button class="ga-confirm" onclick="gaCloseAnim()">确认编入骨髓库</button>
-            </div>`);
-        requestAnimationFrame(() => { const r = document.getElementById('gaResult'); if(r) r.classList.add('show'); });
-    }
-
-    // ---------- 十连动画 ----------
-    function playGachaTenAnim(summary, guaranteeTriggered) {
-        gaClearTimers();
-        gaContext = { type: 'ten', summary: summary, guarantee: guaranteeTriggered };
-        gaOverlay.style.display = 'flex';
-        gaScreenFlash.className = 'ga-screenflash';
-
-        // 阶段1：造血干细胞有丝分裂（自我更新+扩增）
-        gaScene.innerHTML = `
-            <div class="ga-title">骨髓动员 · 一批造血干细胞进入分化</div>
-            <div class="ga-ten-wrap" id="gaTenWrap">
-                <div class="ga-mitosis" id="gaMitosis">
-                    <div class="half left"></div>
-                    <div class="half right"></div>
-                </div>
-                <div style="font-size:12px; color:#d8a0a0;">CD34⁺ 造血干细胞经有丝分裂扩增（自我更新），随后接受细胞因子信号定向分化</div>
             </div>`;
-        gaLater(() => { const m = document.getElementById('gaMitosis'); if(m) m.classList.add('go'); }, 200);
-
-        // 阶段2：5×2 格子逐一分化揭晓
-        gaLater(() => buildTenFinale(summary, guaranteeTriggered, true), 1400);
+        requestAnimationFrame(() => { const r = document.getElementById('gaResult'); if (r) r.classList.add('show'); });
     }
 
-    // tenSlotHTML 与单张揭晓共用
-    function tenSlotHTML(s, i, revealed) {
-        const op = s.op, rc = rarityConfig[op.rarity];
-        let tag = op.rarity === 'legendary' ? '金' : op.rarity === 'epic' ? '紫' : op.rarity === 'rare' ? '精' : '';
-        return `<div class="ga-slot ${op.rarity} ${revealed ? 'revealed' : ''}" id="gaSlot${i}" data-i="${i}">
-            <span class="tag" style="color:${rc.color};">${tag}</span>
-            ${revealed ? `<img src="${avatarURLs[op.id]}" alt=""><div class="sn">${op.name}</div>` : ''}
-        </div>`;
-    }
+    // ---------- 十连：两次有丝分裂 + 克隆扩增 → 5×2 翻面揭晓 ----------
+    const TEN_GRID_POS = [[-200, -44], [-100, -44], [0, -44], [100, -44], [200, -44],
+                          [-200, 44], [-100, 44], [0, 44], [100, 44], [200, 44]];
+    // 第 2 次分裂的 4 个子细胞 → 网格槽位 1/6/3/8
+    const TEN_DAUGHTER_MAP = [{ fx: -47, fy: -33, slot: 1 }, { fx: -47, fy: 33, slot: 6 },
+                              { fx: 47, fy: -33, slot: 3 }, { fx: 47, fy: 33, slot: 8 }];
+    const TEN_EXTRA = [{ slot: 0, t: 7000 }, { slot: 5, t: 7100 }, { slot: 2, t: 7200 },
+                       { slot: 7, t: 7300 }, { slot: 4, t: 7450 }, { slot: 9, t: 7450 }];
 
-    function bindTenSlot(i, s) {
-        const slot = document.getElementById('gaSlot' + i);
-        if(!slot) return;
-        slot.onclick = () => {
-            const d = document.getElementById('gaDetail');
-            const sci = cellScience[s.op.id];
-            const rc = rarityConfig[s.op.rarity];
-            if(d) {
-                d.classList.add('show');
-                d.innerHTML = `<b style="color:${rc.color};">${s.op.name}（${rc.label}）· ${rangeTypeInfo[s.op.rangeType].label}</b> — ${sci.func}`;
+    function playGachaTenAnim(summary, guaranteeTriggered) {
+        gaClearTimers(); gaCancelRaf();
+        gaContext = { type: 'ten', summary, guarantee: guaranteeTriggered, phase: 'anim' };
+        gaOverlay.classList.add('ga-on');
+        gaScreenFlash.className = 'ga-screenflash';
+        const bestR = ['common', 'rare', 'epic', 'legendary'][
+            summary.reduce((a, s) => Math.max(a, RARITY_RANK[s.op.rarity]), 0)];
+        const { cv, ctx } = gaBuildStage('骨髓动员 · 一批造血干细胞进入克隆扩增');
+        const D0 = [990, 820, 720, 720, 850];   // 第1次 4100ms
+        const D1 = [560, 470, 420, 400, 450];   // 第2次 2300ms
+        const GEN1_T = 4600, ARRANGE_T = 6900;
+        let lastPhase = -1;
+        const t0 = performance.now();
+        function frame(now) {
+            const t = now - t0;
+            if (t > 8200) { gaRaf = 0; return; }
+            gaRaf = requestAnimationFrame(frame);
+            gaFit(cv, ctx);
+            ctx.clearRect(-340, -260, 680, 520);
+            drawMotes(ctx, 1 / 60, t);
+            ctx.globalAlpha = Math.min(1, t / 450) * (1 - segP(t, 7950, 8100));
+
+            if (t < ARRANGE_T) {
+                let phase;
+                if (t < GEN1_T) {
+                    phase = mitPhaseIndex(t - 500, D0);
+                    drawMitosis({ ctx, cx: 0, cy: 0, R: 46, durs: D0, t: t - 500, tt: t,
+                                  aura: RARITY_COLOR[bestR], rarity: bestR });
+                } else {
+                    phase = mitPhaseIndex(t - GEN1_T, D1);
+                    drawMitosis({ ctx, cx: -47, cy: 0, R: 32, durs: D1, t: t - GEN1_T, tt: t, axis: 'y',
+                                  aura: RARITY_COLOR[bestR], rarity: bestR });
+                    drawMitosis({ ctx, cx: 47, cy: 0, R: 32, durs: D1, t: t - GEN1_T, tt: t, axis: 'y',
+                                  aura: RARITY_COLOR[bestR], rarity: bestR });
+                }
+                if (phase !== lastPhase) { lastPhase = phase; gaSetPhase(phase, MIT_SIGNALS[phase]); }
+            } else {
+                if (5 !== lastPhase) { lastPhase = 5; gaSetPhase(5, '细胞因子信号（G-CSF / EPO / IL-7 等）正诱导 10 个细胞<b>定向终末分化</b>…'); }
+                const u = easeInOut(segP(t, ARRANGE_T, 7850));
+                TEN_DAUGHTER_MAP.forEach(m => {
+                    const [tx, ty] = TEN_GRID_POS[m.slot];
+                    drawCloneCell(ctx, lerp(m.fx, tx, u), lerp(m.fy, ty, u), 22,
+                                  segP(t, 7000, 7800), summary[m.slot].op.rarity, 1, t);
+                });
+                TEN_EXTRA.forEach(e => {
+                    const p = easeOut(segP(t, e.t, e.t + 450));
+                    if (p <= 0) return;
+                    const [x, y] = TEN_GRID_POS[e.slot];
+                    drawCloneCell(ctx, x, y, 22, segP(t, e.t, e.t + 600), summary[e.slot].op.rarity, p, t);
+                });
             }
-        };
+            ctx.globalAlpha = 1;
+        }
+        gaRaf = requestAnimationFrame(frame);
+
+        gaLater(() => { const ti = document.getElementById('gaTitle'); if (ti) ti.textContent = '第 2 次有丝分裂 · 2 → 4'; }, GEN1_T);
+        gaLater(() => { const ti = document.getElementById('gaTitle'); if (ti) ti.textContent = '克隆扩增 · 4 → 8 → 10'; }, ARRANGE_T);
+        gaLater(() => gaCountPop('×4'), ARRANGE_T);
+        gaLater(() => gaCountPop('×8'), 7300);
+        gaLater(() => gaCountPop('×10'), 7700);
+        gaLater(() => { gaCancelRaf(); gaWhiteFlash(); buildTenGrid(summary, guaranteeTriggered); }, 8000);
+        gaLater(() => startTenReveal(summary, guaranteeTriggered), 8300);
     }
 
-    // animate=true 时逐张揭晓；false（跳过）时一次性全部显示
-    function buildTenFinale(summary, guaranteeTriggered, animate) {
-        gaOverlay.style.display = 'flex';
+    function buildTenGrid(summary) {
+        if (gaContext) gaContext.phase = 'reveal';
         gaScene.innerHTML = `
             <div class="ga-ten-wrap show">
-                <div class="ga-title" style="position:static;">终末分化 ${animate ? '进行中…' : '完成'}</div>
+                <div class="ga-title" style="position:static;">终末分化 · 逐一揭晓</div>
                 <div class="ga-grid" id="gaGrid">
-                    ${summary.map((s, i) => tenSlotHTML(s, i, !animate)).join('')}
+                    ${summary.map((s, i) => `
+                    <div class="ga-slot" id="gaSlot${i}">
+                        <div class="face face-back"><div class="unk">?</div><div class="q">未分化</div></div>
+                    </div>`).join('')}
                 </div>
-                <div class="ga-ten-info" id="gaTenInfo">${animate ? '细胞因子信号正在诱导 10 个细胞分化…' : tenSummaryText(summary, guaranteeTriggered)}</div>
+                <div class="ga-ten-info" id="gaTenInfo">细胞因子信号正在诱导 10 个细胞终末分化…</div>
                 <div class="ga-detail" id="gaDetail"></div>
-                <button class="ga-confirm" id="gaTenConfirm" ${animate ? 'style="display:none;"' : ''} onclick="gaCloseAnim()">确认收入骨髓库</button>
+                <button class="ga-confirm" id="gaTenConfirm" style="display:none;" onclick="gaCloseAnim()">确认收入骨髓库</button>
             </div>`;
+    }
 
-        if(animate) {
-            summary.forEach((s, i) => {
-                gaLater(() => {
-                    const slot = document.getElementById('gaSlot' + i);
-                    if(!slot) return;
-                    slot.outerHTML = tenSlotHTML(s, i, true);
-                    bindTenSlot(i, s);
-                    const op = s.op;
-                    if(op.rarity === 'legendary') {
-                        gaEnvFlash('legendary');
-                        const info = document.getElementById('gaTenInfo');
-                        if(info) info.innerHTML = '<b>★ 传奇细胞分化成功！金光降临！</b>';
-                    } else if(op.rarity === 'epic') {
-                        gaEnvFlash('epic');
-                    }
-                }, i * 230 + 250);
-            });
-            gaLater(() => {
-                const info = document.getElementById('gaTenInfo');
-                if(info) info.innerHTML = tenSummaryText(summary, guaranteeTriggered);
-                const btn = document.getElementById('gaTenConfirm'); if(btn) btn.style.display = '';
-            }, summary.length * 230 + 650);
-        } else {
-            summary.forEach((s, i) => bindTenSlot(i, s));
+    function startTenReveal(summary, guarantee) {
+        if (!gaContext) return;
+        gaContext.pending = new Set(summary.map((s, i) => i));
+        // 普通→精英→史诗→传奇：金/紫压轴，制造悬念
+        const order = summary.map((s, i) => i)
+            .sort((a, b) => RARITY_RANK[summary[a].op.rarity] - RARITY_RANK[summary[b].op.rarity] || a - b);
+        order.forEach((idx, k) => gaLater(() => revealSlot(idx, summary[idx]), k * 230));
+        gaLater(() => finishTenReveal(summary, guarantee), order.length * 230 + 680);
+    }
+
+    function revealSlot(i, s) {
+        const slot = document.getElementById('gaSlot' + i);
+        if (!slot || !gaContext || !gaContext.pending || !gaContext.pending.has(i)) return;
+        gaContext.pending.delete(i);
+        const op = s.op, rc = rarityConfig[op.rarity];
+        const tag = op.rarity === 'legendary' ? '金' : op.rarity === 'epic' ? '紫' : op.rarity === 'rare' ? '精' : '';
+        slot.insertAdjacentHTML('beforeend',
+            `<div class="face face-final"><span class="tag" style="color:${rc.color};">${tag}</span>` +
+            `<img src="${avatarURLs[op.id]}" alt=""><div class="sn">${op.name}</div></div>`);
+        requestAnimationFrame(() => slot.classList.add('go', op.rarity));
+        slot.onclick = () => tenSlotClick(s);
+        if (op.rarity === 'legendary') {
+            gaEnvFlash('legendary');
+            gaSlotBeam(slot, 'gold');
+            const info = document.getElementById('gaTenInfo');
+            if (info) info.innerHTML = '<b>★ 传奇细胞分化成功！金光降临！</b>';
+        } else if (op.rarity === 'epic') {
+            gaEnvFlash('epic');
+            gaSlotBeam(slot, 'purple');
         }
+    }
+
+    function tenSlotClick(s) {
+        const d = document.getElementById('gaDetail');
+        if (!d) return;
+        const sci = cellScience[s.op.id], rc = rarityConfig[s.op.rarity];
+        d.classList.add('show');
+        d.innerHTML = `<b style="color:${rc.color};">${s.op.name}（${rc.label}）· ${rangeTypeInfo[s.op.rangeType].label}</b> — ${sci.func}`;
+    }
+
+    function gaSlotBeam(slot, cls) {
+        const r = slot.getBoundingClientRect();
+        const beam = document.createElement('div');
+        beam.className = 'ga-beam ' + cls;
+        beam.style.left = (r.left + r.width / 2) + 'px';
+        gaOverlay.appendChild(beam);
+        requestAnimationFrame(() => beam.classList.add('go'));
+        setTimeout(() => beam.remove(), 2000);
+    }
+
+    function finishTenReveal(summary, guarantee) {
+        if (gaContext) gaContext.pending = null;
+        const info = document.getElementById('gaTenInfo');
+        if (info) info.innerHTML = tenSummaryText(summary, guarantee);
+        const btn = document.getElementById('gaTenConfirm');
+        if (btn) btn.style.display = '';
     }
 
     function tenSummaryText(summary, guaranteeTriggered) {
         let cnt = { legendary: 0, epic: 0, rare: 0, common: 0 };
         summary.forEach(s => cnt[s.op.rarity]++);
         let parts = [];
-        if(cnt.legendary) parts.push(`<b>传奇×${cnt.legendary}</b>`);
-        if(cnt.epic) parts.push(`<span style="color:#c78fff;">史诗×${cnt.epic}</span>`);
-        if(cnt.rare) parts.push(`<span style="color:#4facfe;">精英×${cnt.rare}</span>`);
-        if(cnt.common) parts.push(`普通×${cnt.common}`);
+        if (cnt.legendary) parts.push(`<b>传奇×${cnt.legendary}</b>`);
+        if (cnt.epic) parts.push(`<span style="color:#c78fff;">史诗×${cnt.epic}</span>`);
+        if (cnt.rare) parts.push(`<span style="color:#4facfe;">精英×${cnt.rare}</span>`);
+        if (cnt.common) parts.push(`普通×${cnt.common}`);
         let guarantee = guaranteeTriggered ? '　🛡️ <b style="color:#ffd84d;">十连保底已触发</b>' : '';
         return '分化完成：' + parts.join(' · ') + guarantee + '（点击任意细胞查看作用）';
+    }
+
+    // ---------- 跳过 / 查看 / 关闭 ----------
+    function gaSkipToEnd() {
+        if (!gaContext) { gaCloseAnim(); return; }
+        if (gaContext.type === 'single') {
+            if (gaContext.phase === 'finale') { gaCloseAnim(); return; }
+            gaClearTimers(); gaCancelRaf();
+            renderSingleFinale(gaContext.summary);
+        } else {
+            if (gaContext.phase === 'anim') {
+                gaClearTimers(); gaCancelRaf();
+                buildTenGrid(gaContext.summary, gaContext.guarantee);
+                gaContext.pending = new Set(gaContext.summary.map((s, i) => i));
+                gaContext.summary.forEach((s, i) => revealSlot(i, s));
+                finishTenReveal(gaContext.summary, gaContext.guarantee);
+            } else if (gaContext.pending === null) {
+                gaCloseAnim();
+            } else {
+                gaClearTimers();
+                [...gaContext.pending].forEach(i => revealSlot(i, gaContext.summary[i]));
+                finishTenReveal(gaContext.summary, gaContext.guarantee);
+            }
+        }
     }
 
     // 在抽卡弹窗中点击历史结果卡查看作用
@@ -1395,9 +1932,10 @@
         const op = masterPool.find(m => m.id === opId);
         const sci = cellScience[opId];
         const rc = rarityConfig[op.rarity];
-        gaClearTimers();
+        gaClearTimers(); gaCancelRaf();
+        gaContext = null;
         gaScreenFlash.className = 'ga-screenflash';
-        gaOverlay.style.display = 'flex';
+        gaOverlay.classList.add('ga-on');
         gaScene.innerHTML = `
             <div class="ga-result show">
                 <div class="ga-cell-emblem ${op.rarity}"><img src="${avatarURLs[opId]}" alt=""></div>
@@ -1414,9 +1952,9 @@
     }
 
     function gaCloseAnim() {
-        gaClearTimers();
+        gaClearTimers(); gaCancelRaf();
         gaContext = null;
-        gaOverlay.style.display = 'none';
+        gaOverlay.classList.remove('ga-on');
         gaScene.innerHTML = '';
         gaScreenFlash.className = 'ga-screenflash';
     }
