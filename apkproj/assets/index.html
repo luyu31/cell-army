@@ -203,9 +203,42 @@
 
         .pool-list { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0; }
         .pool-chip { font-size: 10px; padding: 2px 8px; border-radius: 12px; border: 1px solid; }
-        .exchange-row { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+        .exchange-row { display: flex; gap: 8px; margin-top: 10px; align-items: center; flex-wrap: wrap; }
         .exchange-row button { padding: 6px 12px; border: none; border-radius: 8px; cursor: pointer; background: #2a2a38; color: #ccc; font-size: 12px; }
         .exchange-row button:hover { background: #38384d; color: #fff; }
+        .btn-redeem-entry { margin-left: auto; background: linear-gradient(135deg,#5b2a86,#a637c2) !important; color:#ffe9ff !important; font-weight: bold; box-shadow:0 0 10px rgba(180,80,220,.45); }
+
+        /* ===== 兑换码弹窗 ===== */
+        .redeem-input-row { display:flex; gap:8px; }
+        .redeem-input-row input {
+            flex:1; min-width:0; padding:10px 12px; border-radius:10px;
+            border:1.5px solid #3a3a4d; background:#14141b; color:#fff;
+            font-size:15px; font-weight:bold; letter-spacing:2px; outline:none;
+            font-family: ui-monospace, Menlo, Consolas, monospace;
+        }
+        .redeem-input-row input:focus { border-color:#c56cf0; box-shadow:0 0 10px rgba(197,108,240,.35); }
+        .btn-redeem-go {
+            padding:10px 20px; border:none; border-radius:10px; cursor:pointer;
+            background:linear-gradient(135deg,#c56cf0,#ff6ec7); color:#fff;
+            font-size:14px; font-weight:bold; white-space:nowrap;
+            box-shadow:0 3px 12px rgba(255,110,199,.4);
+        }
+        .btn-redeem-go:active { transform: scale(.96); }
+        .redeem-msg { min-height:20px; margin-top:10px; font-size:12px; line-height:1.5; }
+        .redeem-msg.ok { color:#4ce08a; font-weight:bold; }
+        .redeem-msg.err { color:#ff7675; }
+        .redeem-tips, .redeem-history { margin-top:14px; }
+        .redeem-tips-title { font-size:11px; color:#777; margin-bottom:6px; }
+        .redeem-code-chip {
+            display:flex; align-items:center; gap:10px; padding:8px 12px;
+            background:#1b1526; border:1px dashed #6c3fa0; border-radius:10px; cursor:pointer;
+            transition: background .15s, border-color .15s;
+        }
+        .redeem-code-chip:hover { background:#241a36; border-color:#c56cf0; }
+        .redeem-code-chip b { color:#e0aaff; letter-spacing:1px; font-size:13px; font-family: ui-monospace, Menlo, Consolas, monospace; }
+        .redeem-code-chip span { font-size:11px; color:#999; }
+        .redeem-done { padding:4px 2px; color:#4ce08a; font-size:11px; }
+        .redeem-done b { color:#9ff5c0; font-family: ui-monospace, Menlo, Consolas, monospace; letter-spacing:1px; }
 
         .collection-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
         .collection-item { background: #16161a; border-radius: 8px; padding: 10px; border: 1px solid #2a2a38; }
@@ -521,8 +554,38 @@
             <div class="exchange-row">
                 <span style="font-size:11px; color:#aaa;">营养兑换：</span>
                 <button onclick="exchangeNutrients()">20🧪营养 → 1🦴原液</button>
+                <button class="btn-redeem-entry" onclick="openRedeem()">🎁 兑换码</button>
             </div>
             <div id="gachaResult" style="margin-top:14px;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 兑换码弹窗 ===== -->
+<div class="modal-overlay" id="redeemModal" style="display:none;">
+    <div class="modal" style="max-width:420px;">
+        <div class="modal-header">
+            <span>🎁 福利兑换码</span>
+            <button onclick="closeRedeem()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div style="font-size:12px; color:#aaa; margin-bottom:10px;">输入官方发放的兑换码，领取骨髓原液等福利。每个兑换码<b style="color:#ff6ec7;">仅限领取一次</b>，不区分大小写。</div>
+            <div class="redeem-input-row">
+                <input type="text" id="redeemInput" placeholder="输入兑换码，如 NEWCELL8" maxlength="24"
+                       autocomplete="off" autocapitalize="characters" spellcheck="false">
+                <button class="btn-redeem-go" onclick="submitRedeem()">领取</button>
+            </div>
+            <div id="redeemMsg" class="redeem-msg"></div>
+            <div class="redeem-tips">
+                <div class="redeem-tips-title">公开福利（长期有效）</div>
+                <div class="redeem-code-chip" onclick="fillRedeem('NEWCELL8')">
+                    <b>NEWCELL8</b><span>新兵入伍礼包 · 原液×8</span>
+                </div>
+            </div>
+            <div class="redeem-history">
+                <div class="redeem-tips-title">我的兑换记录</div>
+                <div id="redeemHistory" style="font-size:11px; color:#888;">暂未兑换任何礼包</div>
+            </div>
         </div>
     </div>
 </div>
@@ -946,6 +1009,7 @@
     let collection = {};                               // { opId: { stars, fragments } }
     let deck = ['neutrophil', 'rbc', 'macrophage'];    // 编队（3~5名）
     let currentPoolType = 'standard';                  // 当前卡池：standard=常驻池，否则为 ageStagePools.id
+    let redeemedCodes = [];                            // 已兑换的兑换码（每码限领一次，持久化）
 
     // 初始赠送3名初始干员（1星）
     for(let starterId of deck) {
@@ -955,6 +1019,61 @@
     let playerOperators = [];                          // 由编队+星级动态生成的出战列表
     let selectedOp = null;
     refreshDeckOperators();
+
+    // ==================== 本地存档（兑换码防重复 + 进度/资源保留） ====================
+    const SAVE_KEY = 'cellDefenseSave_v1';
+    function saveGame() {
+        try {
+            localStorage.setItem(SAVE_KEY, JSON.stringify({
+                v: 1,
+                marrow: marrow,
+                nutrients: nutrients,
+                currentLevel: currentLevel,
+                collection: collection,
+                deck: deck,
+                redeemedCodes: redeemedCodes
+            }));
+        } catch(e) { /* 隐私模式/存储已满时静默降级，不影响游戏 */ }
+    }
+    function loadGame() {
+        try {
+            let raw = localStorage.getItem(SAVE_KEY);
+            if(!raw) return;
+            let d = JSON.parse(raw);
+            if(!d || typeof d !== 'object') return;
+            if(typeof d.marrow === 'number' && d.marrow >= 0) marrow = Math.floor(d.marrow);
+            if(typeof d.nutrients === 'number' && d.nutrients >= 0) nutrients = Math.floor(d.nutrients);
+            if(typeof d.currentLevel === 'number') currentLevel = Math.min(levels.length, Math.max(1, Math.floor(d.currentLevel)));
+            if(d.collection && typeof d.collection === 'object') {
+                for(let id in d.collection) {
+                    if(masterPool.some(op => op.id === id)) {
+                        let c = d.collection[id];
+                        collection[id] = {
+                            stars: Math.min(5, Math.max(1, Math.floor(c.stars) || 1)),
+                            fragments: Math.max(0, Math.floor(c.fragments) || 0)
+                        };
+                    }
+                }
+            }
+            if(Array.isArray(d.deck)) {
+                let valid = d.deck.filter(id => masterPool.some(op => op.id === id) && collection[id]);
+                if(valid.length >= 3) deck = valid.slice(0, 5);
+            }
+            if(Array.isArray(d.redeemedCodes)) {
+                redeemedCodes = d.redeemedCodes.filter(c => typeof c === 'string');
+            }
+            baseHp = levels[currentLevel - 1].baseHp;
+            refreshDeckOperators();
+        } catch(e) { /* 存档损坏时以新档启动 */ }
+    }
+    loadGame();
+
+    // ==================== 兑换码（礼包）系统 ====================
+    // 单机客户端校验：兑换码明文内置，仅用于福利发放；每个码全存档限领一次
+    const REDEEM_CODES = [
+        { code: 'CELL1000', marrow: 1000, name: '千抽应援礼包', desc: '骨髓原液 ×1000（可单抽整整 1000 次）' },
+        { code: 'NEWCELL8', marrow: 8,   name: '新兵入伍礼包', desc: '骨髓原液 ×8（新手补给）' }
+    ];
 
     let mouseX = -1, mouseY = -1;
     const canvas = document.getElementById('gameCanvas');
@@ -1249,6 +1368,7 @@
             }
         }
 
+        saveGame();   // 抽卡结果（新卡/信物）即时存档
         try {
             refreshDeckOperators();
             renderGachaResult(summary);
@@ -1306,9 +1426,58 @@
     function exchangeNutrients() {
         if (nutrients < 20) { alert('营养不足（需20营养）！'); return; }
         nutrients -= 20;
-        changeMarrow(1, { pulse: 'gain' });
+        changeMarrow(1, { pulse: 'gain' });   // changeMarrow 内部会 saveGame，营养扣减一并落盘
         updateUI();
         refreshGachaUI();
+    }
+
+    // ==================== 兑换码 ====================
+    function openRedeem() {
+        document.getElementById('redeemModal').style.display = 'flex';
+        renderRedeemHistory();
+        let input = document.getElementById('redeemInput');
+        input.value = '';
+        setRedeemMsg('', '');
+        setTimeout(() => input.focus(), 60);
+    }
+    function closeRedeem() {
+        document.getElementById('redeemModal').style.display = 'none';
+    }
+    function fillRedeem(code) {
+        let input = document.getElementById('redeemInput');
+        input.value = code;
+        input.focus();
+        setRedeemMsg('', '');
+    }
+    function setRedeemMsg(text, kind) {
+        let el = document.getElementById('redeemMsg');
+        el.textContent = text;
+        el.className = 'redeem-msg' + (kind ? ' ' + kind : '');
+    }
+    function renderRedeemHistory() {
+        let box = document.getElementById('redeemHistory');
+        if(!box) return;
+        if(redeemedCodes.length === 0) { box.innerHTML = '暂未兑换任何礼包'; return; }
+        box.innerHTML = redeemedCodes.map(code => {
+            let item = REDEEM_CODES.find(c => c.code === code);
+            let label = item ? item.name : code;
+            return `<div class="redeem-done">✓ <b>${code}</b>　${label}</div>`;
+        }).join('');
+    }
+    function submitRedeem() {
+        let input = document.getElementById('redeemInput');
+        let raw = (input.value || '').trim().toUpperCase().replace(/\s+/g, '');
+        if(!raw) { setRedeemMsg('请先输入兑换码～', 'err'); return; }
+        let item = REDEEM_CODES.find(c => c.code === raw);
+        if(!item) { setRedeemMsg('兑换码无效或已过期，请检查后重试', 'err'); return; }
+        if(redeemedCodes.includes(item.code)) { setRedeemMsg(`「${item.code}」已经兑换过啦，每个码限领一次`, 'err'); return; }
+        // 发奖（幂等：先登记再发，防止异常重复发放）
+        redeemedCodes.push(item.code);
+        changeMarrow(item.marrow, { pulse: 'gain' });
+        saveGame();
+        renderRedeemHistory();
+        input.value = '';
+        setRedeemMsg(`🎉 兑换成功！获得「${item.name}」：${item.desc}　当前原液 ${marrow}`, 'ok');
     }
 
     function refreshGachaUI() {
@@ -2448,6 +2617,7 @@
         }
         refreshDeckOperators();
         renderCollectionUI();
+        saveGame();
     }
 
     function upgradeStar(opId) {
@@ -2460,6 +2630,7 @@
         c.stars++;
         refreshDeckOperators();
         renderCollectionUI();
+        saveGame();
         alert(`🎉 ${masterPool.find(m => m.id === opId).name} 升星成功！攻击+15%、寿命+2秒。`);
     }
 
@@ -3650,6 +3821,7 @@
         marrow = Math.max(0, marrow + delta);
         updateUI();
         if(opts && opts.pulse) pulseMarrow(opts.pulse);
+        saveGame();
         return marrow;
     }
 
@@ -3705,6 +3877,7 @@
         renderLevelList();
         updateWaveButton();
         updateUI();
+        saveGame();   // 持久化当前关卡进度（进入下一关/重开/切关时）
     }
 
     // ==================== 画布自适应（保持 770:350 比例铺满战场区） ====================
@@ -3740,6 +3913,15 @@
     updateUI();
     fitCanvas();
     setTimeout(fitCanvas, 300);   // WebView 布局完成后二次校正
+
+    // 兑换码输入框：回车即提交
+    document.getElementById('redeemInput').addEventListener('keydown', e => {
+        if(e.key === 'Enter') submitRedeem();
+    });
+    // 点击遮罩空白处关闭兑换码弹窗
+    document.getElementById('redeemModal').addEventListener('click', e => {
+        if(e.target.id === 'redeemModal') closeRedeem();
+    });
 </script>
 </body>
 </html>
