@@ -688,7 +688,7 @@
                 <button class="btn-gacha-ten" onclick="doGacha(10)">十连抽<br><small>9 原液 · 必得史诗+</small></button>
             </div>
             <div class="pity-box" id="pityBox"></div>
-            <div class="prob-info">基础概率：普通45% · 精英34% · 史诗15% · 传奇6%｜<b style="color:#ffd84d;">50抽必出传奇</b>（35抽起概率递增）· <b style="color:#c78fff;">10抽必出史诗+</b>｜UP池：命中UP干员稀有度时按UP率倾向出UP干员</div>
+            <div class="prob-info">基础概率：普通45% · 精英34% · 史诗15% · 传奇6%｜<b style="color:#ffd84d;">50抽必出传奇</b>（30抽起每10抽概率递增）· <b style="color:#c78fff;">10抽必出史诗+</b>｜UP池：命中UP干员稀有度时按UP率倾向出UP干员</div>
             <div class="pool-list" id="gachaPoolList"></div>
             <div class="exchange-row">
                 <span style="font-size:11px; color:#aaa;">营养兑换：</span>
@@ -803,7 +803,7 @@
                 <div class="doc-list">
                     · 单抽 1 🦴 / 十连 9 🦴（<b>必得史诗+</b>）；<br>
                     · 基础概率：普通 45% · 精英 34% · 史诗 15% · 传奇 6%；<br>
-                    · <b>50 抽必出传奇</b>（35 抽起概率递增）；<b>10 抽必出史诗+</b>（7 抽起递增）；<br>
+                    · <b>50 抽必出传奇</b>（30 抽起每 10 抽概率递增）；<b>10 抽必出史诗+</b>（7 抽起递增）；<br>
                     · 抽卡演出会完整展现<b>细胞有丝分裂与分化</b>过程，出金时特效拉满。
                 </div>
             </div>
@@ -835,7 +835,7 @@
                 <div class="doc-list">
                     · 24 关 · 6 个生命周期阶段，病原体各具特性；<br>
                     · 13 名免疫干员，真实生理功能设定；<br>
-                    · 抽卡保底（50 抽必出传奇、10 抽必出紫）+ 华丽出金演出；<br>
+                    · 抽卡保底（50 抽必出传奇、30 抽起分层递增；10 抽必出紫）+ 华丽出金演出；<br>
                     · 招募演出还原<b>有丝分裂五阶段 + 定向分化</b>。
                 </div>
             </div>
@@ -854,7 +854,8 @@
             <button onclick="closeChangelog()">✕</button>
         </div>
         <div class="modal-body">
-            <div class="doc-ver"><div class="tag" style="color:#ffd84d">v1.8</div><div class="info"><b>保底调整</b>：传奇硬保底由 20 抽延长至 50 抽（35 抽起软保底递增）；史诗 10 抽必出紫保持不变。</div></div>
+            <div class="doc-ver"><div class="tag" style="color:#ffd84d">v1.9</div><div class="info"><b>分层保底 + 修复</b>：传奇保底改为 30 抽起每 10 抽概率递增（50 抽必出）；修复十连保底替换后保底计数未同步的问题。</div></div>
+            <div class="doc-ver"><div class="tag">v1.8</div><div class="info"><b>保底调整</b>：传奇硬保底由 20 抽延长至 50 抽（35 抽起软保底递增）；史诗 10 抽必出紫保持不变。</div></div>
             <div class="doc-ver"><div class="tag" style="color:#4facfe">v1.7</div><div class="info"><b>新手指导 + 文档</b>：首次进入分步引导、帮助手册、游戏介绍 / 更新日志面板。</div></div>
             <div class="doc-ver"><div class="tag">v1.6</div><div class="info"><b>保底与华丽出金</b>：20 抽硬保底传奇、10 抽硬保底史诗+，软保底递增；光柱 / 星芒 / 震屏等演出强化。</div></div>
             <div class="doc-ver"><div class="tag">v1.5</div><div class="info"><b>兑换码与存档</b>：CELL1000、NEWCELL8，本地存档持久化。</div></div>
@@ -1052,8 +1053,8 @@
     // 综合概率（含保底）远高于基础概率，基础概率也整体上调
     const BASE_RATE = { common: 45, rare: 34, epic: 15, legendary: 6 };   // 单位 %
     const PITY = {
-        // 传奇（最高稀有度）：35 抽起软保底、概率递增，50 抽硬保底必出
-        legendary: { hard: 50, soft: 35, step: 5 },
+        // 传奇（最高稀有度）：30 抽起分层保底，每 10 抽递增加成，50 抽硬保底必出
+        legendary: { hard: 50, soft: 30, tier: 10, tierBonus: 12 },
         // 史诗及以上：7 抽起软保底、概率递增，10 抽硬保底必出（即“紫必出”）
         epic:      { hard: 10, soft: 7,  step: 6 }
     };
@@ -1591,14 +1592,15 @@
     }
 
     // ==================== 抽卡系统 ====================
-    // 稀有度抽样：硬保底 → 软保底概率递增 → 基础概率
+    // 稀有度抽样：硬保底 → 分层软保底递增 → 基础概率
     function rollRarity() {
         const P5 = PITY.legendary, P4 = PITY.epic;
         // 硬保底：达到阈值必定命中
         if (pity.since5 + 1 >= P5.hard) return 'legendary';
         if (pity.since4 + 1 >= P4.hard) return Math.random() < .12 ? 'legendary' : 'epic';
-        // 软保底：逼近阈值时概率逐抽递增
-        let r5 = BASE_RATE.legendary + (pity.since5 >= P5.soft ? (pity.since5 - (P5.soft - 1)) * P5.step : 0);
+        // 分层软保底：30 抽起，每 10 抽为一档递增加成
+        const tiers = pity.since5 >= P5.soft ? Math.floor((pity.since5 - P5.soft) / P5.tier) + 1 : 0;
+        let r5 = BASE_RATE.legendary + tiers * P5.tierBonus;
         let r4 = BASE_RATE.epic      + (pity.since4 >= P4.soft ? (pity.since4 - (P4.soft - 1)) * P4.step : 0);
         r5 = Math.min(r5, 96);
         r4 = Math.min(r4, 96 - r5);
@@ -1635,7 +1637,6 @@
             }
         }
         if (!op) op = candidates[Math.floor(Math.random() * candidates.length)];
-        bumpPity(op.rarity);   // 保底按实际获得的稀有度累计/重置
         return op;
     }
 
@@ -1674,6 +1675,9 @@
                 }
             }
         }
+
+        // 保底计数按【最终实际获得】的稀有度结算（含十连保底替换后的结果）
+        for (let op of results) bumpPity(op.rarity);
 
         // 结算：新卡入藏，重复卡转信物
         let summary = [];
