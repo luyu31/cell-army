@@ -343,7 +343,12 @@
         .ga-beam.purple { background: linear-gradient(to bottom, rgba(200,140,255,0) 0%, rgba(170,90,230,.14) 42%, rgba(224,184,255,.72) 100%); }
         .ga-beam.go { animation: beamDrop 1.6s cubic-bezier(.2,.7,.3,1) forwards; }
         @keyframes beamDrop { 0% { opacity: 0; transform: translateX(-50%) scaleY(0); } 22% { opacity: 1; transform: translateX(-50%) scaleY(1); } 72% { opacity: .85; } 100% { opacity: .22; transform: translateX(-50%) scaleY(1); } }
-        .ga-goldword { position: absolute; font-size: 44px; font-weight: 900; color: #ffd84d; text-shadow: 0 0 18px #ffae00, 0 0 44px #ff8800; opacity: 0; transform: scale(0.4); letter-spacing: 8px; z-index: 11; }
+        .ga-goldword {
+            position: absolute; font-size: 52px; font-weight: 900; color: #ffdf6a; opacity: 0; transform: scale(0.4); letter-spacing: 8px; z-index: 14;
+            -webkit-text-stroke: 2.5px rgba(96,32,0,.72);
+            paint-order: stroke fill;
+            text-shadow: 0 0 12px #fff3b0, 0 0 30px #ffc400, 0 0 60px #ff9500, 0 0 100px #ff6a00;
+        }
         .ga-flash.go .ga-goldword { animation: goldWord 1.6s cubic-bezier(.2,1.6,.4,1) forwards; }
         @keyframes goldWord { 0% { opacity: 0; transform: scale(0.3) translateY(24px); } 35% { opacity: 1; transform: scale(1.18) translateY(0); } 62% { transform: scale(1); } 100% { opacity: .94; } }
         .ga-particle { position: absolute; width: 7px; height: 7px; border-radius: 50%; bottom: 46%; opacity: 0; z-index: 10; }
@@ -463,6 +468,81 @@
         @keyframes bannerDrop { 0% { opacity: 0; transform: translateY(-26px) scale(.6); } 30% { opacity: 1; transform: translateY(0) scale(1.1); } 68% { transform: translateY(0) scale(1); } 100% { opacity: .92; } }
         .ga-ten-info b.goldpop, .ga-ten-info span.pop { display: inline-block; animation: countTag .4s cubic-bezier(.2,1.6,.4,1); }
         @keyframes countTag { 0% { transform: scale(.3); } 100% { transform: scale(1); } }
+
+        /* ==================== 保底进度条 ==================== */
+        .pity-box { display: flex; flex-direction: column; gap: 7px; margin: 9px 0 5px; }
+        .pity-row {
+            background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.10);
+            border-radius: 10px; padding: 6px 10px; transition: border-color .3s, box-shadow .3s, background .3s;
+        }
+        .pity-head { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #b9a9b2; margin-bottom: 5px; }
+        .pity-head b { color: #ffd84d; }
+        .pity-num { font-variant-numeric: tabular-nums; color: #8f9aa8; }
+        .pity-row.hot .pity-num { color: #ffd84d; font-weight: bold; }
+        .pity-row.hot.gold { border-color: #ffb142; background: rgba(255,177,66,.10); box-shadow: 0 0 13px rgba(255,177,66,.30); }
+        .pity-row.hot.purple { border-color: #a06cd0; background: rgba(160,108,208,.10); box-shadow: 0 0 13px rgba(160,108,208,.28); }
+        .pity-bar { height: 6px; border-radius: 4px; background: rgba(0,0,0,.45); overflow: hidden; }
+        .pity-bar i { display: block; height: 100%; border-radius: 4px; background: linear-gradient(90deg,#4facfe,#7fd4ff); transition: width .45s cubic-bezier(.2,.8,.3,1); }
+
+        /* ==================== 出金高潮：仿未定事件簿的华丽演出 ==================== */
+        /* 第二层反向旋转射线 */
+        .ga-rays2 { position: absolute; width: 900px; height: 900px; opacity: 0; }
+        .ga-flash.go .ga-rays2 { animation: raysIn2 1.75s ease-out forwards; }
+        @keyframes raysIn2 { 0% { opacity: 0; transform: rotate(0deg) scale(.12); } 22% { opacity: .7; } 100% { opacity: 0; transform: rotate(-64deg) scale(1.45); } }
+
+        /* 张开的“光门”光环 */
+        .ga-halo { position: absolute; border-radius: 50%; opacity: 0; box-sizing: border-box; }
+        .ga-flash.go .ga-halo { animation: haloOpen 1.25s cubic-bezier(.2,.7,.25,1) forwards; }
+        @keyframes haloOpen {
+            0% { opacity: 0; width: 20px; height: 20px; border-width: 12px; filter: blur(3px) brightness(2.2); }
+            18% { opacity: 1; }
+            100% { opacity: 0; width: 540px; height: 540px; border-width: 1px; filter: blur(1px) brightness(1); }
+        }
+
+        /* 四重冲击波环 */
+        .ga-flash.go .ga-ring.r3 { animation-delay: .44s; }
+        .ga-flash.go .ga-ring.r4 { animation-delay: .68s; }
+
+        /* 星芒闪耀（金色四角星） */
+        .ga-starglint {
+            position: absolute; width: 34px; height: 34px; opacity: 0; z-index: 12; color: #fff;
+            background: currentColor;
+            clip-path: polygon(50% 0%, 57% 43%, 100% 50%, 57% 57%, 50% 100%, 43% 57%, 0% 50%, 43% 43%);
+            filter: drop-shadow(0 0 7px currentColor) drop-shadow(0 0 16px currentColor);
+        }
+        .ga-flash.go .ga-starglint, .ga-starglint.go { animation: starGlint 1.6s cubic-bezier(.3,.8,.3,1) forwards; }
+        @keyframes starGlint {
+            0% { opacity: 0; transform: scale(0) rotate(0deg); }
+            20% { opacity: 1; transform: scale(1.15) rotate(18deg); }
+            55% { opacity: .95; transform: scale(.95) rotate(50deg); }
+            100% { opacity: 0; transform: scale(.5) rotate(88deg); }
+        }
+
+        /* 光柱：更亮的核心 + 更宽的外晕 */
+        .ga-beam.core { width: 46px; filter: blur(3px); }
+        .ga-beam.wide { width: 230px; filter: blur(18px); }
+
+        /* 屏幕震动（出彩瞬间） */
+        .ga-scene.shake-1 { animation: gaShake1 .5s cubic-bezier(.36,.07,.19,.97); }
+        .ga-scene.shake-2 { animation: gaShake2 .64s cubic-bezier(.36,.07,.19,.97); }
+        @keyframes gaShake1 { 20% { transform: translate(-3px,2px); } 40% { transform: translate(4px,-2px); } 60% { transform: translate(-5px,-1px); } 80% { transform: translate(3px,2px); } }
+        @keyframes gaShake2 { 12% { transform: translate(-7px,3px); } 28% { transform: translate(8px,-4px); } 44% { transform: translate(-9px,-2px); } 60% { transform: translate(7px,4px); } 76% { transform: translate(-4px,1px); } }
+
+        /* 出金文字：多层光晕描边 */
+        .ga-goldword { text-shadow: 0 0 10px #fff7c0, 0 0 24px #ffd84d, 0 0 52px #ff9d00, 0 0 92px #ff7b00; }
+
+        /* 结果卡背后的旋转金芒 */
+        .ga-result-rays {
+            position: absolute; top: -112px; left: 50%; width: 340px; height: 340px; margin-left: -170px;
+            border-radius: 50%; opacity: .5; pointer-events: none; z-index: 0;
+            background: repeating-conic-gradient(from 0deg, rgba(255,216,77,.55) 0deg 6deg, transparent 6deg 18deg);
+            -webkit-mask-image: radial-gradient(circle, #000 12%, transparent 62%);
+            mask-image: radial-gradient(circle, #000 12%, transparent 62%);
+            animation: resultRays 9s linear infinite;
+        }
+        .ga-result-rays.purple { background: repeating-conic-gradient(from 0deg, rgba(180,100,255,.5) 0deg 6deg, transparent 6deg 18deg); }
+        @keyframes resultRays { to { transform: rotate(360deg); } }
+        .ga-result { isolation: isolate; }
     </style>
 </head>
 <body>
@@ -547,9 +627,10 @@
             <div class="pool-science" id="poolScience"></div>
             <div class="gacha-buttons">
                 <button class="btn-gacha-single" onclick="doGacha(1)">单抽<br><small>1 原液</small></button>
-                <button class="btn-gacha-ten" onclick="doGacha(10)">十连抽<br><small>9 原液 · 保底精英+</small></button>
+                <button class="btn-gacha-ten" onclick="doGacha(10)">十连抽<br><small>9 原液 · 必得史诗+</small></button>
             </div>
-            <div class="prob-info">基础概率：普通55% · 精英30% · 史诗12% · 传奇3% ｜UP池：命中UP干员稀有度时，按UP率倾向出UP干员</div>
+            <div class="pity-box" id="pityBox"></div>
+            <div class="prob-info">基础概率：普通45% · 精英34% · 史诗15% · 传奇6%｜<b style="color:#ffd84d;">20抽必出传奇</b>（16抽起概率递增）· <b style="color:#c78fff;">10抽必出史诗+</b>｜UP池：命中UP干员稀有度时按UP率倾向出UP干员</div>
             <div class="pool-list" id="gachaPoolList"></div>
             <div class="exchange-row">
                 <span style="font-size:11px; color:#aaa;">营养兑换：</span>
@@ -774,11 +855,29 @@
 
     // 稀有度配置：概率、颜色、重复转化信物数量
     const rarityConfig = {
-        common:    { label: '普通', color: '#7f8c8d', glow: '#27ae60', prob: 55, fragReward: 1 },
-        rare:      { label: '精英', color: '#3498db', glow: '#4facfe', prob: 30, fragReward: 2 },
-        epic:      { label: '史诗', color: '#9b59b6', glow: '#c39bd3', prob: 12, fragReward: 5 },
-        legendary: { label: '传奇', color: '#f39c12', glow: '#ffd700', prob: 3,  fragReward: 10 }
+        common:    { label: '普通', color: '#7f8c8d', glow: '#27ae60', fragReward: 1 },
+        rare:      { label: '精英', color: '#3498db', glow: '#4facfe', fragReward: 2 },
+        epic:      { label: '史诗', color: '#9b59b6', glow: '#c39bd3', fragReward: 5 },
+        legendary: { label: '传奇', color: '#f39c12', glow: '#ffd700', fragReward: 10 }
     };
+
+    // ==================== 抽卡概率与保底系统（仿主流抽卡游戏） ====================
+    // 综合概率（含保底）远高于基础概率，基础概率也整体上调
+    const BASE_RATE = { common: 45, rare: 34, epic: 15, legendary: 6 };   // 单位 %
+    const PITY = {
+        // 传奇（最高稀有度）：16 抽起软保底、概率递增，20 抽硬保底必出
+        legendary: { hard: 20, soft: 16, step: 5 },
+        // 史诗及以上：7 抽起软保底、概率递增，10 抽硬保底必出
+        epic:      { hard: 10, soft: 7,  step: 6 }
+    };
+    function pityInfo() {
+        return {
+            to5: Math.max(0, PITY.legendary.hard - pity.since5),   // 再抽 N 次必出传奇
+            to4: Math.max(0, PITY.epic.hard - pity.since4),        // 再抽 N 次必出史诗及以上
+            soft5: pity.since5 >= PITY.legendary.soft,
+            soft4: pity.since4 >= PITY.epic.soft
+        };
+    }
 
     // ==================== 攻击范围（依真实细胞作用方式） ====================
     const rangeTypeInfo = {
@@ -1010,6 +1109,7 @@
     let deck = ['neutrophil', 'rbc', 'macrophage'];    // 编队（3~5名）
     let currentPoolType = 'standard';                  // 当前卡池：standard=常驻池，否则为 ageStagePools.id
     let redeemedCodes = [];                            // 已兑换的兑换码（每码限领一次，持久化）
+    let pity = { since5: 0, since4: 0 };               // 保底计数：since5=距离上次传奇的抽数，since4=距离上次史诗及以上的抽数
 
     // 初始赠送3名初始干员（1星）
     for(let starterId of deck) {
@@ -1031,7 +1131,8 @@
                 currentLevel: currentLevel,
                 collection: collection,
                 deck: deck,
-                redeemedCodes: redeemedCodes
+                redeemedCodes: redeemedCodes,
+                pity: pity
             }));
         } catch(e) { /* 隐私模式/存储已满时静默降级，不影响游戏 */ }
     }
@@ -1061,6 +1162,12 @@
             }
             if(Array.isArray(d.redeemedCodes)) {
                 redeemedCodes = d.redeemedCodes.filter(c => typeof c === 'string');
+            }
+            if(d.pity && typeof d.pity === 'object') {
+                pity = {
+                    since5: Math.max(0, Math.floor(d.pity.since5) || 0),
+                    since4: Math.max(0, Math.floor(d.pity.since4) || 0)
+                };
             }
             baseHp = levels[currentLevel - 1].baseHp;
             refreshDeckOperators();
@@ -1292,12 +1399,30 @@
     }
 
     // ==================== 抽卡系统 ====================
+    // 稀有度抽样：硬保底 → 软保底概率递增 → 基础概率
     function rollRarity() {
+        const P5 = PITY.legendary, P4 = PITY.epic;
+        // 硬保底：达到阈值必定命中
+        if (pity.since5 + 1 >= P5.hard) return 'legendary';
+        if (pity.since4 + 1 >= P4.hard) return Math.random() < .12 ? 'legendary' : 'epic';
+        // 软保底：逼近阈值时概率逐抽递增
+        let r5 = BASE_RATE.legendary + (pity.since5 >= P5.soft ? (pity.since5 - (P5.soft - 1)) * P5.step : 0);
+        let r4 = BASE_RATE.epic      + (pity.since4 >= P4.soft ? (pity.since4 - (P4.soft - 1)) * P4.step : 0);
+        r5 = Math.min(r5, 96);
+        r4 = Math.min(r4, 96 - r5);
+        let r3 = BASE_RATE.rare;
         let r = Math.random() * 100;
-        if (r < 55) return 'common';
-        if (r < 85) return 'rare';
-        if (r < 97) return 'epic';
-        return 'legendary';
+        if (r < r5) return 'legendary';
+        if (r < r5 + r4) return 'epic';
+        if (r < r5 + r4 + r3) return 'rare';
+        return 'common';
+    }
+
+    // 依据稀有度更新保底计数（出高稀有度重置对应计数）
+    function bumpPity(rarity) {
+        if (rarity === 'legendary') { pity.since5 = 0; pity.since4 = 0; }
+        else if (rarity === 'epic') { pity.since4 = 0; pity.since5++; }
+        else { pity.since5++; pity.since4++; }
     }
 
     // 当前卡池：仅包含已解锁（unlockLevel <= currentLevel）的干员
@@ -1309,14 +1434,17 @@
         let rarity = rollRarity();
         let candidates = pool.filter(op => op.rarity === rarity);
         if (candidates.length === 0) candidates = pool; // 该稀有度暂无已解锁干员时回退
+        let op = null;
         // UP池：命中UP干员稀有度时，按UP率倾向选中UP干员
         if (upOps && upOps.length > 0 && upRate > 0) {
-            let upInRarity = candidates.filter(op => upOps.includes(op.id));
+            let upInRarity = candidates.filter(o => upOps.includes(o.id));
             if (upInRarity.length > 0 && Math.random() < upRate) {
-                return upInRarity[Math.floor(Math.random() * upInRarity.length)];
+                op = upInRarity[Math.floor(Math.random() * upInRarity.length)];
             }
         }
-        return candidates[Math.floor(Math.random() * candidates.length)];
+        if (!op) op = candidates[Math.floor(Math.random() * candidates.length)];
+        bumpPity(op.rarity);   // 保底按实际获得的稀有度累计/重置
+        return op;
     }
 
     function doGacha(count) {
@@ -1482,9 +1610,30 @@
 
     function refreshGachaUI() {
         document.getElementById('gachaMarrow').innerText = marrow;
+        renderPityUI();
         renderPoolTabs();
         renderPoolScience();
         renderGachaPool();
+    }
+
+    // 保底进度条：直观展示距离硬保底还剩几抽，软保底期间高亮提示
+    function renderPityUI() {
+        const box = document.getElementById('pityBox');
+        if (!box) return;
+        const info = pityInfo();
+        const p5 = Math.min(1, pity.since5 / PITY.legendary.hard);
+        const p4 = Math.min(1, pity.since4 / PITY.epic.hard);
+        box.innerHTML = `
+            <div class="pity-row ${info.soft5 ? 'hot gold' : ''}">
+                <div class="pity-head"><span>⭐ 传奇保底</span>
+                    <span class="pity-num">${pity.since5} / ${PITY.legendary.hard}${info.to5 <= 0 ? '　<b>本次必出!</b>' : `　再 ${info.to5} 抽必出`}</span></div>
+                <div class="pity-bar"><i style="width:${(p5 * 100).toFixed(1)}%;${info.soft5 ? 'background:linear-gradient(90deg,#ff8a3d,#ffd84d);' : ''}"></i></div>
+            </div>
+            <div class="pity-row ${info.soft4 ? 'hot purple' : ''}">
+                <div class="pity-head"><span>💜 史诗+ 保底</span>
+                    <span class="pity-num">${pity.since4} / ${PITY.epic.hard}${info.to4 <= 0 ? '　<b>本次必出!</b>' : `　再 ${info.to4} 抽必出`}</span></div>
+                <div class="pity-bar"><i style="width:${(p4 * 100).toFixed(1)}%;${info.soft4 ? 'background:linear-gradient(90deg,#8e44ad,#c78fff);' : ''}"></i></div>
+            </div>`;
     }
 
     // ==================== 年龄阶段UP池 UI ====================
@@ -1885,6 +2034,41 @@
         }
     }
 
+    // 分化末期的「光能汇聚」：光粒/光streak 向细胞中心收束，并泛起稀有度蓄势光晕（出金前的蓄势待发）
+    function drawCharge(ctx, p, rarity, tt) {
+        if (p <= 0.01) return;
+        const c = parseColor(RARITY_COLOR[rarity]);
+        const strong = rarity === 'legendary' || rarity === 'epic';
+        const rgb = `${c[0]},${c[1]},${c[2]}`;
+        ctx.save();
+        // 中心蓄势光晕
+        const R = 58 + p * 48;
+        const rg = ctx.createRadialGradient(0, 0, 2, 0, 0, R);
+        rg.addColorStop(0, `rgba(${rgb},${.5 * p})`);
+        rg.addColorStop(.5, `rgba(${rgb},${.18 * p})`);
+        rg.addColorStop(1, `rgba(${rgb},0)`);
+        ctx.fillStyle = rg;
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, TAU); ctx.fill();
+        // 内收光streak
+        const n = strong ? 20 : 9;
+        ctx.lineCap = 'round';
+        for (let i = 0; i < n; i++) {
+            const ang = i / n * TAU + tt / 900;
+            const u = (tt * .0011 + i / n) % 1;
+            const d0 = lerp(R + 96, R * .45, easeOut(u));
+            const len = 14 + p * 26;
+            const a = p * .85 * (1 - Math.abs(u - .5) * 1.2);
+            if (a <= 0) continue;
+            ctx.strokeStyle = `rgba(${rgb},${a})`;
+            ctx.lineWidth = strong ? 2.4 : 1.4;
+            ctx.beginPath();
+            ctx.moveTo(Math.cos(ang) * d0, Math.sin(ang) * d0);
+            ctx.lineTo(Math.cos(ang) * (d0 + len), Math.sin(ang) * (d0 + len));
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
     // ===== 核心：一个细胞的有丝分裂全过程 =====
     // o: {ctx,cx,cy,R,durs,t,tt,axis,tintL,tintR,lineage,selfP,aura,rarity,restGlow,rest}
     function drawMitosis(o) {
@@ -2160,39 +2344,73 @@
         void gaScreenFlash.offsetWidth;
         gaScreenFlash.classList.add('fire');
     }
+    // 出彩瞬间的画面震屏（传奇更强）
+    function gaShake(rarity) {
+        const scene = document.getElementById('gaScene');
+        if (!scene) return;
+        scene.classList.remove('shake-1', 'shake-2');
+        void scene.offsetWidth;
+        scene.classList.add(rarity === 'legendary' ? 'shake-2' : 'shake-1');
+        setTimeout(() => scene.classList.remove('shake-1', 'shake-2'), 720);
+    }
+
     function gaFireFlash(rarity) {
         const stage = document.getElementById('gaStage');
         if (!stage) return;
+        const isGold = rarity === 'legendary', isEpic = rarity === 'epic', isRare = rarity === 'rare';
+        const high = isGold || isEpic;
         const color = RARITY_COLOR[rarity];
-        const raysBg = rarity === 'legendary'
-            ? 'repeating-conic-gradient(from 0deg, rgba(255,216,77,.9) 0deg 8deg, transparent 8deg 20deg)'
-            : rarity === 'epic'
-              ? 'repeating-conic-gradient(from 0deg, rgba(180,100,255,.8) 0deg 8deg, transparent 8deg 20deg)'
-              : rarity === 'rare'
+        const raysBg = isGold
+            ? 'repeating-conic-gradient(from 0deg, rgba(255,216,77,.92) 0deg 7deg, transparent 7deg 19deg)'
+            : isEpic
+              ? 'repeating-conic-gradient(from 0deg, rgba(180,100,255,.82) 0deg 7deg, transparent 7deg 19deg)'
+              : isRare
                 ? 'repeating-conic-gradient(from 0deg, rgba(79,172,254,.55) 0deg 10deg, transparent 10deg 24deg)'
-                : 'repeating-conic-gradient(from 0deg, rgba(207,217,226,.45) 0deg 12deg, transparent 12deg 26deg)';
+                : 'repeating-conic-gradient(from 0deg, rgba(207,217,226,.42) 0deg 12deg, transparent 12deg 26deg)';
+        const maskCss = 'border-radius:50%;mask-image:radial-gradient(circle,#000 18%,transparent 62%);-webkit-mask-image:radial-gradient(circle,#000 18%,transparent 62%);';
+        const maskCss2 = 'border-radius:50%;mask-image:radial-gradient(circle,#000 16%,transparent 60%);-webkit-mask-image:radial-gradient(circle,#000 16%,transparent 60%);';
+        // 上浮粒子
         let particles = '';
-        if (rarity === 'legendary' || rarity === 'epic') {
-            for (let i = 0; i < 20; i++) {
-                const col = rarity === 'legendary' ? (i % 2 ? '#ffd84d' : '#ffae4a') : '#c78fff';
-                const left = 6 + Math.random() * 88, delay = Math.random() * .4, dur = 1.2 + Math.random() * .8;
+        if (high) {
+            for (let i = 0; i < (isGold ? 30 : 18); i++) {
+                const col = isGold ? (i % 2 ? '#ffd84d' : '#ffb14a') : '#c78fff';
+                const left = 4 + Math.random() * 92, delay = Math.random() * .5, dur = 1.3 + Math.random() * 1;
                 particles += `<span class="ga-particle" style="left:${left}%;background:${col};box-shadow:0 0 8px ${col};animation-delay:${delay}s;animation-duration:${dur}s;"></span>`;
             }
         }
-        const beam = (rarity === 'legendary' || rarity === 'epic')
-            ? `<div class="ga-beam ${rarity === 'legendary' ? 'gold' : 'purple'}" style="left:50%;"></div>` : '';
-        const rings = rarity === 'legendary'
-            ? `<div class="ga-ring" style="border:3px solid #ffd84d;box-shadow:0 0 24px rgba(255,200,60,.7);"></div>
-               <div class="ga-ring r2" style="border:2px solid #ffec9a;"></div>` : '';
+        // 金色四角星芒
+        let glints = '';
+        if (high) {
+            const base = isGold ? '#fff3c0' : '#e6ccff';
+            for (let i = 0; i < (isGold ? 12 : 6); i++) {
+                const lx = 24 + Math.random() * 52, ty = 16 + Math.random() * 52;
+                const d = .1 + Math.random() * .5, sz = (isGold ? 26 : 18) + Math.random() * 22;
+                glints += `<span class="ga-starglint" style="left:${lx}%;top:${ty}%;width:${sz}px;height:${sz}px;color:${isGold && i % 3 ? '#ffd84d' : base};animation-delay:${d}s;"></span>`;
+            }
+        }
+        // 光柱：外晕 + 核心
+        const beam = high
+            ? `<div class="ga-beam ${isGold ? 'gold' : 'purple'} wide" style="left:50%;"></div>
+               <div class="ga-beam ${isGold ? 'gold' : 'purple'} core" style="left:50%;"></div>` : '';
+        // 冲击波环 + 光门
+        const rings = high
+            ? `<div class="ga-ring" style="border:3px solid ${isGold ? '#ffd84d' : '#c78fff'};box-shadow:0 0 26px ${isGold ? 'rgba(255,200,60,.75)' : 'rgba(180,100,255,.6)'};"></div>
+               <div class="ga-ring r2" style="border:2px solid ${isGold ? '#ffec9a' : '#e6ccff'};"></div>
+               <div class="ga-ring r3" style="border:2px solid ${isGold ? '#ffb14a' : '#b464ff'};"></div>
+               <div class="ga-ring r4" style="border:1.5px solid ${isGold ? '#fff7d0' : '#d9b8ff'};"></div>
+               <div class="ga-halo" style="border-color:${isGold ? 'rgba(255,230,150,.9)' : 'rgba(200,150,255,.85)'};"></div>`
+            : (isRare ? `<div class="ga-ring" style="border:2px solid #7fd4ff;box-shadow:0 0 16px rgba(79,172,254,.5);"></div>` : '');
         stage.insertAdjacentHTML('beforeend', `
             <div class="ga-flash" id="gaFlash">
                 ${beam}${rings}
                 <div class="burst" style="background:radial-gradient(circle, ${color}, transparent 70%);"></div>
-                <div class="ga-rays" style="background:${raysBg};border-radius:50%;mask-image:radial-gradient(circle,#000 18%,transparent 62%);-webkit-mask-image:radial-gradient(circle,#000 18%,transparent 62%);"></div>
+                <div class="ga-rays" style="background:${raysBg};${maskCss}"></div>
+                ${high ? `<div class="ga-rays2" style="background:${raysBg};${maskCss2}"></div>` : ''}
                 ${rarityWord(rarity) ? `<div class="ga-goldword">${rarityWord(rarity)}</div>` : ''}
-                ${particles}
+                ${particles}${glints}
             </div>`);
         requestAnimationFrame(() => { const f = document.getElementById('gaFlash'); if (f) f.classList.add('go'); });
+        if (high) gaShake(rarity);   // 出彩瞬间震屏
     }
     function gaCountPop(text) {
         const stage = document.getElementById('gaStage');
@@ -2272,6 +2490,8 @@
             }
             ctx.translate(0, 0);
             ctx.scale(1 + beat, 1 + beat);
+            // 终末分化→闪光前的「光能汇聚」蓄势
+            drawCharge(ctx, segP(t, tDif - 300, tFlash), op.rarity, t);
             drawMitosis({
                 ctx, cx: 0, cy: 0, R: 46, durs: D, t, tt: t, axis: 'x',
                 lineage: sci.lineage,
@@ -2298,8 +2518,10 @@
         gaScreenFlash.className = 'ga-screenflash';
         const stars = Array.from({ length: collection[op.id].stars }, (_, i) =>
             `<span class="st" style="animation-delay:${.25 + i * .13}s;">★</span>`).join('');
+        const highRes = op.rarity === 'legendary' || op.rarity === 'epic';
         gaScene.innerHTML = `
             <div class="ga-result" id="gaResult">
+                ${highRes ? `<div class="ga-result-rays ${op.rarity === 'legendary' ? '' : 'purple'}"></div>` : ''}
                 ${s.isNew ? '<div class="ga-newribbon">NEW</div>' : ''}
                 <div class="ga-shine"></div>
                 <div class="ga-cell-emblem ${op.rarity}"><img src="${avatarURLs[op.id]}" alt=""></div>
@@ -2382,6 +2604,7 @@
                 if (phase !== lastPhase) { lastPhase = phase; gaSetPhase(phase, MIT_SIGNALS[phase]); }
             } else {
                 if (5 !== lastPhase) { lastPhase = 5; gaSetPhase(5, '细胞因子信号（G-CSF / EPO / IL-7 等）正诱导 10 个细胞<b>定向终末分化</b>…'); }
+                drawCharge(ctx, segP(t, 7420, 8260), bestR, t);   // 进网格前的蓄势光晕
                 const u = easeInOut(segP(t, ARRANGE_T, 8110));
                 TEN_DAUGHTER_MAP.forEach(m => {
                     const [tx, ty] = TEN_GRID_POS[m.slot];
@@ -2483,7 +2706,9 @@
         if(gaContext.chain) gaSound.reveal(op.rarity);
         if (op.rarity === 'legendary') {
             gaEnvFlash('legendary');
+            gaShake('legendary');
             gaSlotBeam(slot, 'gold');
+            gaSlotGlints(slot, '#ffe9a8', 8);
             slot.classList.add('spot');
             gaSpotBanner('★ 传 奇 降 临 ★', 'gold', 1150);
             gaSpawnFireworks('legendary');
@@ -2513,6 +2738,22 @@
         gaOverlay.appendChild(beam);
         requestAnimationFrame(() => beam.classList.add('go'));
         setTimeout(() => beam.remove(), 2000);
+    }
+
+    // 在卡片周围迸发金色星芒（十连出金定格时）
+    function gaSlotGlints(slot, color, n) {
+        const r = slot.getBoundingClientRect();
+        for (let i = 0; i < n; i++) {
+            const a = i / n * TAU + Math.random() * .5;
+            const d = r.width * (.7 + Math.random() * 1.1);
+            const el = document.createElement('span');
+            el.className = 'ga-starglint';
+            const sz = 18 + Math.random() * 20;
+            el.style.cssText = `left:${r.left + r.width / 2 + Math.cos(a) * d}px;top:${r.top + r.height / 2 + Math.sin(a) * d * .8}px;width:${sz}px;height:${sz}px;color:${color};animation-delay:${Math.random() * .25}s;`;
+            gaOverlay.appendChild(el);
+            requestAnimationFrame(() => el.classList.add('go'));
+            setTimeout(() => el.remove(), 1900);
+        }
     }
 
     function finishTenReveal(summary, guarantee) {
