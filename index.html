@@ -543,6 +543,55 @@
         .ga-result-rays.purple { background: repeating-conic-gradient(from 0deg, rgba(180,100,255,.5) 0deg 6deg, transparent 6deg 18deg); }
         @keyframes resultRays { to { transform: rotate(360deg); } }
         .ga-result { isolation: isolate; }
+
+        /* ==================== 文档 / 帮助面板（v1.7） ==================== */
+        .doc-sec { margin-bottom: 15px; }
+        .doc-h { font-size: 13px; font-weight: bold; color: #7fc4ff; margin-bottom: 7px; }
+        .doc-p { font-size: 12px; color: #b9c2d0; line-height: 1.72; }
+        .doc-p b, .doc-list b { color: #e8eef8; }
+        .doc-list { font-size: 12px; color: #b9c2d0; line-height: 1.8; }
+        .doc-badge { display:inline-block; padding:1px 8px; border-radius:10px; font-size:10px; font-weight:bold; border:1px solid; margin-right:5px; }
+        .doc-cards { display:flex; gap:8px; flex-wrap:wrap; }
+        .doc-mini { flex:1 1 150px; background:#22222e; border:1px solid #33384a; border-radius:10px; padding:10px 12px; }
+        .doc-mini .t { font-size:12px; font-weight:bold; color:#4facfe; margin-bottom:4px; }
+        .doc-mini .d { font-size:11px; color:#9aa4b4; line-height:1.6; }
+        .doc-ver { display:flex; gap:10px; padding:8px 0; border-bottom:1px dashed #2d2d3b; }
+        .doc-ver:last-child { border-bottom:none; }
+        .doc-ver .tag { flex:0 0 54px; font-size:12px; font-weight:bold; color:#ffd84d; }
+        .doc-ver .info { font-size:11.5px; color:#aab4c4; line-height:1.62; }
+        .doc-ver .info b { color:#e8eef8; }
+        .doc-actions { display:flex; gap:10px; margin:4px 0 14px; flex-wrap:wrap; }
+        .doc-actions button { padding:10px 16px; border:none; border-radius:9px; font-size:12.5px; font-weight:bold; cursor:pointer; background:#4facfe; color:#fff; box-shadow:0 0 12px rgba(79,172,254,.45); }
+
+        /* ==================== 新手引导 · 分步高亮（v1.7） ==================== */
+        .tutor-overlay { position: fixed; inset: 0; z-index: 2600; display: none; }
+        .tutor-overlay.on { display: block; }
+        .tutor-scrim { position: absolute; inset: 0; background: transparent; }
+        .tutor-spot {
+            position: absolute; border-radius: 12px; pointer-events: none;
+            box-shadow: 0 0 0 9999px rgba(5,7,14,0.74), 0 0 0 2.5px rgba(79,172,254,0.95), 0 0 20px rgba(79,172,254,0.6);
+            transition: left .3s cubic-bezier(.4,0,.2,1), top .3s cubic-bezier(.4,0,.2,1), width .3s cubic-bezier(.4,0,.2,1), height .3s cubic-bezier(.4,0,.2,1);
+        }
+        .tutor-bubble {
+            position: absolute; width: 300px; background: #171d29; border: 1px solid #3a5a8a;
+            border-radius: 13px; padding: 13px 15px; box-shadow: 0 14px 40px rgba(0,0,0,0.7);
+            transition: left .3s cubic-bezier(.4,0,.2,1), top .3s cubic-bezier(.4,0,.2,1);
+        }
+        .tutor-bubble .tt { font-size: 14px; font-weight: bold; color: #6fc0ff; margin-bottom: 7px; overflow:hidden; }
+        .tutor-bubble .tt .step { float:right; font-size: 11px; color: #77839a; font-weight: normal; }
+        .tutor-bubble .tc { font-size: 12.5px; line-height: 1.72; color: #d3dae6; }
+        .tutor-bubble .tc b { color:#ffd84d; }
+        .tutor-btns { display: flex; gap: 8px; margin-top: 13px; align-items: center; }
+        .tutor-btn { border: none; border-radius: 8px; padding: 8px 15px; font-size: 12.5px; font-weight: bold; cursor: pointer; }
+        .tutor-btn.prev { background: #2a2f3d; color: #aeb7c6; }
+        .tutor-btn.next { background: #4facfe; color: #fff; box-shadow: 0 0 12px rgba(79,172,254,.5); }
+        .tutor-btn.skip { background: transparent; color: #8a93a4; font-weight: normal; margin-left: auto; }
+        @keyframes tutorPulse2 {
+            0%,100% { box-shadow: 0 0 0 9999px rgba(5,7,14,0.74), 0 0 0 2.5px rgba(79,172,254,0.95), 0 0 18px rgba(79,172,254,.55); }
+            50%     { box-shadow: 0 0 0 9999px rgba(5,7,14,0.74), 0 0 0 4px rgba(79,172,254,1), 0 0 32px rgba(79,172,254,.95); }
+        }
+        .tutor-spot.pulse { animation: tutorPulse2 1.5s ease-in-out infinite; }
+        @media (max-width: 640px) { .tutor-bubble { width: 268px; } }
     </style>
 </head>
 <body>
@@ -588,7 +637,7 @@
             <div class="card-box">
                 <div class="card-title">🦴 免疫干员招募</div>
                 <div style="display:flex; flex-direction:column; gap:8px;">
-                    <button class="btn-primary" onclick="closeDrawer();openGacha()">🦴 骨髓招募所（抽卡）</button>
+                    <button class="btn-primary" id="gachaEntryBtn" onclick="closeDrawer();openGacha()">🦴 骨髓招募所（抽卡）</button>
                     <button class="btn-secondary" onclick="closeDrawer();openDeck()">🧬 编队管理</button>
                 </div>
                 <div style="font-size:10px; color:#888; margin-top:8px; line-height:1.5;">通关+2原液，击杀Boss+1原液；重复卡转信物用于升星（攻+15%/寿命+2秒）。</div>
@@ -609,6 +658,15 @@
             <div class="card-box">
                 <div class="card-title">🦠 病原体图鉴</div>
                 <div id="enemyBestiary" style="font-size: 11px; color: #aaa; line-height: 1.5;"></div>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title">📖 帮助与说明</div>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <button class="btn-primary" onclick="closeDrawer();openHelp()">📖 新手指导 / 帮助手册</button>
+                    <button class="btn-secondary" onclick="closeDrawer();openIntro()">🧫 游戏介绍</button>
+                    <button class="btn-secondary" onclick="closeDrawer();openChangelog()">📝 更新日志</button>
+                </div>
             </div>
         </div>
     </div>
@@ -692,6 +750,134 @@
         <div class="modal-body" style="text-align:center;">
             <div id="resultDesc" style="font-size:13px; color:#ccc; line-height:1.9;"></div>
             <button class="btn-primary" id="resultBtn" style="margin-top:16px; width:100%; padding:13px;"></button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 新手指导 · 帮助手册 弹窗 ===== -->
+<div class="modal-overlay" id="helpModal" style="display:none; z-index:1100;">
+    <div class="modal" style="max-width:560px;">
+        <div class="modal-header">
+            <span>📖 新手指导 · 帮助手册</span>
+            <button onclick="closeHelp()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="doc-actions">
+                <button onclick="closeHelp();runTutorial()">▶ 重播新手引导</button>
+            </div>
+            <div class="doc-sec">
+                <div class="doc-h">🎯 游戏目标</div>
+                <div class="doc-p">你是人体免疫系统的指挥官。病原体会从战场左侧一波波向右推进，你需要在棋盘上部署免疫细胞拦住它们；一旦有病原体抵达右侧「基线」，基线 ❤ 血量就会减少，归零即失败。</div>
+            </div>
+            <div class="doc-sec">
+                <div class="doc-h">🕹️ 基本操作</div>
+                <div class="doc-list">
+                    1. 点选下方<b>干员卡片</b>选中细胞；<br>
+                    2. 点击上方棋盘<b>空格</b>部署，消耗 ⚡ ATP；<br>
+                    3. 点击已部署细胞 → <b>诱导凋亡</b>，返还 50% ATP；<br>
+                    4. 点「🚀 开始防线战」出怪，守住基线即通关。
+                </div>
+            </div>
+            <div class="doc-sec">
+                <div class="doc-h">💠 三种资源</div>
+                <div class="doc-cards">
+                    <div class="doc-mini"><div class="t">⚡ ATP 能量</div><div class="d">部署细胞消耗；初始 30，上限 60。</div></div>
+                    <div class="doc-mini"><div class="t">🧪 营养</div><div class="d">通关获得；20 营养可兑换 1 🦴 原液。</div></div>
+                    <div class="doc-mini"><div class="t">🦴 骨髓原液</div><div class="d">抽卡代币；通关 +2、击杀 Boss +1。</div></div>
+                </div>
+            </div>
+            <div class="doc-sec">
+                <div class="doc-h">🧬 干员与编队</div>
+                <div class="doc-list">
+                    · 稀有度：<span class="doc-badge" style="color:#7f8c8d;border-color:#7f8c8d">普通</span><span class="doc-badge" style="color:#4facfe;border-color:#4facfe">精英</span><span class="doc-badge" style="color:#c39bd3;border-color:#c39bd3">史诗</span><span class="doc-badge" style="color:#ffd700;border-color:#ffd700">传奇</span><br>
+                    · 在「编队管理」中挑选 <b>3~5 名</b>干员出战；<br>
+                    · 重复卡转「信物」，升星后 <b>攻击 +15%、寿命 +2 秒</b>。
+                </div>
+            </div>
+            <div class="doc-sec">
+                <div class="doc-h">🦠 敌人特性</div>
+                <div class="doc-p">病原体各有绝招：减伤、闪避、腐蚀、毒素、分裂、自愈、感染、护盾、隐匿等。点顶部 ☰ 可查看完整「病原体图鉴」，对症下药。</div>
+            </div>
+            <div class="doc-sec">
+                <div class="doc-h">🦴 抽卡与保底</div>
+                <div class="doc-list">
+                    · 单抽 1 🦴 / 十连 9 🦴（<b>必得史诗+</b>）；<br>
+                    · 基础概率：普通 45% · 精英 34% · 史诗 15% · 传奇 6%；<br>
+                    · <b>20 抽必出传奇</b>（16 抽起概率递增）；<b>10 抽必出史诗+</b>（7 抽起递增）；<br>
+                    · 抽卡演出会完整展现<b>细胞有丝分裂与分化</b>过程，出金时特效拉满。
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 游戏介绍 弹窗 ===== -->
+<div class="modal-overlay" id="introModal" style="display:none; z-index:1100;">
+    <div class="modal" style="max-width:560px;">
+        <div class="modal-header">
+            <span>🧫 游戏介绍</span>
+            <button onclick="closeIntro()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="doc-sec">
+                <div class="doc-p">《细胞防线》是一款以<b>人体免疫系统</b>为主题的塔防策略游戏：部署真实免疫细胞，抵御病原体入侵，并在招募演出中见证细胞的<b>有丝分裂与分化</b>。</div>
+            </div>
+            <div class="doc-sec">
+                <div class="doc-h">🔬 科学设定</div>
+                <div class="doc-p">干员的攻击范围、寿命与能力均依真实免疫学整理：中性粒细胞短命速攻、红细胞长寿肉盾、树突状细胞激活周围细胞 +50% 攻击、NK 细胞杀伤病毒感染细胞……关卡跨越生命周期的 6 个阶段（幼儿期 → 儿童期 → 青少年 → 成年期 → 老年期 → 终极挑战）。</div>
+            </div>
+            <div class="doc-sec">
+                <div class="doc-h">🎮 核心玩法</div>
+                <div class="doc-list">· 部署细胞守住基线；<br>· 诱导凋亡灵活换阵；<br>· 编队升星培养核心；<br>· 抽卡招募更强干员。</div>
+            </div>
+            <div class="doc-sec">
+                <div class="doc-h">✨ 特色亮点</div>
+                <div class="doc-list">
+                    · 24 关 · 6 个生命周期阶段，病原体各具特性；<br>
+                    · 13 名免疫干员，真实生理功能设定；<br>
+                    · 抽卡保底（20 抽必出传奇）+ 华丽出金演出；<br>
+                    · 招募演出还原<b>有丝分裂五阶段 + 定向分化</b>。
+                </div>
+            </div>
+            <div class="doc-actions">
+                <button onclick="closeIntro();runTutorial()">▶ 开始新手引导</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 更新日志 弹窗 ===== -->
+<div class="modal-overlay" id="changelogModal" style="display:none; z-index:1100;">
+    <div class="modal" style="max-width:520px;">
+        <div class="modal-header">
+            <span>📝 更新日志</span>
+            <button onclick="closeChangelog()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="doc-ver"><div class="tag" style="color:#4facfe">v1.7</div><div class="info"><b>新手指导 + 文档</b>：首次进入分步引导、帮助手册、游戏介绍 / 更新日志面板。</div></div>
+            <div class="doc-ver"><div class="tag">v1.6</div><div class="info"><b>保底与华丽出金</b>：20 抽硬保底传奇、10 抽硬保底史诗+，软保底递增；光柱 / 星芒 / 震屏等演出强化。</div></div>
+            <div class="doc-ver"><div class="tag">v1.5</div><div class="info"><b>兑换码与存档</b>：CELL1000、NEWCELL8，本地存档持久化。</div></div>
+            <div class="doc-ver"><div class="tag">v1.4.1</div><div class="info"><b>关键修复</b>：修复第 3 关战斗无法结束、抽卡资源显示不同步；新增营养兑换。</div></div>
+            <div class="doc-ver"><div class="tag">v1.4</div><div class="info"><b>光效与波次</b>：出金光柱 / 星芒 / 烟花强化，十连网格，出怪调度重构。</div></div>
+            <div class="doc-ver"><div class="tag">v1.3</div><div class="info"><b>分化动画</b>：实现有丝分裂五阶段分化动画（间期 → 前期 → 中期 → 后期 → 末期·胞质分裂）。</div></div>
+            <div class="doc-ver"><div class="tag">v1.2</div><div class="info"><b>抽卡框架</b>：单抽 / 十连动画，通关与失败结算。</div></div>
+            <div class="doc-ver"><div class="tag">v1.1</div><div class="info"><b>问题排查</b>：修复并重新打包。</div></div>
+            <div class="doc-ver"><div class="tag">v1.0</div><div class="info"><b>首个版本</b>：打包安卓 APK，修正生化知识、修复波次卡死、新增 SVG 头像。</div></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 新手引导 覆盖层（分步高亮） ===== -->
+<div class="tutor-overlay" id="tutorOverlay" aria-hidden="true">
+    <div class="tutor-scrim"></div>
+    <div class="tutor-spot" id="tutorSpot" style="display:none;"></div>
+    <div class="tutor-bubble center" id="tutorBubble">
+        <div class="tt"><span id="tutorTitle"></span><span class="step" id="tutorStepNum"></span></div>
+        <div class="tc" id="tutorText"></div>
+        <div class="tutor-btns">
+            <button class="tutor-btn prev" id="tutorPrev" onclick="tutorPrev()">上一步</button>
+            <button class="tutor-btn next" id="tutorNext" onclick="tutorNext()">下一步</button>
+            <button class="tutor-btn skip" onclick="endTutorial()">跳过</button>
         </div>
     </div>
 </div>
@@ -1110,6 +1296,8 @@
     let currentPoolType = 'standard';                  // 当前卡池：standard=常驻池，否则为 ageStagePools.id
     let redeemedCodes = [];                            // 已兑换的兑换码（每码限领一次，持久化）
     let pity = { since5: 0, since4: 0 };               // 保底计数：since5=距离上次传奇的抽数，since4=距离上次史诗及以上的抽数
+    let tutorialDone = false;                          // 新手引导是否已完成（仅新档自动触发，完成后持久化）
+    let sessionHadSave = false;                        // 本次会话是否读到已有存档（决定是否自动触发新手引导）
 
     // 初始赠送3名初始干员（1星）
     for(let starterId of deck) {
@@ -1132,7 +1320,8 @@
                 collection: collection,
                 deck: deck,
                 redeemedCodes: redeemedCodes,
-                pity: pity
+                pity: pity,
+                tutorialDone: tutorialDone
             }));
         } catch(e) { /* 隐私模式/存储已满时静默降级，不影响游戏 */ }
     }
@@ -1140,6 +1329,7 @@
         try {
             let raw = localStorage.getItem(SAVE_KEY);
             if(!raw) return;
+            sessionHadSave = true;
             let d = JSON.parse(raw);
             if(!d || typeof d !== 'object') return;
             if(typeof d.marrow === 'number' && d.marrow >= 0) marrow = Math.floor(d.marrow);
@@ -1169,6 +1359,7 @@
                     since4: Math.max(0, Math.floor(d.pity.since4) || 0)
                 };
             }
+            if(typeof d.tutorialDone === 'boolean') tutorialDone = d.tutorialDone;
             baseHp = levels[currentLevel - 1].baseHp;
             refreshDeckOperators();
         } catch(e) { /* 存档损坏时以新档启动 */ }
@@ -4163,6 +4354,123 @@
     document.getElementById('redeemModal').addEventListener('click', e => {
         if(e.target.id === 'redeemModal') closeRedeem();
     });
+
+    // ==================== 文档面板 & 新手引导（v1.7） ====================
+    function openHelp(){ const m = document.getElementById('helpModal'); if(m) m.style.display = 'flex'; }
+    function closeHelp(){ const m = document.getElementById('helpModal'); if(m) m.style.display = 'none'; }
+    function openIntro(){ const m = document.getElementById('introModal'); if(m) m.style.display = 'flex'; }
+    function closeIntro(){ const m = document.getElementById('introModal'); if(m) m.style.display = 'none'; }
+    function openChangelog(){ const m = document.getElementById('changelogModal'); if(m) m.style.display = 'flex'; }
+    function closeChangelog(){ const m = document.getElementById('changelogModal'); if(m) m.style.display = 'none'; }
+    ['helpModal', 'introModal', 'changelogModal'].forEach(id => {
+        const m = document.getElementById(id);
+        if(m) m.addEventListener('click', e => { if(e.target.id === id) m.style.display = 'none'; });
+    });
+
+    // ---- 分步新手引导（高亮目标 + 提示气泡，可跳过 / 回看） ----
+    const TUTOR_STEPS = [
+        { title: '欢迎来到「细胞防线」', target: null,
+          text: '你将指挥人体的免疫系统：用真实的免疫细胞部署防线，抵御一波波病原体。跟着这几步，很快就能上手。' },
+        { title: '① 选择免疫干员', target: '#operatorList',
+          text: '这里是你的出战编队。<b>点选一张卡片</b>即可选中要部署的细胞（卡片会高亮显示）。' },
+        { title: '② 部署到棋盘', target: '.canvas-area',
+          text: '选中干员后，<b>点击上方棋盘的空格</b>即可部署，消耗 ⚡ ATP。不同细胞的攻击范围与寿命各不相同。' },
+        { title: '③ 诱导凋亡 · 回收能量', target: '.canvas-area',
+          text: '点错了也不怕：<b>再次点击棋盘上已部署的细胞</b>，它会凋亡并返还 50% ATP，方便临场换阵。' },
+        { title: '④ 开始防线战', target: '#startWaveBtn',
+          text: '准备好后点击 <b>「🚀 开始防线战」</b>，病原体会一波波来袭，别让它们抵达右侧基线！' },
+        { title: '⑤ 打开免疫指挥中心', target: '.menu-btn',
+          text: '顶部这个 <b>☰ 菜单</b> 里藏着关卡切换、招募、编队管理、图鉴与帮助手册。' },
+        { title: '⑥ 骨髓招募所 · 抽卡', target: '#gachaEntryBtn', before: openDrawer, delay: 420,
+          text: '进入 <b>骨髓招募所</b> 用 🦴 原液招募强力干员：单抽 1 原液、十连 9 原液且<b>必得史诗+</b>；<b>20 抽必出传奇</b>！' },
+        { title: '准备就绪，指挥官！', target: null, before: closeDrawer, delay: 60,
+          text: '引导到此结束。想回看可随时从 ☰ 菜单打开「新手指导」。祝你在免疫战场上旗开得胜！' }
+    ];
+    let tutorIndex = 0;
+
+    function tutorIsOn(){ const ov = document.getElementById('tutorOverlay'); return !!(ov && ov.classList.contains('on')); }
+
+    function layoutTutor(){
+        const step = TUTOR_STEPS[tutorIndex];
+        if(!step) return;
+        const spot = document.getElementById('tutorSpot');
+        const bub = document.getElementById('tutorBubble');
+        if(!spot || !bub) return;
+        const vw = window.innerWidth, vh = window.innerHeight;
+        const el = step.target ? document.querySelector(step.target) : null;
+        if(el){
+            const r = el.getBoundingClientRect();
+            const pad = 6;
+            const x = Math.max(2, Math.min(Math.max(2, vw - 6), r.left - pad));
+            const y = Math.max(2, Math.min(Math.max(2, vh - 6), r.top - pad));
+            const w = Math.max(24, Math.min(vw - x - 2, r.width + pad * 2));
+            const h = Math.max(24, Math.min(vh - y - 2, r.height + pad * 2));
+            spot.style.display = 'block';
+            spot.style.left = x + 'px'; spot.style.top = y + 'px';
+            spot.style.width = w + 'px'; spot.style.height = h + 'px';
+            spot.classList.add('pulse');
+            const bw = Math.min(300, vw - 20);
+            let bx = Math.max(8, Math.min(r.left, Math.max(8, vw - bw - 8)));
+            let by = (y + h + 12 + 150 < vh) ? (y + h + 12) : (y - 168);
+            by = Math.max(8, Math.min(by, Math.max(8, vh - 168)));
+            bub.style.width = bw + 'px';
+            bub.style.left = bx + 'px';
+            bub.style.top = by + 'px';
+            bub.classList.remove('above', 'below', 'center');
+        } else {
+            spot.style.display = 'none';
+            spot.classList.remove('pulse');
+            const bw = Math.min(320, vw - 20);
+            bub.style.width = bw + 'px';
+            bub.style.left = Math.round((vw - bw) / 2) + 'px';
+            bub.style.top = Math.max(20, Math.round(vh / 2 - 90)) + 'px';
+            bub.classList.remove('above', 'below');
+            bub.classList.add('center');
+        }
+    }
+
+    function showTutorStep(i){
+        if(i < 0) i = 0;
+        if(i >= TUTOR_STEPS.length) return endTutorial();
+        tutorIndex = i;
+        const step = TUTOR_STEPS[i];
+        const ov = document.getElementById('tutorOverlay');
+        if(!ov) return;
+        if(typeof step.before === 'function'){ try { step.before(); } catch(e){} }
+        ov.classList.add('on');
+        const tEl = document.getElementById('tutorTitle');
+        const cEl = document.getElementById('tutorText');
+        const nEl = document.getElementById('tutorStepNum');
+        const pEl = document.getElementById('tutorPrev');
+        const xEl = document.getElementById('tutorNext');
+        if(tEl) tEl.textContent = step.title;
+        if(cEl) cEl.innerHTML = step.text;
+        if(nEl) nEl.textContent = (i + 1) + ' / ' + TUTOR_STEPS.length;
+        if(pEl) pEl.style.visibility = (i === 0) ? 'hidden' : 'visible';
+        if(xEl) xEl.textContent = (i === TUTOR_STEPS.length - 1) ? '完成' : '下一步';
+        layoutTutor();
+        const d = step.delay || 0;
+        if(d) setTimeout(layoutTutor, d);   // 目标（如抽屉）过渡完成后校正
+        setTimeout(layoutTutor, 80);
+    }
+    function tutorNext(){ showTutorStep(tutorIndex + 1); }
+    function tutorPrev(){ showTutorStep(tutorIndex - 1); }
+
+    function runTutorial(){
+        try { closeHelp(); closeIntro(); closeChangelog(); closeGacha(); } catch(e){}
+        showTutorStep(0);
+    }
+    function endTutorial(){
+        const ov = document.getElementById('tutorOverlay');
+        if(ov) ov.classList.remove('on');
+        try { closeDrawer(); } catch(e){}
+        if(!tutorialDone){ tutorialDone = true; saveGame(); }
+    }
+    window.addEventListener('resize', () => { if(tutorIsOn()) layoutTutor(); });
+    window.addEventListener('orientationchange', () => { if(tutorIsOn()) setTimeout(layoutTutor, 220); });
+
+    // 新档首次进入自动引导（等布局稳定后再弹；已有存档不打扰，可手动回看）
+    if(!tutorialDone && !sessionHadSave){ setTimeout(runTutorial, 800); }
 </script>
 </body>
 </html>
