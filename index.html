@@ -544,6 +544,51 @@
         @keyframes resultRays { to { transform: rotate(360deg); } }
         .ga-result { isolation: isolate; }
 
+        /* ==================== 出金演出 v2.0：星轨降临 · 承运之光（仿原神 / 未定事件簿） ==================== */
+        /* 压暗全场：出彩前的一瞬黑暗，为爆光蓄势 */
+        .ga-dim { position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0;
+            background: radial-gradient(circle at 50% 46%, rgba(6,2,10,.2), rgba(3,1,6,.88) 78%); }
+        .ga-dim.go, .ga-flash.go .ga-dim { animation: dimPulse 1.5s ease forwards; }
+        @keyframes dimPulse { 0% { opacity: 0; } 16% { opacity: 1; } 46% { opacity: .3; } 100% { opacity: 0; } }
+
+        /* 流星 / 星轨划过 */
+        .ga-comet { position: absolute; top: 24%; left: -36%; width: 210px; height: 3px; border-radius: 3px; opacity: 0; z-index: 13; pointer-events: none;
+            background: linear-gradient(90deg, transparent 0%, currentColor 60%, #fff 100%);
+            filter: drop-shadow(0 0 6px currentColor) drop-shadow(0 0 16px currentColor);
+            transform: rotate(-13deg); transform-origin: right center; }
+        .ga-comet.go, .ga-flash.go .ga-comet { animation: cometFly 1.15s cubic-bezier(.46,.05,.32,1) forwards; }
+        @keyframes cometFly { 0% { opacity: 0; left: -36%; top: 20%; } 14% { opacity: 1; } 100% { opacity: 0; left: 128%; top: 76%; } }
+
+        /* 旋转彩光光环 */
+        .ga-aurora { position: absolute; width: 260px; height: 260px; border-radius: 50%; opacity: 0; z-index: 8; box-sizing: border-box; }
+        .ga-flash.go .ga-aurora { animation: auroraSpin 2s cubic-bezier(.2,.7,.25,1) forwards; }
+        @keyframes auroraSpin { 0% { opacity: 0; transform: scale(.28) rotate(0); } 22% { opacity: .92; } 100% { opacity: 0; transform: scale(1.8) rotate(150deg); } }
+
+        /* 承运之光：自上而下的细密光柱群 */
+        .ga-fallbeam { position: absolute; top: -16%; width: 2px; height: 132%; opacity: 0; z-index: 9; pointer-events: none; border-radius: 2px;
+            background: linear-gradient(to bottom, transparent, currentColor 55%, #fff); filter: blur(1px); }
+        .ga-flash.go .ga-fallbeam { animation: fallBeam 1.5s ease forwards; }
+        @keyframes fallBeam { 0% { opacity: 0; transform: scaleY(0); } 25% { opacity: .9; transform: scaleY(1); } 100% { opacity: 0; transform: scaleY(1); } }
+
+        /* 结果卡：稀有度底色 + 外发光 */
+        .ga-result.gold { background: radial-gradient(circle at 50% 18%, rgba(255,196,70,.42), rgba(255,150,0,.10) 46%, transparent 70%); border-radius: 18px; }
+        .ga-result.epic { background: radial-gradient(circle at 50% 18%, rgba(180,110,255,.38), rgba(130,60,200,.10) 46%, transparent 70%); border-radius: 18px; }
+        .ga-result.rare { background: radial-gradient(circle at 50% 18%, rgba(79,172,254,.30), transparent 66%); border-radius: 18px; }
+        .ga-result::after { content: ''; position: absolute; inset: -6px; border-radius: 22px; z-index: -1; pointer-events: none; opacity: 0; }
+        .ga-result.show.gold::after { opacity: 1; box-shadow: 0 0 0 1px rgba(255,216,77,.5), 0 0 46px rgba(255,190,60,.5); animation: cardAura 2.6s ease-in-out infinite; }
+        .ga-result.show.epic::after { opacity: 1; box-shadow: 0 0 0 1px rgba(196,145,255,.48), 0 0 38px rgba(170,100,255,.42); animation: cardAura 3s ease-in-out infinite; }
+        @keyframes cardAura { 0%,100% { opacity: .55; } 50% { opacity: 1; } }
+
+        /* 结果卡：徽章外圈旋转彩光 + 出现冲击环 */
+        .ga-result-aurora { position: absolute; top: -118px; left: 50%; width: 300px; height: 300px; margin-left: -150px; border-radius: 50%; pointer-events: none; z-index: 0; opacity: 0;
+            -webkit-mask-image: radial-gradient(circle, transparent 36%, #000 50%, transparent 74%);
+            mask-image: radial-gradient(circle, transparent 36%, #000 50%, transparent 74%); }
+        .ga-result.show .ga-result-aurora { animation: resultAurora 2.6s ease-out forwards; }
+        @keyframes resultAurora { 0% { opacity: 0; transform: rotate(0) scale(.62); } 30% { opacity: .95; } 100% { opacity: .5; transform: rotate(230deg) scale(1.15); } }
+        .ga-result-ring { position: absolute; top: -104px; left: 50%; width: 120px; height: 120px; margin-left: -60px; border-radius: 50%; box-sizing: border-box; opacity: 0; pointer-events: none; z-index: 0; }
+        .ga-result.show .ga-result-ring { animation: resultRing 1.15s cubic-bezier(.15,.6,.3,1) forwards; }
+        @keyframes resultRing { 0% { opacity: .9; width: 96px; height: 96px; border-width: 6px; } 100% { opacity: 0; width: 420px; height: 420px; border-width: 1px; } }
+
         /* ==================== 文档 / 帮助面板（v1.7） ==================== */
         .doc-sec { margin-bottom: 15px; }
         .doc-h { font-size: 13px; font-weight: bold; color: #7fc4ff; margin-bottom: 7px; }
@@ -688,7 +733,7 @@
                 <button class="btn-gacha-ten" onclick="doGacha(10)">十连抽<br><small>9 原液 · 必得史诗+</small></button>
             </div>
             <div class="pity-box" id="pityBox"></div>
-            <div class="prob-info">基础概率：普通45% · 精英34% · 史诗15% · 传奇6%｜<b style="color:#ffd84d;">50抽必出传奇</b>（30抽起每10抽概率递增）· <b style="color:#c78fff;">10抽必出史诗+</b>｜UP池：命中UP干员稀有度时按UP率倾向出UP干员</div>
+            <div class="prob-info">基础概率：普通50% · 精英40% · 史诗9% · 传奇1%｜<b style="color:#ffd84d;">50抽必出传奇</b>（30抽起每10抽概率递增）· <b style="color:#c78fff;">10抽必出史诗+</b>｜各卡池独立名单，命中UP稀有度时按UP率倾向出UP干员</div>
             <div class="pool-list" id="gachaPoolList"></div>
             <div class="exchange-row">
                 <span style="font-size:11px; color:#aaa;">营养兑换：</span>
@@ -802,9 +847,10 @@
                 <div class="doc-h">🦴 抽卡与保底</div>
                 <div class="doc-list">
                     · 单抽 1 🦴 / 十连 9 🦴（<b>必得史诗+</b>）；<br>
-                    · 基础概率：普通 45% · 精英 34% · 史诗 15% · 传奇 6%；<br>
+                    · 基础概率：普通 50% · 精英 40% · 史诗 9% · 传奇 1%；<br>
                     · <b>50 抽必出传奇</b>（30 抽起每 10 抽概率递增）；<b>10 抽必出史诗+</b>（7 抽起递增）；<br>
-                    · 抽卡演出会完整展现<b>细胞有丝分裂与分化</b>过程，出金时特效拉满。
+                    · 各卡池拥有<b>独立可抽名单</b>（前几个阶段池即含史诗干员，常驻池为全谱系）；<br>
+                    · 抽卡演出会完整展现<b>细胞有丝分裂与分化</b>过程，出金时星轨降临、承运之光特效拉满。
                 </div>
             </div>
         </div>
@@ -854,6 +900,7 @@
             <button onclick="closeChangelog()">✕</button>
         </div>
         <div class="modal-body">
+            <div class="doc-ver"><div class="tag" style="color:#ffd84d">v2.0</div><div class="info"><b>卡池名单 + 出金演出重制</b>：6 个年龄阶段池改为独立可抽名单——前几个池即含史诗干员，常驻池为全谱系；传奇基础概率下调至 1%（史诗 9%，50 抽必出传奇 / 10 抽必出紫不变）；出金演出重制为「星轨降临 · 承运之光」（压暗 → 流星划过 → 旋转彩光 → 光柱群）。</div></div>
             <div class="doc-ver"><div class="tag" style="color:#ffd84d">v1.9</div><div class="info"><b>分层保底 + 修复</b>：传奇保底改为 30 抽起每 10 抽概率递增（50 抽必出）；修复十连保底替换后保底计数未同步的问题。</div></div>
             <div class="doc-ver"><div class="tag">v1.8</div><div class="info"><b>保底调整</b>：传奇硬保底由 20 抽延长至 50 抽（35 抽起软保底递增）；史诗 10 抽必出紫保持不变。</div></div>
             <div class="doc-ver"><div class="tag" style="color:#4facfe">v1.7</div><div class="info"><b>新手指导 + 文档</b>：首次进入分步引导、帮助手册、游戏介绍 / 更新日志面板。</div></div>
@@ -1050,8 +1097,8 @@
     };
 
     // ==================== 抽卡概率与保底系统（仿主流抽卡游戏） ====================
-    // 综合概率（含保底）远高于基础概率，基础概率也整体上调
-    const BASE_RATE = { common: 45, rare: 34, epic: 15, legendary: 6 };   // 单位 %
+    // 出金压低：传奇基础 1%、史诗基础 9%，靠「软保底递进 + 硬保底」制造欲罢不能的节奏
+    const BASE_RATE = { common: 50, rare: 40, epic: 9, legendary: 1 };   // 单位 %
     const PITY = {
         // 传奇（最高稀有度）：30 抽起分层保底，每 10 抽递增加成，50 抽硬保底必出
         legendary: { hard: 50, soft: 30, tier: 10, tierBonus: 12 },
@@ -1254,31 +1301,37 @@
         {
             id: 'toddler', name: '先天防线池', ageGroup: '幼儿期', ageRange: '0-6岁', unlockLevel: 1,
             upOps: ['neutrophil', 'nkcell'], upRate: 0.6,
+            roster: ['neutrophil', 'rbc', 'macrophage', 'nkcell'],
             science: '真实依据：幼儿的适应性免疫尚未发育成熟，主要依靠先天免疫首当其冲——中性粒细胞在出生时即大量投入战斗，NK细胞出生时就具备杀伤活性；同时母体IgG经胎盘传递、母乳sIgA提供被动保护，如同"先天防线"。'
         },
         {
             id: 'child', name: '疫苗筑忆池', ageGroup: '儿童期', ageRange: '7-12岁', unlockLevel: 4,
             upOps: ['bcell', 'macrophage'], upRate: 0.6,
+            roster: ['rbc', 'macrophage', 'tcell', 'bcell', 'lysozyme'],
             science: '真实依据：儿童期按免疫规划接种疫苗，B细胞受抗原刺激后分化为浆细胞产生抗体，并建立长效的记忆B细胞；巨噬细胞负责吞噬病原、提呈抗原，是启动适应性免疫的"清道夫"。'
         },
         {
             id: 'teen', name: '胸腺特训池', ageGroup: '青少年', ageRange: '13-18岁', unlockLevel: 7,
             upOps: ['tcell', 'lysozyme'], upRate: 0.6,
+            roster: ['neutrophil', 'macrophage', 'tcell', 'lysozyme', 'nkcell', 'eosinophil'],
             science: '真实依据：胸腺是T细胞发育成熟的"军校"，其体积在青春期达到一生中的峰值，T细胞库最为丰富多样，此后才逐渐退化；黏膜分泌的溶菌酶也是这一阶段抵御呼吸道病原的重要化学屏障。'
         },
         {
             id: 'adult', name: '巅峰免疫池', ageGroup: '成年期', ageRange: '19-59岁', unlockLevel: 10,
             upOps: ['dendritic', 'eosinophil'], upRate: 0.6,
+            roster: ['macrophage', 'tcell', 'nkcell', 'eosinophil', 'dendritic', 'monocyte'],
             science: '真实依据：成年期免疫功能达到一生巅峰，树突状细胞是体内最强的抗原提呈细胞（专业APC），像"指挥官"一样激活T细胞；嗜酸性粒细胞主导抗寄生虫免疫，也与成年期高发的过敏反应相关。'
         },
         {
             id: 'elder', name: '记忆传承池', ageGroup: '老年期', ageRange: '60岁+', unlockLevel: 13,
             upOps: ['memoryT'], upRate: 0.7,
+            roster: ['macrophage', 'tcell', 'nkcell', 'eosinophil', 'mastCell', 'memoryT'],
             science: '真实依据：免疫衰老（immunosenescence）——胸腺退化后新T细胞锐减，老年人对新病原体的应答变弱；但一生积累的记忆T细胞库庞大且持久，是老年免疫的最后堡垒（这也是既往疫苗对老年人仍有效的原因）。'
         },
         {
             id: 'crisis', name: '终末防线池', ageGroup: '终极挑战', ageRange: '感染风暴', unlockLevel: 16,
             upOps: ['plasmaCell'], upRate: 0.6,
+            roster: ['neutrophil', 'rbc', 'macrophage', 'monocyte', 'nkcell', 'plasmaCell', 'memoryT'],
             science: '真实依据：面对潜伏病毒再激活（带状疱疹）、多重耐药菌（MRSA）、肿瘤免疫逃逸与变异株等"非常态感染风暴"，机体启动终末级体液应答——B细胞在生发中心经高频突变与亲和力成熟后，由 BLIMP-1 驱动分化为浆细胞，以每秒数千个抗体的极限产能远程火力覆盖，这是适应性免疫的"最终武器"。'
         }
     ];
@@ -1592,16 +1645,18 @@
     }
 
     // ==================== 抽卡系统 ====================
-    // 稀有度抽样：硬保底 → 分层软保底递增 → 基础概率
-    function rollRarity() {
+    // 稀有度抽样：硬保底 → 分层软保底递增 → 基础概率（仅在该池确有该稀有度时才可能命中）
+    function rollRarity(pool) {
         const P5 = PITY.legendary, P4 = PITY.epic;
+        const can5 = pool.some(op => op.rarity === 'legendary');
+        const can4 = pool.some(op => op.rarity === 'epic');
         // 硬保底：达到阈值必定命中
-        if (pity.since5 + 1 >= P5.hard) return 'legendary';
-        if (pity.since4 + 1 >= P4.hard) return Math.random() < .12 ? 'legendary' : 'epic';
+        if (can5 && pity.since5 + 1 >= P5.hard) return 'legendary';
+        if (can4 && pity.since4 + 1 >= P4.hard) return (can5 && Math.random() < .12) ? 'legendary' : 'epic';
         // 分层软保底：30 抽起，每 10 抽为一档递增加成
         const tiers = pity.since5 >= P5.soft ? Math.floor((pity.since5 - P5.soft) / P5.tier) + 1 : 0;
-        let r5 = BASE_RATE.legendary + tiers * P5.tierBonus;
-        let r4 = BASE_RATE.epic      + (pity.since4 >= P4.soft ? (pity.since4 - (P4.soft - 1)) * P4.step : 0);
+        let r5 = can5 ? BASE_RATE.legendary + tiers * P5.tierBonus : 0;
+        let r4 = can4 ? BASE_RATE.epic + (pity.since4 >= P4.soft ? (pity.since4 - (P4.soft - 1)) * P4.step : 0) : 0;
         r5 = Math.min(r5, 96);
         r4 = Math.min(r4, 96 - r5);
         let r3 = BASE_RATE.rare;
@@ -1619,15 +1674,20 @@
         else { pity.since5++; pity.since4++; }
     }
 
-    // 当前卡池：仅包含已解锁（unlockLevel <= currentLevel）的干员
+    // 当前卡池可抽名单：常驻池为全谱系；年龄阶段池各自按 roster 抽取
     function getAvailablePool() {
-        return masterPool.filter(op => op.unlockLevel <= currentLevel);
+        if (currentPoolType === 'standard') return masterPool.slice();
+        let stage = ageStagePools.find(p => p.id === currentPoolType);
+        if (stage && stage.roster) {
+            return stage.roster.map(id => masterPool.find(op => op.id === id)).filter(Boolean);
+        }
+        return masterPool.slice();
     }
 
     function rollOne(pool, upOps, upRate) {
-        let rarity = rollRarity();
+        let rarity = rollRarity(pool);
         let candidates = pool.filter(op => op.rarity === rarity);
-        if (candidates.length === 0) candidates = pool; // 该稀有度暂无已解锁干员时回退
+        if (candidates.length === 0) candidates = pool; // 兜底：理论上不会触发（稀有度已按名单过滤）
         let op = null;
         // UP池：命中UP干员稀有度时，按UP率倾向选中UP干员
         if (upOps && upOps.length > 0 && upRate > 0) {
@@ -1659,19 +1719,19 @@
         let results = [];
         for (let i = 0; i < count; i++) results.push(rollOne(pool, upOps, upRate));
 
-        // 十连保底：至少1张精英级及以上（UP池保底同样倾向UP干员）
+        // 十连保底：至少 1 张史诗级及以上（与「必得史诗+」文案一致，UP池保底同样倾向UP干员）
         let guaranteeTriggered = false;
         if (count === 10) {
-            let hasRarePlus = results.some(op => op.rarity !== 'common');
-            if (!hasRarePlus) {
+            let hasEpicPlus = results.some(op => op.rarity === 'epic' || op.rarity === 'legendary');
+            if (!hasEpicPlus) {
                 guaranteeTriggered = true;
-                let rarePlus = pool.filter(op => op.rarity !== 'common');
+                let epicPlus = pool.filter(op => op.rarity === 'epic' || op.rarity === 'legendary');
                 if (stage) {
-                    let upRarePlus = rarePlus.filter(op => stage.upOps.includes(op.id));
-                    if (upRarePlus.length > 0 && Math.random() < upRate) rarePlus = upRarePlus;
+                    let upEpicPlus = epicPlus.filter(op => stage.upOps.includes(op.id));
+                    if (upEpicPlus.length > 0 && Math.random() < upRate) epicPlus = upEpicPlus;
                 }
-                if (rarePlus.length > 0) {
-                    results[0] = rarePlus[Math.floor(Math.random() * rarePlus.length)];
+                if (epicPlus.length > 0) {
+                    results[0] = epicPlus[Math.floor(Math.random() * epicPlus.length)];
                 }
             }
         }
@@ -2596,8 +2656,19 @@
                <div class="ga-ring r4" style="border:1.5px solid ${isGold ? '#fff7d0' : '#d9b8ff'};"></div>
                <div class="ga-halo" style="border-color:${isGold ? 'rgba(255,230,150,.9)' : 'rgba(200,150,255,.85)'};"></div>`
             : (isRare ? `<div class="ga-ring" style="border:2px solid #7fd4ff;box-shadow:0 0 16px rgba(79,172,254,.5);"></div>` : '');
+        // v2.0 星轨 / 承运之光：压暗 → 流星划过 → 彩光旋转 → 金色光柱群
+        const dimHtml = high ? '<div class="ga-dim"></div>' : '';
+        const cometHtml = high ? `<div class="ga-comet" style="color:${isGold ? '#ffe9a0' : '#dcb8ff'};"></div>` : '';
+        const auroraBg = isGold
+            ? 'conic-gradient(from 0deg, rgba(255,216,77,.9), transparent 24%, rgba(255,242,175,.85) 50%, transparent 76%, rgba(255,180,60,.9))'
+            : 'conic-gradient(from 0deg, rgba(180,110,255,.85), transparent 24%, rgba(224,184,255,.8) 50%, transparent 76%, rgba(160,80,240,.85))';
+        const auroraHtml = high ? `<div class="ga-aurora" style="background:${auroraBg};"></div>` : '';
+        const fallbeams = isGold
+            ? Array.from({ length: 6 }, () => `<div class="ga-fallbeam" style="left:${(8 + Math.random() * 84).toFixed(1)}%;color:#ffe9a0;animation-delay:${(Math.random() * .28).toFixed(2)}s;"></div>`).join('')
+            : '';
         stage.insertAdjacentHTML('beforeend', `
             <div class="ga-flash" id="gaFlash">
+                ${dimHtml}${cometHtml}${auroraHtml}${fallbeams}
                 ${beam}${rings}
                 <div class="burst" style="background:radial-gradient(circle, ${color}, transparent 70%);"></div>
                 <div class="ga-rays" style="background:${raysBg};${maskCss}"></div>
@@ -2715,9 +2786,16 @@
         const stars = Array.from({ length: collection[op.id].stars }, (_, i) =>
             `<span class="st" style="animation-delay:${.25 + i * .13}s;">★</span>`).join('');
         const highRes = op.rarity === 'legendary' || op.rarity === 'epic';
+        const auroraBg = op.rarity === 'legendary'
+            ? 'conic-gradient(from 0deg, rgba(255,216,77,.95), transparent 22%, rgba(255,242,175,.9) 48%, transparent 74%, rgba(255,180,60,.95))'
+            : op.rarity === 'epic'
+              ? 'conic-gradient(from 0deg, rgba(180,110,255,.9), transparent 22%, rgba(224,184,255,.85) 48%, transparent 74%, rgba(160,80,240,.9))'
+              : 'conic-gradient(from 0deg, rgba(79,172,254,.8), transparent 28%, rgba(190,230,255,.75) 52%, transparent 78%, rgba(79,172,254,.8))';
         gaScene.innerHTML = `
-            <div class="ga-result" id="gaResult">
-                ${highRes ? `<div class="ga-result-rays ${op.rarity === 'legendary' ? '' : 'purple'}"></div>` : ''}
+            <div class="ga-result ${op.rarity}" id="gaResult">
+                ${highRes ? `<div class="ga-result-rays ${op.rarity === 'legendary' ? '' : 'purple'}"></div>
+                             <div class="ga-result-aurora" style="background:${auroraBg};"></div>
+                             <div class="ga-result-ring" style="border:3px solid ${rc.color};box-shadow:0 0 26px ${rc.glow};"></div>` : ''}
                 ${s.isNew ? '<div class="ga-newribbon">NEW</div>' : ''}
                 <div class="ga-shine"></div>
                 <div class="ga-cell-emblem ${op.rarity}"><img src="${avatarURLs[op.id]}" alt=""></div>
@@ -2888,6 +2966,16 @@
         setTimeout(() => el.remove(), hold);
     }
 
+    // 流星划过：为十连出金定格补一记"命定感"
+    function gaComet(color) {
+        const el = document.createElement('div');
+        el.className = 'ga-comet';
+        el.style.color = color;
+        gaOverlay.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('go'));
+        setTimeout(() => el.remove(), 1400);
+    }
+
     function revealSlot(i, s) {
         const slot = document.getElementById('gaSlot' + i);
         if (!slot || !gaContext || !gaContext.pending || !gaContext.pending.has(i)) return;
@@ -2905,6 +2993,7 @@
             gaShake('legendary');
             gaSlotBeam(slot, 'gold');
             gaSlotGlints(slot, '#ffe9a8', 8);
+            gaComet('#ffe9a0');
             slot.classList.add('spot');
             gaSpotBanner('★ 传 奇 降 临 ★', 'gold', 1150);
             gaSpawnFireworks('legendary');
