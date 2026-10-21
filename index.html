@@ -680,7 +680,9 @@
         .ps-slot.filled { border-style: solid; border-color: #3d2b52; }
         .ps-slot button { border: 1px solid #4b3a63; background: #2a2238; color: #d9c9ec; border-radius: 6px; padding: 4px 7px; font-size: 10px; cursor: pointer; }
         .pathology-levels { display: flex; flex-direction: column; gap: 8px; }
+        .path-chapter-title { font-size: 11px; font-weight: bold; color: #4facfe; margin: 8px 0 2px; padding-bottom: 5px; border-bottom: 1px dashed #2d2d3b; }
         .pathology-level-card { background: #16161a; border: 1px solid #2a2a38; border-left: 3px solid #4facfe; border-radius: 9px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+        .pathology-level-card.locked { opacity: .55; border-left-color: #555; }
         .pathology-level-card .pl-name { font-size: 12px; font-weight: bold; color: #e8eef8; }
         .pathology-level-card .pl-meta { font-size: 10px; color: #9aa4b4; line-height: 1.5; margin-top: 2px; }
         .pathology-level-card .pl-rewards { font-size: 10px; color: #ffb3dc; margin-top: 3px; }
@@ -1061,8 +1063,8 @@
                 <div class="doc-h">✨ 特色亮点</div>
                 <div class="doc-list">
                     · 24 关 · 6 个生命周期阶段，病原体各具特性；<br>
-                    · 14 名免疫干员 + 3 名癌细胞干员，真实生理功能设定；<br>
-                    · 3 个病理档案特殊关：操控癌细胞，在免疫细胞追杀下存活；<br>
+                    · 14 名免疫干员 + 6 名癌细胞干员，真实生理功能设定；<br>
+                    · 6 个病理档案特殊关：操控癌细胞，在免疫细胞追杀下存活；<br>
                     · 抽卡保底（50 抽必出传奇、30 抽起分层递增；10 抽必出紫）+ 华丽出金演出；<br>
                     · 招募演出还原<b>有丝分裂五阶段 + 定向分化</b>。
                 </div>
@@ -1082,6 +1084,7 @@
             <button onclick="closeChangelog()">✕</button>
         </div>
         <div class="modal-body">
+            <div class="doc-ver"><div class="tag" style="color:#ff8fd8">v2.4</div><div class="info"><b>病理档案第二章：免疫编辑</b>：新增代谢竞争型、外泌体诱导型、血管生成型 3 名癌细胞；新增 Treg、MDSC、TAM、强化 CTL 4 种免疫细胞敌人；新增 P04–P06 特殊关与代谢竞争、外泌体失能、血管生成回复机制；特殊档案 P01–P06 每解锁 1 关 +0.5% 全队攻击/寿命。</div></div>
             <div class="doc-ver"><div class="tag" style="color:#6fc0ff">v2.3</div><div class="info"><b>病理档案特殊关</b>：新增 P01–P03 反向生存关（8/10/12 波）；新增免疫细胞敌人、PD-1 光环与四方向推进；新增病变原液、癌细胞信物、检查点抑制剂；每日 2 次、不消耗 ATP；病理档案面板新增 P01–P03；抑制信号 HUD 阈值提示与层数飘字优化。</div></div>
             <div class="doc-ver"><div class="tag" style="color:#ff8fd8">v2.2</div><div class="info"><b>异常位与癌细胞</b>：编队可携带 1 名癌细胞（不占常规位）；新增 3 名癌细胞、抑制信号阶梯 debuff、抗 PD-1 效应 T 细胞、病理培养皿、病变样本与免疫检查点抑制剂；病理档案面板补齐 19–24 关条目。</div></div>
             <div class="doc-ver"><div class="tag" style="color:#ffd84d">v1.9</div><div class="info"><b>分层保底 + 修复</b>：传奇保底改为 30 抽起每 10 抽概率递增（50 抽必出）；修复十连保底替换后保底计数未同步的问题。</div></div>
@@ -1272,6 +1275,36 @@
             ability: 'pd1_aura', isBacteria: false, immune: true, attack: 4.5,
             pd1Aura: true, auraRadius: 3,
             desc: "病理档案 Boss：高攻高速；PD-1 光环使范围内癌细胞特殊效果 -50%"
+        },
+        // ===== 2.4 免疫编辑：被肿瘤微环境改造的免疫细胞 =====
+        immune_treg: {
+            name: "调节性 T 细胞 (Treg)", color: '#16a085', shape: 'circle',
+            hpMult: 1.4, speedMult: 0.75, size: 15,
+            damageReduction: 0, evasion: 0,
+            ability: 'treg_aura', isBacteria: false, immune: true, attack: 2.0, tregAura: true,
+            desc: "病理档案敌人：为周围免疫细胞提供 20% 减伤"
+        },
+        immune_mdsc: {
+            name: "髓源性抑制细胞 (MDSC)", color: '#8e44ad', shape: 'blob',
+            hpMult: 4.5, speedMult: 0.5, size: 18,
+            damageReduction: 0.1, evasion: 0,
+            ability: 'mdsc_aura', isBacteria: false, immune: true, attack: 1.5, mdscAura: true,
+            desc: "病理档案敌人：低速高血；光环内癌细胞攻击 -30%"
+        },
+        immune_tam: {
+            name: "肿瘤相关巨噬细胞 (TAM)", color: '#e67e22', shape: 'blob',
+            hpMult: 1.6, speedMult: 0.8, size: 16,
+            damageReduction: 0, evasion: 0,
+            ability: 'tam_factor', isBacteria: false, immune: true, attack: 2.2, tamFactor: true,
+            desc: "病理档案敌人：被击破时释放促瘤因子，为周围癌细胞 +10% 攻击"
+        },
+        immune_ctla_elite: {
+            name: "细胞毒性 T 细胞 Boss（强化版）", color: '#9b59b6', shape: 'boss',
+            hpMult: 7.0, speedMult: 1.0, size: 24,
+            damageReduction: 0.15, evasion: 0.05,
+            ability: 'summon_neutrophil', isBacteria: false, immune: true, attack: 5.0,
+            pd1Aura: true, auraRadius: 3,
+            desc: "病理档案 Boss：PD-1 光环 + 每 10 秒召唤 2 个中性粒细胞"
         }
     };
 
@@ -1371,6 +1404,59 @@
             squadDebuff: { type: 'legendaryAtk', value: -0.05, label: '每 1 名传奇干员，全队攻击 -5%' },
             bioBasis: "肿瘤招募 Treg 形成免疫抑制微环境",
             role: "破防辅助，克制高减伤敌人；传奇干员越多，编队惩罚越大。"
+        },
+        cancer_metabolic: {
+            id: 'cancer_metabolic',
+            name: "代谢竞争型肿瘤",
+            rarity: 'pathology',
+            cost: 11,
+            maxCount: 1,
+            rangeType: 'circle2',
+            atk: 12,
+            maxLifeSec: 28,
+            suppression: 3,
+            sampleCost: 4,
+            desc: "持续消耗周围敌人 ATP，使其攻击速度 -25%",
+            special: { metabolicSlow: 0.25 },
+            squadDebuff: { type: 'atpRegen', value: -0.15, label: '全队 ATP 回复 -15%' },
+            deployCdPenalty: 400,
+            bioBasis: "瓦伯格效应：大量消耗葡萄糖和谷氨酰胺，与免疫细胞竞争代谢底物",
+            role: "控场型，削弱敌人输出；自己的编队也会资源吃紧。"
+        },
+        cancer_exosome: {
+            id: 'cancer_exosome',
+            name: "外泌体诱导型肿瘤",
+            rarity: 'pathology',
+            cost: 13,
+            maxCount: 1,
+            rangeType: 'circle1',
+            atk: 22,
+            maxLifeSec: 22,
+            suppression: 2,
+            sampleCost: 4,
+            desc: "每 8 秒释放外泌体，使范围内敌人失能 2 秒",
+            special: { exosomeDisable: 2, exosomeInterval: 8 },
+            squadDebuff: { type: 'epicLife', value: -0.08, label: '每 1 名史诗干员，全队寿命 -8%' },
+            bioBasis: "肿瘤外泌体携带 PD-L1、TGF-β、miRNA，可诱导 T 细胞失能、促进 Treg 分化",
+            role: "控制型，间歇群体失能；史诗干员越多，寿命惩罚越大。"
+        },
+        cancer_angiogenesis: {
+            id: 'cancer_angiogenesis',
+            name: "血管生成型肿瘤",
+            rarity: 'pathology',
+            cost: 14,
+            maxCount: 1,
+            rangeType: 'circle1',
+            atk: 12,
+            maxLifeSec: 40,
+            suppression: 3,
+            sampleCost: 5,
+            desc: "每 15 秒生成营养血管，回复周围癌细胞 20% 寿命",
+            special: { vesselHeal: 0.20, vesselInterval: 15 },
+            squadDebuff: { type: 'deployCost', value: 1, label: '全队部署费用 +1' },
+            deployCdPenalty: 1000,
+            bioBasis: "VEGF 促进肿瘤血管生成，获取营养和氧气，同时形成免疫抑制微环境",
+            role: "续航型，延长癌细胞存活；全队部署节奏被拖慢。"
         }
     };
     const CANCER_FRAG_ON_DUPLICATE = 3;   // 重复培养转化的癌细胞信物数
@@ -1531,9 +1617,12 @@
         antiPD1: "cute cartoon mascot of an anti-PD-1 effector T cell, bright cyan T lymphocyte with Y-shaped receptors and a small glowing shield badge blocking a purple checkpoint molecule, determined heroic kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
         cancer_melanoma: "cartoon mascot of a melanoma cancer cell, irregular dark purple blob with jagged membrane and a broken missing MHC-I receptor marker, sly mischievous kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
         cancer_lung_pdl1: "cartoon mascot of a PD-L1 expressing lung squamous cancer cell, lumpy orange-red cell covered with small shield-shaped PD-L1 receptors, smug kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
-        cancer_treg: "cartoon mascot of a Treg-recruiting tumor cell, purple-pink irregular cell surrounded by tiny suppressive halo rings and small regulatory cell minions, calm sinister kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon"
+        cancer_treg: "cartoon mascot of a Treg-recruiting tumor cell, purple-pink irregular cell surrounded by tiny suppressive halo rings and small regulatory cell minions, calm sinister kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        cancer_metabolic: "cartoon mascot of a metabolic-competition tumor cell, orange-green irregular cell with glowing glucose cubes and worn-out mitochondria, greedy kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        cancer_exosome: "cartoon mascot of an exosome-secreting tumor cell, magenta round cell releasing many tiny glowing vesicle bubbles with signal symbols, sly kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        cancer_angiogenesis: "cartoon mascot of an angiogenesis tumor cell, deep red cell with branching blood vessel tendrils around it and tiny oxygen bubbles, scheming kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon"
     };
-    const avatarEmoji = { rbc: '🔴', neutrophil: '⚡', macrophage: '🌀', lysozyme: '💧', tcell: '🎯', nkcell: '🗡️', bcell: '🛡️', dendritic: '☀️', eosinophil: '🏹', memoryT: '📚', monocyte: '🛰️', plasmaCell: '🔆', mastCell: '💥', antiPD1: '🧬', cancer_melanoma: '🟣', cancer_lung_pdl1: '🟠', cancer_treg: '🟪' };
+    const avatarEmoji = { rbc: '🔴', neutrophil: '⚡', macrophage: '🌀', lysozyme: '💧', tcell: '🎯', nkcell: '🗡️', bcell: '🛡️', dendritic: '☀️', eosinophil: '🏹', memoryT: '📚', monocyte: '🛰️', plasmaCell: '🔆', mastCell: '💥', antiPD1: '🧬', cancer_melanoma: '🟣', cancer_lung_pdl1: '🟠', cancer_treg: '🟪', cancer_metabolic: '🍬', cancer_exosome: '🫧', cancer_angiogenesis: '🩸' };
     const cellAvatars = {};      // Image对象（Canvas绘制用）
     const avatarURLs = {};       // URL（UI <img>用）
     const avatarStatus = {};     // loading / ok / fail
@@ -1735,7 +1824,7 @@
     // 反向玩法：操控癌细胞，在免疫细胞追杀下存活指定波数。
     const PATHOLOGY_LEVELS = [
         {
-            id: 'P01', name: '病理档案 01 · 逃逸开始', short: '逃逸开始',
+            id: 'P01', name: '病理档案 01 · 逃逸开始', short: '逃逸开始', chapter: 1,
             waves: 8, waveDuration: 9, enemyHp: 55,
             extraSuppression: 0, countMult: 1, speedMult: 1, auraAll: false,
             rewardFluid: 1, rewardFragments: 0, rewardCheckpoint: 0,
@@ -1754,7 +1843,7 @@
             ]
         },
         {
-            id: 'P02', name: '病理档案 02 · 检查点封锁', short: '检查点封锁',
+            id: 'P02', name: '病理档案 02 · 检查点封锁', short: '检查点封锁', chapter: 1,
             waves: 10, waveDuration: 10, enemyHp: 80,
             extraSuppression: 1, countMult: 1, speedMult: 1, auraAll: true,
             suppressionPerWave: 1, suppressionEvery: 1,
@@ -1776,7 +1865,7 @@
             ]
         },
         {
-            id: 'P03', name: '病理档案 03 · 免疫风暴', short: '免疫风暴',
+            id: 'P03', name: '病理档案 03 · 免疫风暴', short: '免疫风暴', chapter: 1,
             waves: 12, waveDuration: 11, enemyHp: 110,
             extraSuppression: 2, countMult: 1.5, speedMult: 1.2, auraAll: false,
             suppressionPerWave: 1, suppressionEvery: 2,
@@ -1797,6 +1886,82 @@
                 { count: 8, types: ['immune_tcell', 'immune_nkcell'] },
                 { count: 8, types: ['immune_tcell', 'immune_nkcell', 'immune_macrophage'] },
                 { count: 7, types: ['immune_tcell', 'immune_nkcell'], boss: 'immune_ctla_boss' }
+            ]
+        },
+        // ===== 第二章：免疫编辑 =====
+        {
+            id: 'P04', name: '病理档案 04 · 代谢战场', short: '代谢战场', chapter: 2, unlockAfter: 'P03',
+            waves: 10, waveDuration: 10, enemyHp: 130,
+            extraSuppression: 1, countMult: 1, speedMult: 0.85, enemyAttackMult: 1.2, auraAll: false,
+            atpRegenPenalty: 0.15, deployCdPenalty: 400,
+            firstClear: { fluid: 2, samples: 1, checkpoint: 0 }, repeat: { fluid: 1 },
+            sampleFlavor: '代谢竞争型肿瘤',
+            mechanics: '敌人速度 -15%、攻击 +20%；ATP/部署节奏 -15%；第 10 波 Boss：MDSC',
+            brief: `【病理档案 · P04】肿瘤微环境开始改造。免疫细胞被代谢竞争拖慢，你的癌细胞也在消耗自己的 ATP。存活 10 波，学会用代谢优势换生存空间。`,
+            archive: `【档案 · P04】瓦伯格效应：肿瘤细胞即使在有氧条件下也大量进行糖酵解，消耗大量葡萄糖和谷氨酰胺。这导致微环境中免疫细胞缺乏代谢底物，功能下降。代谢竞争是肿瘤免疫逃逸的隐形战场。`,
+            waveDefs: [
+                { count: 6, types: ['immune_neutrophil'] },
+                { count: 7, types: ['immune_neutrophil'] },
+                { count: 7, types: ['immune_neutrophil', 'immune_macrophage'] },
+                { count: 8, types: ['immune_macrophage'] },
+                { count: 8, types: ['immune_macrophage', 'immune_tcell'] },
+                { count: 8, types: ['immune_tcell'] },
+                { count: 9, types: ['immune_tcell', 'immune_nkcell'] },
+                { count: 9, types: ['immune_tcell', 'immune_nkcell'] },
+                { count: 10, types: ['immune_tcell', 'immune_nkcell', 'immune_tam'] },
+                { count: 8, types: ['immune_tcell', 'immune_tam'], boss: 'immune_mdsc' }
+            ]
+        },
+        {
+            id: 'P05', name: '病理档案 05 · 外泌体信号', short: '外泌体信号', chapter: 2, unlockAfter: 'P04',
+            waves: 12, waveDuration: 11, enemyHp: 150,
+            extraSuppression: 2, countMult: 1, speedMult: 1, auraAll: false,
+            epicLifePenaltyPer: 0.08, disableImmuneCycle: 8,
+            firstClear: { fluid: 2, samples: 1, checkpoint: 0 }, repeat: { fluid: 1 },
+            sampleFlavor: '外泌体诱导型肿瘤',
+            mechanics: '敌人每 8 秒获得 2 秒失能免疫；每 1 名史诗干员全队寿命 -8%；第 12 波 Boss：Treg',
+            brief: `【病理档案 · P05】肿瘤释放外泌体，改造周围免疫细胞。敌人会间歇性失能，但你的史诗干员也在被削弱。存活 12 波，用控制换时间。`,
+            archive: `【档案 · P05】肿瘤外泌体携带 PD-L1、TGF-β、miRNA 等信号分子，可诱导 T 细胞失能、促进 Treg 分化、重塑微环境。外泌体是肿瘤“远程操控”免疫系统的工具。`,
+            waveDefs: [
+                { count: 6, types: ['immune_neutrophil'] },
+                { count: 7, types: ['immune_neutrophil', 'immune_macrophage'] },
+                { count: 7, types: ['immune_macrophage'] },
+                { count: 8, types: ['immune_macrophage', 'immune_tam'] },
+                { count: 8, types: ['immune_tam'] },
+                { count: 8, types: ['immune_tcell', 'immune_tam'] },
+                { count: 9, types: ['immune_tcell', 'immune_nkcell'] },
+                { count: 8, types: ['immune_treg', 'immune_tcell'] },
+                { count: 9, types: ['immune_treg', 'immune_nkcell'] },
+                { count: 9, types: ['immune_treg', 'immune_tam'] },
+                { count: 10, types: ['immune_treg', 'immune_tcell', 'immune_mdsc'] },
+                { count: 8, types: ['immune_treg', 'immune_tcell'], boss: 'immune_treg' }
+            ]
+        },
+        {
+            id: 'P06', name: '病理档案 06 · 血管网络', short: '血管网络', chapter: 2, unlockAfter: 'P05',
+            waves: 14, waveDuration: 12, enemyHp: 170,
+            extraSuppression: 3, countMult: 1, speedMult: 1, auraAll: false,
+            deployCostPenalty: 1, deployCdPenalty: 1000, enemyHealCycle: 10,
+            firstClear: { fluid: 3, samples: 1, checkpoint: 1 }, repeat: { fluid: 2 },
+            sampleFlavor: '血管生成型肿瘤',
+            mechanics: '敌人每 10 秒回复 5% 生命；全队部署费用 +1；第 14 波 Boss：强化 CTL',
+            brief: `【病理档案 · P06】肿瘤开始生成血管，获取营养，形成免疫抑制微环境。敌人会不断回复，你的费用也在上涨。存活 14 波，这是免疫编辑的平衡期终局。`,
+            archive: `【档案 · P06】VEGF 促进肿瘤血管生成，为肿瘤提供营养和氧气，同时形成免疫抑制微环境。血管生成型肿瘤寿命长、回复快，但会拖慢全队部署节奏。免疫编辑的平衡期，是免疫系统“打不干净但也打不死”的僵持阶段。`,
+            waveDefs: [
+                { count: 6, types: ['immune_neutrophil'] },
+                { count: 7, types: ['immune_neutrophil', 'immune_macrophage'] },
+                { count: 7, types: ['immune_macrophage'] },
+                { count: 8, types: ['immune_macrophage', 'immune_tam'] },
+                { count: 8, types: ['immune_tam'] },
+                { count: 8, types: ['immune_tam', 'immune_treg'] },
+                { count: 9, types: ['immune_tcell', 'immune_tam'] },
+                { count: 9, types: ['immune_treg', 'immune_tcell'] },
+                { count: 9, types: ['immune_mdsc', 'immune_treg'] },
+                { count: 10, types: ['immune_mdsc', 'immune_tam'] },
+                { count: 10, types: ['immune_tcell', 'immune_nkcell', 'immune_tam'] },
+                { count: 10, types: ['immune_treg', 'immune_mdsc'] },
+                { count: 11, types: ['immune_mdsc', 'immune_tam', 'immune_treg'] },
+                { count: 9, types: ['immune_tcell', 'immune_nkcell', 'immune_tam'], boss: 'immune_ctla_elite' }
             ]
         }
     ];
@@ -1883,8 +2048,10 @@
     let pathologyAttemptsDate = '';                     // 每日挑战计数日期（持久化）
     let pathologyAttemptsUsed = 0;                      // 当日已用挑战次数（持久化）
     let seenPathologyBriefs = [];                       // 已查看特殊关 brief（持久化）
-    let unlockedPathologyArchives = [];                 // 已解锁特殊档案 P01-P03（持久化）
+    let unlockedPathologyArchives = [];                 // 已解锁特殊档案 P01-P06（持久化）
     let pd1AuraActive = 0;                              // 当前生效的 PD-1 光环敌人数
+    let mdscAuraActive = 0;                             // 当前生效的 MDSC 光环敌人数
+    let deployReadyAt = 0;                              // 病理档案部署冷却结束时间
     let dishFlashId = null;                             // 培养皿短动画目标（不持久化）
 
     // 初始赠送3名初始干员（1星）
@@ -2213,12 +2380,16 @@
     function getArchiveBonus() {
         return Math.min(0.12, unlockedArchives.length * 0.005);
     }
+    // 特殊档案（病理档案 P01-P06）增益：每解锁 1 关 +0.5%，最多 +3%
+    function getPathologyArchiveBonus() {
+        return Math.min(0.03, unlockedPathologyArchives.length * 0.005);
+    }
 
     // 根据星级计算强化后的干员属性
     function getUpgradedStats(op, stars) {
         let atkBonus = (stars - 1) * 0.15;      // 每星 +15% 攻击
         let lifeBonus = (stars - 1) * 2;        // 每星 +2 秒寿命
-        let archiveBonus = getArchiveBonus();
+        let archiveBonus = getArchiveBonus() + getPathologyArchiveBonus();
         return {
             ...op,
             atk: Math.round(op.atk * (1 + atkBonus) * (1 + archiveBonus) * 10) / 10,
@@ -2236,16 +2407,17 @@
     function getUpgradedCancerStats(def, stars) {
         let starBonus = (stars - 1) * 0.10;
         let specialBonus = 1 + 0.05 * (stars - 1);
+        let archiveBonus = getArchiveBonus() + getPathologyArchiveBonus();
         let special = {};
         for(let k in def.special) {
-            special[k] = (typeof def.special[k] === 'number' && k !== 'stack')
+            special[k] = (typeof def.special[k] === 'number' && k !== 'stack' && !k.endsWith('Interval'))
                 ? def.special[k] * specialBonus
                 : def.special[k];
         }
         return {
             ...def,
-            atk: Math.round(def.atk * (1 + starBonus) * (1 + getArchiveBonus()) * 10) / 10,
-            maxLifeSec: Math.round(def.maxLifeSec * (1 + getArchiveBonus()) * 10) / 10,
+            atk: Math.round(def.atk * (1 + starBonus) * (1 + archiveBonus) * 10) / 10,
+            maxLifeSec: Math.round(def.maxLifeSec * (1 + archiveBonus) * 10) / 10,
             special: special,
             stars: stars,
             isCancer: true
@@ -2257,6 +2429,7 @@
         if(!op) return 0;
         if(pathologyMode) return 0;   // 病理档案特殊关不消耗 ATP
         let extra = op.rarity === 'legendary' ? getSuppressionEffects().legendaryCostAdd : 0;
+        extra += getDeployCostPenalty();   // 血管生成型肿瘤：全队部署费用 +1
         return op.cost + extra;
     }
 
@@ -2264,9 +2437,14 @@
         const cancerDef = getSelectedCancerDef();
         const cancerState = cancerDef ? cancerCollection[cancerDef.id] : null;
         const activeDeck = getActiveDeckIds();
+        const lvl = pathologyMode ? getPathologyLevel() : null;
         const legendCount = activeDeck.filter(id => {
             let op = masterPool.find(m => m.id === id);
             return op && op.rarity === 'legendary';
+        }).length;
+        const epicCount = activeDeck.filter(id => {
+            let op = masterPool.find(m => m.id === id);
+            return op && op.rarity === 'epic';
         }).length;
 
         let list = activeDeck
@@ -2292,11 +2470,51 @@
                     squadDebuffNote: `全队攻击 ${Math.round((mult - 1) * 100)}%`
                 }));
             }
+        }
 
+        // 史诗干员寿命惩罚：P05 关卡或外泌体肿瘤，二者取其一避免叠加
+        let epicPenaltyPer = 0;
+        if(lvl && lvl.epicLifePenaltyPer) epicPenaltyPer = lvl.epicLifePenaltyPer;
+        else if(cancerDef && cancerDef.squadDebuff.type === 'epicLife') epicPenaltyPer = Math.abs(cancerDef.squadDebuff.value);
+        if(epicPenaltyPer > 0 && epicCount > 0) {
+            let mult = Math.max(0.2, 1 - epicPenaltyPer * epicCount);
+            list = list.map(op => ({
+                ...op,
+                maxLifeSec: Math.round(op.maxLifeSec * mult * 10) / 10,
+                squadDebuffNote: (op.squadDebuffNote ? op.squadDebuffNote + ' · ' : '') + `全队寿命 ${Math.round((mult - 1) * 100)}%`
+            }));
+        }
+
+        // 资源类负面（ATP / 部署费用）；特殊关无 ATP，转为部署冷却提示
+        let atpPenalty = 0;
+        if(lvl && lvl.atpRegenPenalty) atpPenalty = lvl.atpRegenPenalty;
+        else if(cancerDef && cancerDef.squadDebuff.type === 'atpRegen') atpPenalty = Math.abs(cancerDef.squadDebuff.value);
+        let costPenalty = 0;
+        if(lvl && lvl.deployCostPenalty) costPenalty = lvl.deployCostPenalty;
+        else if(cancerDef && cancerDef.squadDebuff.type === 'deployCost') costPenalty = 1;
+        let resourceNotes = [];
+        if(atpPenalty > 0) resourceNotes.push(pathologyMode ? '部署节奏下降' : `ATP 回复 -${Math.round(atpPenalty * 100)}%`);
+        if(costPenalty > 0) resourceNotes.push(pathologyMode ? `部署冷却 +${costPenalty}s` : `部署费用 +${costPenalty}`);
+        if(resourceNotes.length) {
+            list = list.map(op => ({
+                ...op,
+                squadDebuffNote: (op.squadDebuffNote ? op.squadDebuffNote + ' · ' : '') + resourceNotes.join(' · ')
+            }));
+        }
+
+        if(cancerDef) {
             let cancerOp = getUpgradedCancerStats(cancerDef, cancerState.stars);
             if(cancerDef.squadDebuff.type === 'legendaryAtk' && legendCount > 0) {
                 cancerOp.atk = Math.round(cancerOp.atk * (1 + cancerDef.squadDebuff.value * legendCount) * 10) / 10;
                 cancerOp.squadDebuffNote = `全队攻击 ${Math.round(cancerDef.squadDebuff.value * legendCount * 100)}%`;
+            }
+            if(epicPenaltyPer > 0 && epicCount > 0) {
+                let mult = Math.max(0.2, 1 - epicPenaltyPer * epicCount);
+                cancerOp.maxLifeSec = Math.round(cancerOp.maxLifeSec * mult * 10) / 10;
+                cancerOp.squadDebuffNote = (cancerOp.squadDebuffNote ? cancerOp.squadDebuffNote + ' · ' : '') + `全队寿命 ${Math.round((mult - 1) * 100)}%`;
+            }
+            if(resourceNotes.length) {
+                cancerOp.squadDebuffNote = (cancerOp.squadDebuffNote ? cancerOp.squadDebuffNote + ' · ' : '') + resourceNotes.join(' · ');
             }
             list.push(cancerOp);
         }
@@ -4002,7 +4220,8 @@
         const list = document.getElementById('archiveList');
         if(!sum || !list) return;
         const pctText = (Math.round(getArchiveBonus() * 1000) / 10).toString().replace('.0', '');
-        sum.innerHTML = `已解锁 <b>${unlockedArchives.length}</b> / ${levels.length} 条档案 · 特殊档案 <b>${unlockedPathologyArchives.length}</b> / ${PATHOLOGY_LEVELS.length} · 当前增益 <b>+${pctText}%</b> 攻击与寿命<span style="color:#6f7a8c;">（每条普通档案 +0.5%，上限 +12%；特殊档案不计入加成）</span>`;
+        const specialPctText = (Math.round(getPathologyArchiveBonus() * 1000) / 10).toString().replace('.0', '');
+        sum.innerHTML = `已解锁 <b>${unlockedArchives.length}</b> / ${levels.length} 条档案 · 特殊档案 <b>${unlockedPathologyArchives.length}</b> / ${PATHOLOGY_LEVELS.length}<br>普通档案加成 <b>+${pctText}%</b> · 特殊档案加成 <b>+${specialPctText}%</b><span style="color:#6f7a8c;">（每条 +0.5%，普通上限 +12%，特殊上限 +3%）</span>`;
         let html = '';
         levels.forEach((lvl, i) => {
             const prev = levels[i - 1];
@@ -4020,15 +4239,19 @@
             const next = levels[i + 1];
             if(!next || next.ageGroup !== lvl.ageGroup) html += '</div>';
         });
-        html += `<div class="archive-group"><div class="archive-group-head">病理档案 · 特殊关<span>特殊档案 ${unlockedPathologyArchives.length} / ${PATHOLOGY_LEVELS.length}</span></div>`;
-        PATHOLOGY_LEVELS.forEach(lvl => {
-            const unlocked = unlockedPathologyArchives.includes(lvl.id);
-            html += `<div class="archive-entry ${unlocked ? 'unlocked' : 'locked'}">
-                <div class="ae-title">${lvl.id} · ${lvl.short}${unlocked ? '' : ' 🔒'}</div>
-                <div class="ae-body">${unlocked ? formatDossier(lvl.archive) : '通关该病理档案后解锁。'}</div>
-            </div>`;
+        [1, 2].forEach(chapter => {
+            const chapterLevels = PATHOLOGY_LEVELS.filter(l => l.chapter === chapter);
+            const got = chapterLevels.filter(l => unlockedPathologyArchives.includes(l.id)).length;
+            html += `<div class="archive-group"><div class="archive-group-head">病理档案 · ${chapter === 1 ? '第一章 · 逃逸开始' : '第二章 · 免疫编辑'}<span>特殊档案 ${got} / ${chapterLevels.length}</span></div>`;
+            chapterLevels.forEach(lvl => {
+                const unlocked = unlockedPathologyArchives.includes(lvl.id);
+                html += `<div class="archive-entry ${unlocked ? 'unlocked' : 'locked'}">
+                    <div class="ae-title">${lvl.id} · ${lvl.short}${unlocked ? '' : ' 🔒'}</div>
+                    <div class="ae-body">${unlocked ? formatDossier(lvl.archive) : (lvl.unlockAfter ? `通关 ${lvl.unlockAfter} 后解锁。` : '通关该病理档案后解锁。')}</div>
+                </div>`;
+            });
+            html += '</div>';
         });
-        html += '</div>';
         list.innerHTML = html;
     }
 
@@ -4041,6 +4264,37 @@
     }
     function isPathologyUnlocked() {
         return unlockedArchives.includes(21) || currentLevel >= 22;
+    }
+    function isPathologyLevelUnlocked(index) {
+        if(!isPathologyUnlocked()) return false;
+        const lvl = PATHOLOGY_LEVELS[index];
+        if(!lvl) return false;
+        if(lvl.unlockAfter) return unlockedPathologyArchives.includes(lvl.unlockAfter);
+        return true;
+    }
+    function getAtpRegenPenalty() {
+        if(pathologyMode) return 0;   // 特殊关无 ATP，转为部署冷却
+        const def = getSelectedCancerDef();
+        return (def && def.squadDebuff.type === 'atpRegen') ? Math.abs(def.squadDebuff.value) : 0;
+    }
+    function getDeployCostPenalty() {
+        if(pathologyMode) return 0;
+        const def = getSelectedCancerDef();
+        return (def && def.squadDebuff.type === 'deployCost') ? 1 : 0;
+    }
+    function getDeployCooldownMs() {
+        if(!pathologyMode) return 0;
+        const lvl = getPathologyLevel();
+        const def = getSelectedCancerDef();
+        let cd = 0;
+        if(lvl && lvl.deployCdPenalty) cd += lvl.deployCdPenalty;
+        if(def && def.deployCdPenalty) {
+            const duplicate =
+                (lvl && lvl.id === 'P04' && def.id === 'cancer_metabolic') ||
+                (lvl && lvl.id === 'P06' && def.id === 'cancer_angiogenesis');
+            if(!duplicate) cd += def.deployCdPenalty;
+        }
+        return cd;
     }
     function getPathologyLevel() {
         return PATHOLOGY_LEVELS[pathologyLevelIndex] || PATHOLOGY_LEVELS[0];
@@ -4224,7 +4478,7 @@
         if(!hint || !text || !antiBtn || !cpBtn) return;
 
         const hasAntiDeployed = inBattle && playerOperators.some(o => o.id === 'antiPD1') && hasDeployedAntiPd1();
-        const forceShow = pathologyMode && inBattle && (hasAntiDeployed || pd1AuraActive > 0);
+        const forceShow = pathologyMode && inBattle && (hasAntiDeployed || pd1AuraActive > 0 || mdscAuraActive > 0);
         if(layers <= 0 && !forceShow) {
             hint.style.display = 'none';
             antiBtn.style.display = 'none';
@@ -4236,7 +4490,8 @@
         hint.className = 'suppression-hint ' + st.cls;
         let effectText = st.effects.length ? st.effects.join(' · ') + ' · ' : '';
         let hintText = `☣ ${inBattle ? '抑制信号' : '编队抑制信号'} ${layers} 层 · ${effectText}${st.next}`;
-        if(pathologyMode && pd1AuraActive > 0) hintText += ` · PD-1 光环 ×${pd1AuraActive}`;
+        if(pathologyMode && pd1AuraActive > 0) hintText += ` · PD-1 光环 ×${pd1AuraActive}（癌细胞特殊效果 -50%）`;
+        if(pathologyMode && mdscAuraActive > 0) hintText += ` · MDSC 光环 ×${mdscAuraActive}（癌细胞攻击 -30%）`;
         text.innerText = hintText;
 
         // 抗 PD-1 主动技能
@@ -4582,7 +4837,7 @@
         }
         const def = getSelectedCancerDef();
         const attemptsLeft = getPathologyAttemptsLeft();
-        sum.innerHTML = `今日剩余挑战：<b>${attemptsLeft}</b> / 2 次 · 病变原液：<b>${pathologyFluid}</b> 🧪<br><span style="color:#6f7a8c;">不消耗 ATP；每次开始逃逸消耗 1 次挑战次数。</span>`;
+        sum.innerHTML = `今日剩余挑战：<b>${attemptsLeft}</b> / 2 次 · 病变原液：<b>${pathologyFluid}</b> 🧪 · 特殊档案：<b>${unlockedPathologyArchives.length}</b> / ${PATHOLOGY_LEVELS.length}<br><span style="color:#6f7a8c;">不消耗 ATP；每次开始逃逸消耗 1 次挑战次数；P04–P06 需依次通关前一关解锁。</span>`;
 
         let html = '<div class="path-setup"><div class="ps-title">出战配置</div>';
         if(def) {
@@ -4630,19 +4885,41 @@
         html += '</div>';
         setup.innerHTML = html;
 
-        levelsDiv.innerHTML = PATHOLOGY_LEVELS.map((lvl, i) => {
-            const rewards = [];
-            if(lvl.rewardFluid) rewards.push(`病变原液 ×${lvl.rewardFluid}`);
-            if(lvl.rewardFragments) rewards.push(`癌细胞信物 ×${lvl.rewardFragments}`);
-            if(lvl.rewardCheckpoint) rewards.push(`抑制剂 ×${lvl.rewardCheckpoint}`);
-            const disabled = attemptsLeft <= 0 || !def;
-            return `<div class="pathology-level-card">
+        let lastChapter = 0;
+        let levelHtml = '';
+        PATHOLOGY_LEVELS.forEach((lvl, i) => {
+            if(lvl.chapter !== lastChapter) {
+                lastChapter = lvl.chapter;
+                levelHtml += `<div class="path-chapter-title">${lvl.chapter === 1 ? '第一章 · 逃逸开始' : '第二章 · 免疫编辑'}</div>`;
+            }
+            const unlocked = isPathologyLevelUnlocked(i);
+            let firstRewards = [];
+            let repeatRewards = [];
+            if(lvl.firstClear) {
+                if(lvl.firstClear.fluid) firstRewards.push(`病变原液 ×${lvl.firstClear.fluid}`);
+                if(lvl.firstClear.samples) firstRewards.push(`病变样本 ×${lvl.firstClear.samples}${lvl.sampleFlavor ? '（' + lvl.sampleFlavor + '）' : ''}`);
+                if(lvl.firstClear.checkpoint) firstRewards.push(`抑制剂 ×${lvl.firstClear.checkpoint}`);
+                if(lvl.repeat && lvl.repeat.fluid) repeatRewards.push(`病变原液 ×${lvl.repeat.fluid}`);
+            } else {
+                if(lvl.rewardFluid) firstRewards.push(`病变原液 ×${lvl.rewardFluid}`);
+                if(lvl.rewardFragments) firstRewards.push(`癌细胞信物 ×${lvl.rewardFragments}`);
+                if(lvl.rewardCheckpoint) firstRewards.push(`抑制剂 ×${lvl.rewardCheckpoint}`);
+            }
+            let rewardHtml = lvl.firstClear
+                ? `首通：${firstRewards.join(' · ')}<br>重复：${repeatRewards.join(' · ')}`
+                : `奖励：${firstRewards.join(' · ')}`;
+            const disabled = !unlocked || attemptsLeft <= 0 || !def;
+            const btnText = !unlocked
+                ? `需通关 ${lvl.unlockAfter}`
+                : (attemptsLeft <= 0 ? '今日次数已用完' : (def ? '进入' : '需要癌细胞'));
+            levelHtml += `<div class="pathology-level-card ${unlocked ? '' : 'locked'}">
                 <div class="pl-name">${lvl.name}</div>
                 <div class="pl-meta">${lvl.waves} 波 · 每波 ${lvl.waveDuration}s<br>${lvl.mechanics}</div>
-                <div class="pl-rewards">奖励：${rewards.join(' · ')}</div>
-                <button onclick="enterPathologyLevel(${i})" ${disabled ? 'disabled' : ''}>${attemptsLeft <= 0 ? '今日次数已用完' : (def ? '进入' : '需要癌细胞')}</button>
+                <div class="pl-rewards">${rewardHtml}</div>
+                <button onclick="enterPathologyLevel(${i})" ${disabled ? 'disabled' : ''}>${btnText}</button>
             </div>`;
-        }).join('');
+        });
+        levelsDiv.innerHTML = levelHtml;
     }
 
     function togglePathologyPicker() {
@@ -4670,6 +4947,11 @@
     function enterPathologyLevel(index) {
         if(waveInProgress) { alert('战斗中无法切换关卡！'); return; }
         if(!isPathologyUnlocked()) { alert('通关第 21 关后解锁病理档案特殊关。'); return; }
+        if(!isPathologyLevelUnlocked(index)) {
+            const lvl = PATHOLOGY_LEVELS[index];
+            alert(`「${lvl.name}」尚未解锁：需先通关 ${lvl.unlockAfter}。`);
+            return;
+        }
         if(getPathologyAttemptsLeft() <= 0) { alert('今日挑战次数已用完（每日 2 次）。'); return; }
         if(!abnormalId || !cancerCollection[abnormalId]) { alert('请先选择并培养一名癌细胞。'); return; }
         if(pathologyDeck.length > 2) pathologyDeck = pathologyDeck.slice(0, 2);
@@ -4817,6 +5099,11 @@
             }
 
             if(!selectedOp) { alert("请先选择细胞！"); return; }
+            if(pathologyMode && performance.now() < deployReadyAt) {
+                let remain = Math.ceil((deployReadyAt - performance.now()) / 100) / 10;
+                document.getElementById('tipMsg').innerText = `部署冷却中：还需 ${remain} 秒（代谢/血管负面效果）`;
+                return;
+            }
             let deployCost = getEffectiveCost(selectedOp);
             if(atp < deployCost) { alert("ATP 能量不足！"); return; }
 
@@ -4833,9 +5120,12 @@
                 cost: deployCost, r, c,
                 lifeTimer: totalFrames, maxLifeTimer: totalFrames,
                 infected: false, infectTimer: 0,
-                atkBuff: 0, atkBuffTimer: 0
+                atkBuff: 0, atkBuffTimer: 0,
+                exosomeTimer: 0, vesselTimer: 0, tamBuff: 0,
+                mdscSuppressed: false
             };
             applyPdl1LifeCutOnDeploy(r, c);
+            deployReadyAt = performance.now() + getDeployCooldownMs();
             updateUI();
         }
     }
@@ -4987,7 +5277,13 @@
             phaseHidden: false,
             pd1Aura: !!((spawnState && spawnState.pd1Aura) || td.pd1Aura),
             auraRadius: td.auraRadius || 2,
-            pd1BlockedTimer: 0
+            pd1BlockedTimer: 0,
+            attackMult: pathologyMode ? (getPathologyLevel().enemyAttackMult || 1) : 1,
+            disabledTimer: 0,
+            disableImmuneTimer: 0,
+            p05Timer: pathologyMode ? Math.floor(Math.random() * 480) : 0,
+            p06HealTimer: pathologyMode ? Math.floor(Math.random() * 600) : 0,
+            tregDR: 0
         };
         enemies.push(en);
         if(isBoss) spawnFloatingText(x - 20, y - 20, '⚠ Boss 出现!', '#ff5c5c');
@@ -5042,6 +5338,7 @@
         pathologyWaveIndex = 0;
         pathologyWaveElapsed = 0;
         pathologyBetweenTimer = 0;
+        deployReadyAt = 0;
         updateWaveButton();
         updateUI();
         startPathologyWave(0);
@@ -5123,22 +5420,36 @@
         clearSpawnTimer();
         updateWaveButton();
         const lvl = getPathologyLevel();
-        pathologyFluid += (lvl.rewardFluid || 0);
-        if(lvl.rewardFragments && abnormalId && cancerCollection[abnormalId]) {
-            cancerCollection[abnormalId].fragments += lvl.rewardFragments;
+        const firstClear = !unlockedPathologyArchives.includes(lvl.id);
+        let reward;
+        if(lvl.firstClear) {
+            reward = firstClear ? lvl.firstClear : (lvl.repeat || {});
+        } else {
+            reward = {
+                fluid: lvl.rewardFluid || 0,
+                fragments: lvl.rewardFragments || 0,
+                checkpoint: lvl.rewardCheckpoint || 0,
+                samples: 0
+            };
         }
-        if(lvl.rewardCheckpoint) checkpointItems += lvl.rewardCheckpoint;
+        pathologyFluid += (reward.fluid || 0);
+        pathologySamples += (reward.samples || 0);
+        if(reward.fragments && abnormalId && cancerCollection[abnormalId]) {
+            cancerCollection[abnormalId].fragments += reward.fragments;
+        }
+        if(reward.checkpoint) checkpointItems += reward.checkpoint;
         let archiveUnlocked = false;
-        if(!unlockedPathologyArchives.includes(lvl.id)) {
+        if(firstClear) {
             unlockedPathologyArchives.push(lvl.id);
             archiveUnlocked = true;
         }
         saveGame();
         refreshDeckOperators();
         let lines = [];
-        if(lvl.rewardFluid) lines.push(`🧪 病变原液 +${lvl.rewardFluid}`);
-        if(lvl.rewardFragments) lines.push(`🧬 癌细胞信物 +${lvl.rewardFragments}`);
-        if(lvl.rewardCheckpoint) lines.push(`🧪 免疫检查点抑制剂 +${lvl.rewardCheckpoint}`);
+        if(reward.fluid) lines.push(`🧪 病变原液 +${reward.fluid}`);
+        if(reward.fragments) lines.push(`🧬 癌细胞信物 +${reward.fragments}`);
+        if(reward.samples) lines.push(`🧫 病变样本 +${reward.samples}${lvl.sampleFlavor ? '（' + lvl.sampleFlavor + '）' : ''}`);
+        if(reward.checkpoint) lines.push(`🧪 免疫检查点抑制剂 +${reward.checkpoint}`);
         if(archiveUnlocked) lines.push(`📖 特殊档案 ${lvl.id} 已解锁`);
         openResultModal(
             '🎉 逃逸成功',
@@ -5370,6 +5681,10 @@
             return;
         }
         let dmg = amount;
+        if(en) {
+            dmg *= (en.attackMult || 1);
+            dmg *= (1 - (en.metabolicSlow || 0));
+        }
         // T 细胞对癌细胞伤害 +30%
         if(en && en.typeData.antiCancer && cell.isCancer) {
             dmg *= 1.3;
@@ -5415,8 +5730,8 @@
 
         const suppFx = getSuppressionEffects();
 
-        // ATP 自然恢复（抑制信号 3 层以上 -10%）
-        if(Math.random() < 0.035 * suppFx.atpRegenMult) {
+        // ATP 自然恢复（抑制信号 + 代谢竞争惩罚）
+        if(Math.random() < 0.035 * suppFx.atpRegenMult * (1 - getAtpRegenPenalty())) {
             atp = Math.min(60, atp + 1);
             updateUI();
         }
@@ -5444,6 +5759,77 @@
                             }
                         }
                     }
+                }
+            }
+        }
+
+        // MDSC 光环：范围内癌细胞攻击 -30%
+        mdscAuraActive = 0;
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                if(grid[r][c] && grid[r][c].isCancer) grid[r][c].mdscSuppressed = false;
+            }
+        }
+        for(let en of enemies) {
+            let enOnBoard = en.x >= 0 && en.x < cols * tileSize && en.y >= 0 && en.y < rows * tileSize;
+            if(!en.typeData.mdscAura || !enOnBoard) continue;
+            mdscAuraActive++;
+            for(let r = 0; r < rows; r++) {
+                for(let c = 0; c < cols; c++) {
+                    let cell = grid[r][c];
+                    if(cell && cell.isCancer &&
+                       Math.abs(en.currentR - r) <= 2 && Math.abs(en.currentC - c) <= 2) {
+                        cell.mdscSuppressed = true;
+                    }
+                }
+            }
+        }
+
+        // 敌方 Treg：为周围免疫细胞提供 20% 减伤
+        for(let en of enemies) en.tregDR = 0;
+        for(let src of enemies) {
+            if(!src.typeData.tregAura) continue;
+            let onBoard = src.x >= 0 && src.x < cols * tileSize && src.y >= 0 && src.y < rows * tileSize;
+            if(!onBoard) continue;
+            for(let en of enemies) {
+                if(Math.abs(en.currentR - src.currentR) <= 2 && Math.abs(en.currentC - src.currentC) <= 2) {
+                    en.tregDR = Math.max(en.tregDR || 0, 0.20);
+                }
+            }
+        }
+
+        // 代谢竞争型肿瘤：范围内敌人攻击速度 -25%（以 DPS 折算）
+        for(let en of enemies) en.metabolicSlow = 0;
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                let cell = grid[r][c];
+                if(!cell || cell.id !== 'cancer_metabolic' || cell.infected) continue;
+                let slow = (cell.special && cell.special.metabolicSlow) || 0.25;
+                slow *= (cell.pd1Suppressed ? 0.5 : 1) * (pathologyMode ? suppFx.specialMult : 1);
+                for(let en of enemies) {
+                    if(Math.abs(en.currentR - r) <= 2 && Math.abs(en.currentC - c) <= 2) {
+                        en.metabolicSlow = Math.max(en.metabolicSlow || 0, slow);
+                    }
+                }
+            }
+        }
+
+        const lvlNow = pathologyMode ? getPathologyLevel() : null;
+        if(lvlNow && lvlNow.disableImmuneCycle) {
+            const cycle = lvlNow.disableImmuneCycle * 60;
+            for(let en of enemies) {
+                en.p05Timer = (en.p05Timer || 0) + 1;
+                if(en.p05Timer % cycle === 0) en.disableImmuneTimer = 120;   // 2 秒失能免疫
+                if(en.disableImmuneTimer > 0) en.disableImmuneTimer--;
+            }
+        }
+        if(lvlNow && lvlNow.enemyHealCycle) {
+            const cycle = lvlNow.enemyHealCycle * 60;
+            for(let en of enemies) {
+                en.p06HealTimer = (en.p06HealTimer || 0) + 1;
+                if(en.p06HealTimer >= cycle) {
+                    en.p06HealTimer = 0;
+                    en.hp = Math.min(en.maxHp, en.hp + en.maxHp * 0.05);
                 }
             }
         }
@@ -5505,6 +5891,50 @@
                     // 感染状态不攻击，树突状细胞不攻击（仅增益）
                     if(op.infected || op.id === 'dendritic') continue;
 
+                    let cellCx = c * tileSize + tileSize / 2;
+                    let cellCy = r * tileSize + tileSize / 2;
+
+                    // 外泌体诱导型肿瘤：每 8 秒使范围内敌人失能 2 秒
+                    if(op.isCancer && op.special && op.special.exosomeInterval) {
+                        op.exosomeTimer = (op.exosomeTimer || 0) + 1;
+                        if(op.exosomeTimer >= op.special.exosomeInterval * 60) {
+                            op.exosomeTimer = 0;
+                            let exoGrids = getAttackedGrids(r, c, 'circle1');
+                            let disabled = 0;
+                            let disableFrames = ((op.special.exosomeDisable || 2) * 60)
+                                * (op.pd1Suppressed ? 0.5 : 1)
+                                * (pathologyMode ? suppFx.specialMult : 1);
+                            for(let en of enemies) {
+                                let enOnBoard = en.x >= 0 && en.x < cols * tileSize && en.y >= 0 && en.y < rows * tileSize;
+                                if(!enOnBoard || en.disableImmuneTimer > 0) continue;
+                                if(exoGrids.some(g => g.r === en.currentR && g.c === en.currentC)) {
+                                    en.disabledTimer = Math.max(en.disabledTimer || 0, disableFrames);
+                                    disabled++;
+                                }
+                            }
+                            if(disabled > 0) spawnFloatingText(cellCx, cellCy, '外泌体失能!', '#d84f9a');
+                        }
+                    }
+
+                    // 血管生成型肿瘤：每 15 秒回复周围癌细胞 20% 寿命
+                    if(op.isCancer && op.special && op.special.vesselInterval) {
+                        op.vesselTimer = (op.vesselTimer || 0) + 1;
+                        if(op.vesselTimer >= op.special.vesselInterval * 60) {
+                            op.vesselTimer = 0;
+                            let healPct = (op.special.vesselHeal || 0.2)
+                                * (op.pd1Suppressed ? 0.5 : 1)
+                                * (pathologyMode ? suppFx.specialMult : 1);
+                            let vesselGrids = getAttackedGrids(r, c, 'circle1');
+                            for(let g of vesselGrids) {
+                                let target = grid[g.r][g.c];
+                                if(target && target.isCancer) {
+                                    target.lifeTimer = Math.min(target.maxLifeTimer, target.lifeTimer + target.maxLifeTimer * healPct);
+                                }
+                            }
+                            spawnFloatingText(cellCx, cellCy, '营养血管', '#2ecc71');
+                        }
+                    }
+
                     let targetGrids = getAttackedGrids(r, c, op.rangeType);
                     let buffMult = buffedCells.has(r + ',' + c) ? 1.5 : 1;
                     let cellX = c * tileSize, cellY = r * tileSize;
@@ -5516,8 +5946,14 @@
                             if(Math.random() < (en.evasion || 0)) continue;
                             // 基础伤害（抗 PD-1 技能 buff + Treg 破防）
                             let atkNow = op.atk * (1 + (op.atkBuffTimer > 0 ? (op.atkBuff || 0) : 0));
-                            let effectiveDR = Math.max(0, (en.damageReduction || 0) - (en.defDown || 0));
+                            let effectiveDR = Math.max(0, (en.damageReduction || 0) + (en.tregDR || 0) - (en.defDown || 0));
+                            effectiveDR = Math.min(0.85, effectiveDR);
                             let damage = atkNow * 0.06 * buffMult * (1 - effectiveDR) * suppFx.attackMult;
+                            // 癌细胞受到 MDSC 光环压制 / TAM 促瘤因子增益
+                            if(op.isCancer) {
+                                if(op.mdscSuppressed) damage *= 0.7;
+                                damage *= (1 + (op.tamBuff || 0));
+                            }
                             // 溶菌酶对细菌加伤
                             if(op.id === 'lysozyme' && en.isBacteria) damage *= 1.5;
                             // 疟原虫隐匿期（红细胞内期）：近乎免疫，重置护盾恢复计时
@@ -5561,6 +5997,10 @@
             en.currentC = Math.max(0, Math.min(cols - 1, Math.floor(en.x / tileSize)));
             en.currentR = Math.max(0, Math.min(rows - 1, Math.floor(en.y / tileSize)));
 
+            // 外泌体失能：无法攻击（移动仍继续）
+            let disabled = en.disabledTimer > 0;
+            if(en.disabledTimer > 0) en.disabledTimer--;
+
             // 疟原虫周期性隐匿（红细胞内期）：每6秒约2.3秒，隐匿时无视阻挡
             if(en.ability === 'phase') {
                 en.phaseT++;
@@ -5579,7 +6019,7 @@
 
             // 与免疫细胞碰撞（隐匿期疟原虫直接穿过）
             let cell = onBoard ? grid[en.currentR][en.currentC] : null;
-            if(onBoard && !en.phaseHidden) {
+            if(onBoard && !en.phaseHidden && !disabled) {
                 // MHC-I 缺失黑色素瘤：附近敌人优先攻击它（诱饵）
                 let taunt = findTauntMelanoma(en);
                 let target = taunt ? taunt.cell : cell;
@@ -5601,7 +6041,7 @@
             }
 
             // 毒素能力：支原体/大肠杆菌定期损伤周围细胞
-            if(en.ability === 'toxin') {
+            if(!disabled && en.ability === 'toxin') {
                 en.toxinTimer++;
                 if(en.toxinTimer >= 120) { // 每2秒
                     en.toxinTimer = 0;
@@ -5618,7 +6058,7 @@
             }
 
             // 孢子能力：白念珠菌定期散播十字范围孢子云
-            if(en.ability === 'spore') {
+            if(!disabled && en.ability === 'spore') {
                 en.toxinTimer++;
                 if(en.toxinTimer >= 150) { // 每2.5秒
                     en.toxinTimer = 0;
@@ -5663,6 +6103,37 @@
                 }
             }
 
+            // 强化 CTL Boss：每 10 秒召唤 2 个中性粒细胞
+            if(!disabled && en.ability === 'summon_neutrophil') {
+                en.spawnTimer++;
+                if(en.spawnTimer >= 600) {
+                    en.spawnTimer = 0;
+                    let td = enemyTypes['immune_neutrophil'];
+                    let childHp = Math.floor(((getPathologyLevel().enemyHp) || 100) * td.hpMult);
+                    for(let j = 0; j < 2; j++) {
+                        enemies.push({
+                            x: en.x + (j === 0 ? -18 : 18),
+                            y: en.y + (j === 0 ? -18 : 18),
+                            hp: childHp, maxHp: childHp,
+                            speed: en.speed * 1.1,
+                            currentR: en.currentR, currentC: en.currentC,
+                            dirX: en.dirX, dirY: en.dirY,
+                            type: 'immune_neutrophil', typeData: td,
+                            ability: 'none', damageReduction: 0, evasion: 0,
+                            isBacteria: false, isSplit: true, isBoss: false,
+                            toxinTimer: 0, spawnTimer: 0, spawnCount: 99, size: td.size,
+                            shield: 0, maxShield: 0, shieldCd: 0,
+                            phaseT: 0, phaseHidden: false,
+                            pd1Aura: false, auraRadius: 2, pd1BlockedTimer: 0,
+                            attackMult: en.attackMult || 1,
+                            disabledTimer: 0, disableImmuneTimer: 0,
+                            p05Timer: 0, p06HealTimer: 0, tregDR: 0
+                        });
+                    }
+                    spawnFloatingText(en.x, en.y - 25, "召唤中性粒细胞!", '#27ae60');
+                }
+            }
+
             // 敌人死亡处理
             if(en.hp <= 0) {
                 // Boss掉落：击杀肝炎/肿瘤Boss额外奖励骨髓造血原液（病理档案模式除外）
@@ -5702,6 +6173,22 @@
                         }
                     }
                     spawnFloatingText(en.x, en.y - 20, "毒素爆发!", '#f39c12');
+                }
+
+                // TAM 死亡：释放促瘤因子，为周围癌细胞 +10% 攻击
+                if(en.typeData.tamFactor) {
+                    let buffed = 0;
+                    for(let r = 0; r < rows; r++) {
+                        for(let c = 0; c < cols; c++) {
+                            let cell = grid[r][c];
+                            if(cell && cell.isCancer &&
+                               Math.abs(r - en.currentR) <= 2 && Math.abs(c - en.currentC) <= 2) {
+                                cell.tamBuff = (cell.tamBuff || 0) + 0.10;
+                                buffed++;
+                            }
+                        }
+                    }
+                    spawnFloatingText(en.x, en.y - 20, `促瘤因子! ×${buffed}`, '#2ecc71');
                 }
 
                 spawnDeathParticles(en.x, en.y, en.typeData.color);
@@ -6422,6 +6909,8 @@
         pathologyWaveElapsed = 0;
         pathologyBetweenTimer = 0;
         pd1AuraActive = 0;
+        mdscAuraActive = 0;
+        deployReadyAt = 0;
         syncLevelUI();
         renderLevelList();
         updateWaveButton();
