@@ -544,6 +544,40 @@
         @keyframes resultRays { to { transform: rotate(360deg); } }
         .ga-result { isolation: isolate; }
 
+        /* ==================== 主线剧情：病理简报 / 阶段报告 / 病理档案 ==================== */
+        .story-modal { width: 560px; }
+        .story-tag {
+            display: inline-block; font-size: 10px; font-weight: bold; letter-spacing: 1.5px;
+            color: #ff8f8f; background: #2a1a1e; border: 1px solid #5a2a34; border-radius: 4px;
+            padding: 2px 8px; margin-bottom: 10px;
+        }
+        .story-tag.stage { color: #4facfe; background: #152232; border-color: #24405c; }
+        .dossier {
+            background: #101016; border: 1px solid #2d2d3b; border-left: 3px solid #c0392b;
+            border-radius: 8px; padding: 14px 16px; font-size: 12.5px; line-height: 1.95;
+            color: #c6cfdb; letter-spacing: .2px;
+        }
+        .dossier b { color: #ffd84d; font-weight: bold; }
+        .story-lines { background: #101016; border: 1px solid #2d2d3b; border-left: 3px solid #4facfe;
+            border-radius: 8px; padding: 14px 16px; font-size: 12.5px; line-height: 1.95; color: #c6cfdb; }
+        .story-lines div + div { margin-top: 4px; }
+        .story-actions { display: flex; gap: 10px; margin-top: 16px; }
+        .story-actions .btn-primary { flex: 1; }
+        .story-actions .btn-secondary { flex: 0 0 auto; }
+
+        .archive-summary { background: #16161a; border: 1px solid #2a2a38; border-radius: 10px; padding: 11px 13px; font-size: 12px; color: #aab4c4; line-height: 1.7; margin-bottom: 6px; }
+        .archive-summary b { color: #4ce08a; }
+        .archive-group { margin-top: 14px; }
+        .archive-group-head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: bold; color: #4facfe; padding-bottom: 6px; border-bottom: 1px dashed #2d2d3b; margin-bottom: 7px; }
+        .archive-group-head span { font-size: 10px; color: #6f7a8c; font-weight: normal; }
+        .archive-entry { background: #16161a; border: 1px solid #2a2a38; border-left: 3px solid #333342; border-radius: 8px; padding: 9px 12px; margin-bottom: 6px; }
+        .archive-entry.unlocked { border-left-color: #c0392b; }
+        .archive-entry.locked { opacity: .6; }
+        .archive-entry .ae-title { font-size: 11.5px; font-weight: bold; color: #8893a8; margin-bottom: 4px; }
+        .archive-entry.unlocked .ae-title { color: #ffd84d; }
+        .archive-entry .ae-body { font-size: 11.5px; color: #b4bfce; line-height: 1.75; }
+        .archive-entry .ae-body b { color: #e8eef8; }
+
         /* ==================== 文档 / 帮助面板（v1.7） ==================== */
         .doc-sec { margin-bottom: 15px; }
         .doc-h { font-size: 13px; font-weight: bold; color: #7fc4ff; margin-bottom: 7px; }
@@ -661,6 +695,14 @@
             </div>
 
             <div class="card-box">
+                <div class="card-title">📖 病理档案</div>
+                <div style="font-size: 11px; color: #aaa; line-height: 1.6; margin-bottom: 9px;">
+                    每通关一关解锁一条档案。每条档案为全队提供 <b style="color:#4ce08a;">+0.5% 攻击与寿命</b>，最多 +12%。
+                </div>
+                <button class="btn-primary" style="width:100%;" onclick="closeDrawer();openArchive()">📖 查看病理档案</button>
+            </div>
+
+            <div class="card-box">
                 <div class="card-title">📖 帮助与说明</div>
                 <div style="display:flex; flex-direction:column; gap:8px;">
                     <button class="btn-primary" onclick="closeDrawer();openHelp()">📖 新手指导 / 帮助手册</button>
@@ -750,6 +792,38 @@
         <div class="modal-body" style="text-align:center;">
             <div id="resultDesc" style="font-size:13px; color:#ccc; line-height:1.9;"></div>
             <button class="btn-primary" id="resultBtn" style="margin-top:16px; width:100%; padding:13px;"></button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 主线剧情：关卡简报 / 阶段报告 ===== -->
+<div class="modal-overlay" id="storyModal" style="display:none; z-index:1250;">
+    <div class="modal story-modal">
+        <div class="modal-header">
+            <span id="storyTitle">病理报告</span>
+            <button id="storyCloseBtn" aria-label="关闭">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="story-tag" id="storyTag">BRIEF</div>
+            <div id="storyBody"></div>
+            <div class="story-actions">
+                <button class="btn-secondary" id="storySecondary">跳过</button>
+                <button class="btn-primary" id="storyPrimary">开始防线战</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 病理档案 ===== -->
+<div class="modal-overlay" id="archiveModal" style="display:none; z-index:1100;">
+    <div class="modal" style="width:620px;">
+        <div class="modal-header">
+            <span>📖 病理档案</span>
+            <button onclick="closeArchive()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="archive-summary" id="archiveSummary"></div>
+            <div id="archiveList"></div>
         </div>
     </div>
 </div>
@@ -1247,6 +1321,137 @@
         { id: 24, ageGroup: '终极挑战', name: "第24关: 终极免疫决战·全身", enemyHp: 430, enemyCount: 48, rewardNut: 220, baseHp: 3, allowedEnemies: ['hepatitisBoss', 'tumor', 'mrsa', 'candida', 'variant'], bosses: [{ type: 'hepatitisBoss', nth: 15 }, { type: 'tumor', nth: 34 }] }
     ];
 
+    // ==================== 主线剧情：关卡 brief / archive ====================
+    // 文案原则：brief 是关卡前给玩家的“作战理由”；archive 是通关后解锁的生化知识条目。
+    const LEVEL_STORY = {
+        1: {
+            brief: `【病理报告 · 第 1 号】部位：脐带残端。入侵源：金黄色葡萄球菌，少量。免疫状态：母体抗体正在消退，中性粒细胞首次独立应战。备注：这是这套免疫系统的第一场战斗。`,
+            archive: `【档案 · 001】新生儿脐带残端是细菌入侵的第一道关口。母体 IgG 通过胎盘提供被动免疫，但会逐渐消退。中性粒细胞是急性炎症的第一批到达者，寿命短，但反应最快。幼儿期的免疫系统，从依赖母体抗体走向独立作战。`
+        },
+        2: {
+            brief: `【病理报告 · 第 2 号】部位：肠道黏膜。入侵源：轮状病毒。免疫状态：肠道相关淋巴组织开始活化。备注：病毒死亡时会释放子代，注意范围杀伤。`,
+            archive: `【档案 · 002】轮状病毒主要感染小肠上皮细胞，导致腹泻。它是 RNA 病毒，复制时产生大量子代。肠道是人体最大的免疫器官之一，GALT 在这里第一次大规模活化。`
+        },
+        3: {
+            brief: `【病理报告 · 第 3 号】部位：呼吸道。入侵源：鼻病毒，高速移动。免疫状态：先天免疫应答中，尚未建立特异性记忆。备注：敌人闪避率 20%，建议使用范围攻击。`,
+            archive: `【档案 · 003】鼻病毒是小 RNA 病毒，复制速度快，易变异。幼儿期免疫系统尚未建立特异性记忆，主要依靠先天免疫和范围杀伤。这是“免疫学习”的开始。`
+        },
+        4: {
+            brief: `【病理报告 · 第 4 号】部位：上呼吸道。入侵源：流感病毒，成群出现。免疫状态：疫苗接种后，记忆 B 细胞开始扩增。备注：本关首次出现成群敌人，注意前排承伤。`,
+            archive: `【档案 · 004】流感病毒表面有血凝素 HA 和神经氨酸酶 NA。HA 介导吸附和膜融合，NA 促进病毒释放。疫苗接种使记忆 B 细胞提前就位，这是免疫记忆第一次在实战中发挥作用。`
+        },
+        5: {
+            brief: `【病理报告 · 第 5 号】部位：扁桃体。入侵源：链球菌。免疫状态：抗体开始大量分泌。备注：敌人有 30% 减伤，并会腐蚀细胞，溶菌酶类干员有奇效。`,
+            archive: `【档案 · 005】链球菌是革兰阳性球菌，细胞壁含肽聚糖和磷壁酸。溶菌酶可水解肽聚糖的 β-1,4 糖苷键。儿童期扁桃体是呼吸道免疫的前哨，B 细胞在这里第一次大规模分化为浆细胞。`
+        },
+        6: {
+            brief: `【病理报告 · 第 6 号】部位：支气管。入侵源：肺炎支原体。免疫状态：先天免疫与适应性免疫协同中。备注：敌人会释放毒素持续损伤周围细胞，注意细胞寿命。`,
+            archive: `【档案 · 006】支原体没有细胞壁，因此 β-内酰胺类抗生素对它无效。它释放的毒素会持续损伤周围细胞。儿童期免疫系统开始学习“协同作战”：先天免疫拖住敌人，适应性免疫精准清除。`
+        },
+        7: {
+            brief: `【病理报告 · 第 7 号】部位：淋巴结。入侵源：EB 病毒。免疫状态：T 细胞正在胸腺外扩增，尚未形成有效记忆。备注：敌人会感染细胞令其瘫痪，注意保护关键干员。`,
+            archive: `【档案 · 007】EB 病毒通过 CD21 感染 B 细胞。青少年期 T 细胞 repertoire 正在成熟，这是免疫系统第一次面对“能藏进自己细胞里”的敌人。胸腺在这里完成 T 细胞的特训与筛选。`
+        },
+        8: {
+            brief: `【病理报告 · 第 8 号】部位：胸腺。入侵源：异常细胞信号，来源不明。免疫状态：T 细胞阳性选择与阴性选择进行中。备注：本关敌人闪避较高，建议使用大范围干员。`,
+            archive: `【档案 · 008】胸腺是 T 细胞成熟场所。阳性选择保留能识别 MHC 的 T 细胞，阴性选择清除攻击自身的 T 细胞。青少年期胸腺最活跃，这是免疫系统建立“自我/非我”识别的关键窗口。`
+        },
+        9: {
+            brief: `【病理报告 · 第 9 号】部位：全身淋巴结。入侵源：带状疱疹病毒，再激活。免疫状态：记忆 T 细胞被召回。备注：敌人死亡时会分裂出子体，注意清场能力。`,
+            archive: `【档案 · 009】带状疱疹病毒可潜伏于神经节，免疫下降时再激活。记忆 T 细胞在这里第一次被大规模召回。青少年期淋巴结总动员，是免疫记忆从“建立”走向“维持”的转折点。`
+        },
+        10: {
+            brief: `【病理报告 · 第 10 号】部位：肝脏。入侵源：肝炎病毒。免疫状态：免疫巅峰，但肝脏代谢压力上升。备注：Boss 会复制并释放子代病毒，注意持续输出。`,
+            archive: `【档案 · 010】肝炎病毒主要感染肝细胞。乙肝是 DNA 病毒，丙肝是 RNA 病毒。成年期免疫系统处于巅峰，但肝脏解毒带来的代谢压力会间接影响免疫细胞活性。这是“强”与“累”并存的阶段。`
+        },
+        11: {
+            brief: `【病理报告 · 第 11 号】部位：肺部。入侵源：结核杆菌。免疫状态：巨噬细胞吞噬后无法完全清除。备注：敌人有 50% 减伤并持续自愈，需要高爆发干员。`,
+            archive: `【档案 · 011】结核分枝杆菌细胞壁富含分枝菌酸，抗酸染色阳性。它能抵抗吞噬溶酶体融合，在巨噬细胞内存活。成年期免疫系统强，但遇到“会躲进自己细胞里”的敌人，依然棘手。`
+        },
+        12: {
+            brief: `【病理报告 · 第 12 号】部位：皮肤伤口。入侵源：金黄色葡萄球菌，耐药株出现。免疫状态：免疫应答强，但抗生素失效。备注：敌人减伤高，死亡时毒素爆发，注意细胞寿命。`,
+            archive: `【档案 · 012】金黄色葡萄球菌可分泌肠毒素和溶血素。MRSA 携带 mecA 基因，表达 PBP2a，对 β-内酰胺类抗生素耐药。成年期是免疫巅峰，也是耐药菌开始登场的阶段。`
+        },
+        13: {
+            brief: `【病理报告 · 第 13 号】部位：皮肤。入侵源：白念珠菌。免疫状态：胸腺退化，T 细胞输出下降。备注：真菌会出芽并散播孢子云，注意范围清场。`,
+            archive: `【档案 · 013】白念珠菌是机会性致病真菌，可形成菌丝和生物膜。细胞壁含 β-葡聚糖和几丁质，β-葡聚糖可被 Dectin-1 识别。老年期免疫监视下降，机会性感染开始增多。`
+        },
+        14: {
+            brief: `【病理报告 · 第 14 号】部位：泌尿道。入侵源：大肠杆菌。免疫状态：黏膜免疫减弱。备注：敌人释放毒素持续损伤周围细胞，注意前排承伤。`,
+            archive: `【档案 · 014】大肠杆菌是革兰阴性菌，外膜含脂多糖 LPS。LPS 可激活 TLR4，诱导炎症因子释放。老年期黏膜免疫减弱，革兰阴性菌感染风险上升。`
+        },
+        15: {
+            brief: `【病理报告 · 第 15 号】部位：肺部。入侵源：流感病毒，二次感染。免疫状态：记忆 T 细胞反应变慢。备注：敌人成群出现，注意 ATP 管理。`,
+            archive: `【档案 · 015】老年期记忆 T 细胞反应速度下降，初次应答与再次应答的差距缩小。流感病毒抗原漂移使旧记忆部分失效。这是免疫衰老在实战中最直观的表现。`
+        },
+        16: {
+            brief: `【病理报告 · 第 16 号】部位：肠道。入侵源：轮状病毒，重复感染。免疫状态：肠道免疫记忆维持困难。备注：敌人死亡分裂子体，注意清场。`,
+            archive: `【档案 · 016】肠道相关淋巴组织在老年期维持记忆的能力下降。轮状病毒重复感染在老年人中更常见。免疫记忆不是永久的，它需要持续的低水平抗原刺激来维持。`
+        },
+        17: {
+            brief: `【病理报告 · 第 17 号】部位：血液。入侵源：疟原虫。免疫状态：免疫监视出现漏洞。备注：敌人周期性躲入红细胞，隐匿期近乎免疫，需抓暴露期集火。`,
+            archive: `【档案 · 017】疟原虫生活史复杂，红细胞内期可逃避部分免疫。老年期免疫监视出现漏洞，胞内病原体更难清除。这是“看不见的敌人”第一次成为主线。`
+        },
+        18: {
+            brief: `【病理报告 · 第 18 号】部位：全身。入侵源：异常细胞信号增强，来源待确认。免疫状态：免疫监视接近失败。备注：本关为老年期终章，通关后解锁病理培养皿。`,
+            archive: `【档案 · 018】免疫监视是免疫系统的第三大功能：清除突变细胞。老年期 NK 细胞和细胞毒性 T 细胞功能下降，异常细胞逃逸概率上升。病理培养皿已解锁——当免疫系统无法清除异常细胞时，指挥官需要新的战术。`
+        },
+        19: {
+            brief: `【病理报告 · 第 19 号】部位：肺。入侵源：新冠变异株。免疫状态：异常位系统已解锁。备注：敌人有 35% 闪避并可再生糖蛋白护盾，建议携带异常位干员。`,
+            archive: `【档案 · 019】新冠变异株的刺突蛋白突变增强免疫逃逸，糖基化可遮蔽抗体表位。异常位系统正式启用：当常规免疫细胞无法清除敌人时，可以“利用异常细胞对抗更强的敌人”，代价是编队负面。`
+        },
+        20: {
+            brief: `【病理报告 · 第 20 号】部位：组织间隙。入侵源：MRSA，高耐药株。免疫状态：常规免疫应答受限。备注：敌人减伤高达 55%，死亡时毒素爆发，注意抑制信号层数。`,
+            archive: `【档案 · 020】MRSA 的 PBP2a 使其对 β-内酰胺类抗生素几乎完全耐药。异常位干员带来的抑制信号会削弱编队，但癌细胞的特殊能力可以撕开耐药菌的防线。这是取舍，不是免费午餐。`
+        },
+        21: {
+            brief: `【病理报告 · 第 21 号】部位：淋巴结。入侵源：肿瘤细胞，MHC-I 下调。免疫状态：免疫监视失败。备注：敌人 22% 闪避并高速自愈，建议使用异常位干员配合抗 PD-1 效应 T 细胞。`,
+            archive: `【档案 · 021】肿瘤细胞可下调 MHC-I，逃避免疫杀伤；表达 PD-L1，抑制 T 细胞功能。抗 PD-1 效应 T 细胞可清除抑制信号，但占用常规出战位。编队博弈在这里达到顶峰。`
+        },
+        22: {
+            brief: `【病理报告 · 第 22 号】部位：肝脏。入侵源：肝炎病毒，慢性感染。免疫状态：慢性炎症与免疫耗竭并存。备注：Boss 会复制并释放子代，注意持续输出与抑制信号管理。`,
+            archive: `【档案 · 022】慢性感染可导致 T 细胞耗竭，表达 PD-1、TIM-3 等抑制性受体。老年期与终极挑战的交界，是“免疫系统还在战斗，但已经累了”的阶段。`
+        },
+        23: {
+            brief: `【病理报告 · 第 23 号】部位：全身。入侵源：白念珠菌，生物膜形成。免疫状态：先天免疫与异常位协同中。备注：真菌会散播孢子云，注意范围清场与异常位部署位置。`,
+            archive: `【档案 · 023】白念珠菌生物膜可抵抗免疫细胞和药物。β-葡聚糖被 Dectin-1 识别后激活先天免疫。异常位干员在这里不是“毒”，而是“打破生物膜”的战术工具。`
+        },
+        24: {
+            brief: `【病理报告 · 第 24 号】部位：全身。入侵源：肿瘤细胞 Boss，免疫逃逸全面启动。免疫状态：终局之战。备注：敌人 MHC 下调、高速自愈、高闪避。这是这套免疫系统的最后一战。`,
+            archive: `【档案 · 024】肿瘤免疫逃逸是多机制叠加：MHC-I 下调、PD-L1 表达、Treg 招募、代谢竞争。终极挑战不是“打赢”，而是“在免疫监视失败后，依然找到战斗的方式”。这套免疫系统的一生，到此为止。`
+        }
+    };
+    levels.forEach(lvl => Object.assign(lvl, LEVEL_STORY[lvl.id] || {}));
+
+    // 阶段报告：每个阶段第一关前展示一次
+    const STAGE_REPORTS = {
+        '幼儿期': [
+            '母体抗体正在消退，先天免疫第一次独立作战。',
+            '本阶段以低费、短寿命干员为主，学习基础部署。'
+        ],
+        '儿童期': [
+            '疫苗接种，免疫记忆第一次建立。',
+            '本阶段引入记忆类干员，敌人开始有抗性。'
+        ],
+        '青少年': [
+            '胸腺特训，T 细胞 repertoire 成熟。',
+            '本阶段引入 T 细胞协同与群体攻击。'
+        ],
+        '成年期': [
+            '免疫巅峰，但肝脏解毒带来代谢压力。',
+            '本阶段高费高强度干员登场，敌人开始有免疫逃逸。'
+        ],
+        '老年期': [
+            '胸腺体积从青春期开始逐年缩小，T 细胞输出下降。',
+            '本阶段全队细胞寿命 -10%，ATP 回复 -10%。',
+            '这是免疫衰老，不是你的错。'
+        ],
+        '终极挑战': [
+            '免疫监视失败，肿瘤与耐药菌登场。',
+            '本阶段解锁异常位与癌细胞干员，编队博弈达到顶峰。'
+        ]
+    };
+
     // ==================== 年龄阶段UP池（依据真实免疫发育规律） ====================
     // 幼儿期(第1-3关) → 儿童期(第4-6关) → 青少年(第7-9关) → 成年期(第10-12关) → 老年期(第13-15关)
     // UP机制：命中UP干员稀有度时，按upRate概率选中UP干员；解锁条件：推进到对应生命周期阶段
@@ -1300,6 +1505,9 @@
     let pity = { since5: 0, since4: 0 };               // 保底计数：since5=距离上次传奇的抽数，since4=距离上次史诗及以上的抽数
     let tutorialDone = false;                          // 新手引导是否已完成（仅新档自动触发，完成后持久化）
     let sessionHadSave = false;                        // 本次会话是否读到已有存档（决定是否自动触发新手引导）
+    let seenBriefs = [];                               // 已查看过 brief 的关卡 id（持久化）
+    let seenStageReports = [];                         // 已查看过阶段报告的阶段名（持久化）
+    let unlockedArchives = [];                         // 已解锁档案的关卡 id（持久化）
 
     // 初始赠送3名初始干员（1星）
     for(let starterId of deck) {
@@ -1323,7 +1531,10 @@
                 deck: deck,
                 redeemedCodes: redeemedCodes,
                 pity: pity,
-                tutorialDone: tutorialDone
+                tutorialDone: tutorialDone,
+                seenBriefs: seenBriefs,
+                seenStageReports: seenStageReports,
+                unlockedArchives: unlockedArchives
             }));
         } catch(e) { /* 隐私模式/存储已满时静默降级，不影响游戏 */ }
     }
@@ -1362,6 +1573,15 @@
                 };
             }
             if(typeof d.tutorialDone === 'boolean') tutorialDone = d.tutorialDone;
+            if(Array.isArray(d.seenBriefs)) {
+                seenBriefs = Array.from(new Set(d.seenBriefs.filter(n => Number.isInteger(n) && n >= 1 && n <= levels.length)));
+            }
+            if(Array.isArray(d.seenStageReports)) {
+                seenStageReports = Array.from(new Set(d.seenStageReports.filter(p => typeof p === 'string' && STAGE_REPORTS[p])));
+            }
+            if(Array.isArray(d.unlockedArchives)) {
+                unlockedArchives = Array.from(new Set(d.unlockedArchives.filter(n => Number.isInteger(n) && n >= 1 && n <= levels.length)));
+            }
             baseHp = levels[currentLevel - 1].baseHp;
             refreshDeckOperators();
         } catch(e) { /* 存档损坏时以新档启动 */ }
@@ -1569,14 +1789,20 @@
     }
 
     // ==================== UI 渲染 ====================
+    // 病理档案增益：每解锁一条，全队攻击与寿命 +0.5%，最多 +12%
+    function getArchiveBonus() {
+        return Math.min(0.12, unlockedArchives.length * 0.005);
+    }
+
     // 根据星级计算强化后的干员属性
     function getUpgradedStats(op, stars) {
         let atkBonus = (stars - 1) * 0.15;      // 每星 +15% 攻击
         let lifeBonus = (stars - 1) * 2;        // 每星 +2 秒寿命
+        let archiveBonus = getArchiveBonus();
         return {
             ...op,
-            atk: Math.round(op.atk * (1 + atkBonus)),
-            maxLifeSec: op.maxLifeSec + lifeBonus,
+            atk: Math.round(op.atk * (1 + atkBonus) * (1 + archiveBonus) * 10) / 10,
+            maxLifeSec: Math.round((op.maxLifeSec + lifeBonus) * (1 + archiveBonus) * 10) / 10,
             stars: stars
         };
     }
@@ -3124,9 +3350,10 @@
         list.innerHTML = levels.map(lvl => {
             let short = lvl.name.replace(/^第\d+关:\s*/, '');
             let boss = (lvl.bosses && lvl.bosses.length) ? ' <span style="color:#ff6b6b;">⚠Boss</span>' : '';
+            let archive = unlockedArchives.includes(lvl.id) ? ' <span title="档案已解锁" style="color:#4ce08a;">📖</span>' : '';
             return `
             <div class="level-item ${currentLevel === lvl.id ? 'active' : ''}" onclick="selectLevel(${lvl.id})">
-                <div><b>${lvl.id}.</b> ${lvl.ageGroup} · ${short}${boss}</div>
+                <div><b>${lvl.id}.</b> ${lvl.ageGroup} · ${short}${boss}${archive}</div>
                 <div style="color: #f39c12; white-space:nowrap; margin-left:8px;">🧪${lvl.rewardNut}</div>
             </div>`;
         }).join('');
@@ -3162,6 +3389,128 @@
                 <div><b style="color:${e.color};">${e.name}</b> — ${e.desc}</div>
             </div>
         `).join('');
+    }
+
+    // ==================== 主线剧情：brief / 阶段报告 / 病理档案 ====================
+    let storyOpen = false;
+
+    // 把单行病理文案拆成报告式短句，并加粗字段名
+    function formatDossier(text) {
+        if(!text) return '';
+        return text.split('。').map(s => s.trim()).filter(Boolean).map(s => {
+            let line = s + '。';
+            line = line.replace(/^(【[^】]+】)/, '<b>$1</b>');
+            line = line.replace(/^(<b>[^<]*<\/b>)?\s*(部位|入侵源|免疫状态|备注)：/, (m, tag, label) => (tag || '') + '<b>' + label + '：</b>');
+            return line;
+        }).join('<br>');
+    }
+
+    function showStoryDialog(opts) {
+        const overlay = document.getElementById('storyModal');
+        if(!overlay) { if(opts.onClose) opts.onClose(); return; }
+        const titleEl = document.getElementById('storyTitle');
+        const tagEl = document.getElementById('storyTag');
+        const bodyEl = document.getElementById('storyBody');
+        const primaryEl = document.getElementById('storyPrimary');
+        const secondaryEl = document.getElementById('storySecondary');
+        const closeBtn = document.getElementById('storyCloseBtn');
+        titleEl.innerText = opts.title || '';
+        tagEl.innerText = opts.tag || '';
+        tagEl.className = 'story-tag' + (opts.kind === 'stage' ? ' stage' : '');
+        if(opts.lines) {
+            bodyEl.innerHTML = `<div class="story-lines">${opts.lines.map(l => `<div>${l}</div>`).join('')}</div>`;
+        } else {
+            bodyEl.innerHTML = `<div class="dossier">${formatDossier(opts.text)}</div>`;
+        }
+        primaryEl.innerText = opts.primary || '继续';
+        secondaryEl.innerText = opts.secondary || '跳过';
+        secondaryEl.style.display = opts.secondary === null ? 'none' : '';
+        storyOpen = true;
+        let finished = false;
+        const finish = () => {
+            if(finished) return;
+            finished = true;
+            storyOpen = false;
+            overlay.style.display = 'none';
+            if(typeof opts.onClose === 'function') opts.onClose();
+        };
+        primaryEl.onclick = finish;
+        secondaryEl.onclick = finish;
+        closeBtn.onclick = finish;
+        overlay.style.display = 'flex';
+    }
+
+    // 关卡开始前：阶段报告（每阶段一次）→ brief（每关一次）→ 开战
+    function openPreLevelStory(after) {
+        const lvl = levels[currentLevel - 1];
+        if(!lvl) { after(); return; }
+        const stageSeen = seenStageReports.includes(lvl.ageGroup);
+        const briefSeen = seenBriefs.includes(lvl.id);
+
+        const showBrief = () => {
+            if(briefSeen || !lvl.brief) { after(); return; }
+            showStoryDialog({
+                kind: 'brief',
+                title: `【病理报告 · 第 ${lvl.id} 号】`,
+                tag: 'BRIEF · 作战理由',
+                text: lvl.brief,
+                primary: '🚀 开始防线战',
+                secondary: '跳过',
+                onClose: () => {
+                    if(!seenBriefs.includes(lvl.id)) { seenBriefs.push(lvl.id); saveGame(); }
+                    after();
+                }
+            });
+        };
+
+        if(stageSeen) { showBrief(); return; }
+        showStoryDialog({
+            kind: 'stage',
+            title: `【阶段报告 · ${lvl.ageGroup}】`,
+            tag: 'STAGE REPORT · 阶段评估',
+            lines: STAGE_REPORTS[lvl.ageGroup] || [],
+            primary: `进入第 ${lvl.id} 关`,
+            secondary: '跳过',
+            onClose: () => {
+                if(!seenStageReports.includes(lvl.ageGroup)) { seenStageReports.push(lvl.ageGroup); saveGame(); }
+                showBrief();
+            }
+        });
+    }
+
+    function openArchive() {
+        renderArchive();
+        const m = document.getElementById('archiveModal');
+        if(m) m.style.display = 'flex';
+    }
+    function closeArchive() {
+        const m = document.getElementById('archiveModal');
+        if(m) m.style.display = 'none';
+    }
+    function renderArchive() {
+        const sum = document.getElementById('archiveSummary');
+        const list = document.getElementById('archiveList');
+        if(!sum || !list) return;
+        const pctText = (Math.round(getArchiveBonus() * 1000) / 10).toString().replace('.0', '');
+        sum.innerHTML = `已解锁 <b>${unlockedArchives.length}</b> / ${levels.length} 条档案 · 当前增益 <b>+${pctText}%</b> 攻击与寿命<span style="color:#6f7a8c;">（每条 +0.5%，上限 +12%）</span>`;
+        let html = '';
+        levels.forEach((lvl, i) => {
+            const prev = levels[i - 1];
+            if(!prev || prev.ageGroup !== lvl.ageGroup) {
+                const groupLevels = levels.filter(l => l.ageGroup === lvl.ageGroup);
+                const got = groupLevels.filter(l => unlockedArchives.includes(l.id)).length;
+                html += `<div class="archive-group"><div class="archive-group-head">${lvl.ageGroup}<span>档案 ${got} / ${groupLevels.length}</span></div>`;
+            }
+            const unlocked = unlockedArchives.includes(lvl.id);
+            const num = String(lvl.id).padStart(3, '0');
+            html += `<div class="archive-entry ${unlocked ? 'unlocked' : 'locked'}">
+                <div class="ae-title">档案 · ${num}${unlocked ? '' : ' 🔒'}</div>
+                <div class="ae-body">${unlocked ? formatDossier(lvl.archive) : `通关第 ${lvl.id} 关后解锁。`}</div>
+            </div>`;
+            const next = levels[i + 1];
+            if(!next || next.ageGroup !== lvl.ageGroup) html += '</div>';
+        });
+        list.innerHTML = html;
     }
 
     function selectLevel(lvlId) {
@@ -3321,7 +3670,11 @@
     // 出怪调度状态：由主循环按"时间累积"驱动，避免递归setTimeout在WebView卡顿/切后台时丢链导致永久卡关
     let spawnState = null;
     function startWave() {
-        if(waveInProgress) return;
+        if(waveInProgress || storyOpen) return;
+        openPreLevelStory(beginWave);   // 阶段报告 / brief 展示完毕后再真正开战
+    }
+
+    function beginWave() {
         clearSpawnTimer();              // 先清理任何残留调度
         waveInProgress = true;
         waveSpawningDone = false;
@@ -3388,10 +3741,29 @@
         changeMarrow(2, { pulse: 'gain' });   // 通关固定奖励2个骨髓造血原液
         updateUI();
 
+        // 首次通关解锁病理档案：全队攻击与寿命永久 +0.5%
+        let archiveJustUnlocked = false;
+        if(!unlockedArchives.includes(lvlData.id)) {
+            unlockedArchives.push(lvlData.id);
+            archiveJustUnlocked = true;
+            refreshDeckOperators();
+            renderLevelList();
+            saveGame();
+        }
+
+        let desc = `${lvlData.name}<br>获得营养 🧪 +${lvlData.rewardNut}　骨髓原液 🦴 +2`;
+        if(archiveJustUnlocked) {
+            const pctText = (Math.round(getArchiveBonus() * 1000) / 10).toString().replace('.0', '');
+            desc += `<div style="margin-top:12px; padding:10px 12px; background:#101016; border:1px solid #2d2d3b; border-left:3px solid #c0392b; border-radius:8px; text-align:left;">
+                📖 新档案解锁：档案 · ${String(lvlData.id).padStart(3, '0')}<br>
+                <span style="font-size:11px; color:#8fa0b5;">全队 +0.5% 攻击与寿命（累计 +${pctText}%）· 可在「病理档案」回看</span>
+            </div>`;
+        }
+
         let hasNext = currentLevel < levels.length;
         openResultModal(
             '🎉 防线防守成功',
-            `${lvlData.name}<br>获得营养 🧪 +${lvlData.rewardNut}　骨髓原液 🦴 +2`,
+            desc,
             hasNext ? `➡️ 进入第 ${currentLevel + 1} 关` : '🏆 已通关全部关卡',
             () => {
                 closeResultModal();
@@ -4367,7 +4739,7 @@
     function closeIntro(){ const m = document.getElementById('introModal'); if(m) m.style.display = 'none'; }
     function openChangelog(){ const m = document.getElementById('changelogModal'); if(m) m.style.display = 'flex'; }
     function closeChangelog(){ const m = document.getElementById('changelogModal'); if(m) m.style.display = 'none'; }
-    ['helpModal', 'introModal', 'changelogModal'].forEach(id => {
+    ['helpModal', 'introModal', 'changelogModal', 'archiveModal'].forEach(id => {
         const m = document.getElementById(id);
         if(m) m.addEventListener('click', e => { if(e.target.id === id) m.style.display = 'none'; });
     });
