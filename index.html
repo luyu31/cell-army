@@ -578,6 +578,86 @@
         .archive-entry .ae-body { font-size: 11.5px; color: #b4bfce; line-height: 1.75; }
         .archive-entry .ae-body b { color: #e8eef8; }
 
+        /* ==================== 抑制信号 / 异常位 / 病理培养皿 ==================== */
+        .suppression-badge { color: #9be7c4; background: #16241f; border-color: #2f5444; }
+        .suppression-badge.warn { color: #ffd84d; background: #2a2512; border-color: #5c4a18; }
+        .suppression-badge.danger { color: #ff6b6b; background: #2a1618; border-color: #5c2428; animation: suppPulse 1.2s ease-in-out infinite; }
+        @keyframes suppPulse { 0%,100% { box-shadow: 0 0 0 rgba(255,107,107,0); } 50% { box-shadow: 0 0 14px rgba(255,107,107,.7); } }
+        .suppression-hint {
+            display: flex; align-items: center; justify-content: space-between; gap: 8px;
+            font-size: 10.5px; color: #9be7c4; min-height: 0;
+        }
+        .suppression-hint.warn { color: #ffd84d; }
+        .suppression-hint.danger { color: #ff6b6b; }
+        .suppression-hint .sup-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto; }
+        .suppression-actions { display: flex; gap: 6px; flex: 0 0 auto; }
+        .suppression-btn {
+            border: 1px solid #4a4a5e; background: #2a2a38; color: #d8e2ef; border-radius: 7px;
+            padding: 4px 9px; font-size: 10px; cursor: pointer; white-space: nowrap;
+        }
+        .suppression-btn:active { background: #4facfe; color: #fff; }
+        .suppression-btn:disabled { opacity: .5; cursor: default; }
+        .suppression-btn.clear { border-color: #2f5444; color: #9be7c4; }
+        .suppression-float {
+            position: fixed; z-index: 2100; font-weight: 900; font-size: 14px; pointer-events: none;
+            text-shadow: 0 0 10px currentColor; transform: translateX(-50%);
+            animation: marrowFloatUp 1.2s ease-out forwards;
+        }
+        .squad-suppression {
+            background: #16161a; border: 1px solid #2a2a38; border-radius: 9px;
+            padding: 9px 12px; font-size: 11.5px; color: #aab4c4; line-height: 1.65; margin-bottom: 10px;
+        }
+        .squad-suppression b { color: #9be7c4; }
+        .squad-suppression.warn { border-color: #5c4a18; background: #221f14; }
+        .squad-suppression.warn b { color: #ffd84d; }
+        .squad-suppression.danger { border-color: #5c2428; background: #251618; }
+        .squad-suppression.danger b { color: #ff6b6b; }
+        .squad-suppression .sup-next { font-size: 10px; color: #7d8798; }
+        .abnormal-box { background: #1b1626; border: 1px solid #3d2b52; border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+        .abnormal-box .ab-head { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; font-weight: bold; color: #c78fff; margin-bottom: 7px; }
+        .abnormal-slot { display: flex; align-items: center; gap: 9px; }
+        .abnormal-slot .ab-empty { flex: 1 1 auto; font-size: 11px; color: #7d8798; }
+        .abnormal-slot .ab-main { flex: 1 1 auto; min-width: 0; }
+        .abnormal-slot .ab-name { font-size: 12px; font-weight: bold; color: #ffb3dc; }
+        .abnormal-slot .ab-meta { font-size: 10px; color: #9b8fb0; margin-top: 2px; }
+        .abnormal-actions { display: flex; gap: 6px; flex: 0 0 auto; }
+        .abnormal-actions button, .cancer-pick-item button {
+            border: 1px solid #4b3a63; background: #2a2238; color: #d9c9ec; border-radius: 7px;
+            padding: 5px 9px; font-size: 10.5px; cursor: pointer;
+        }
+        .cancer-pick-list { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
+        .cancer-pick-item { display: flex; align-items: center; gap: 8px; background: #16111f; border: 1px solid #2f2440; border-radius: 8px; padding: 7px 9px; }
+        .cancer-pick-item .cp-main { flex: 1 1 auto; min-width: 0; }
+        .cancer-pick-item .cp-name { font-size: 11px; font-weight: bold; color: #e8d9ff; }
+        .cancer-pick-item .cp-meta { font-size: 9.5px; color: #8e82a6; }
+        .operator-card.cancer { border-color: #8e44ad; background: #241a33; }
+        .operator-card.cancer.selected { border-color: #c78fff; box-shadow: 0 0 10px rgba(199,143,255,.5); }
+        .operator-card .cancer-tag { font-size: 8px; color: #ff8fd8; border: 1px solid #6d3a72; border-radius: 4px; display: inline-block; padding: 0 4px; margin-bottom: 2px; }
+        .operator-card .op-debuff { font-size: 8px; color: #ff7675; margin-top: 1px; }
+        .operator-card .cost.up { color: #ff6b6b; }
+        .ci-debuff { font-size: 10px; color: #ff7675; margin-top: 3px; }
+        .dish-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 9px; margin-top: 10px; }
+        .dish-card { background: #16161a; border: 1px solid #2f2440; border-radius: 10px; padding: 10px 11px; display: flex; flex-direction: column; gap: 6px; }
+        .dish-card .dc-top { display: flex; align-items: center; gap: 8px; }
+        .dish-card .dc-name { font-size: 11.5px; font-weight: bold; color: #e8d9ff; line-height: 1.35; }
+        .dish-card .dc-bio { font-size: 9.5px; color: #8e82a6; line-height: 1.5; }
+        .dish-card .dc-stats { font-size: 9.5px; color: #b5a9c8; line-height: 1.55; }
+        .dish-card .dc-stats b { color: #ffb3dc; }
+        .dish-card .dc-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: auto; }
+        .dish-card .dc-actions button {
+            border: 1px solid #4b3a63; background: #2a2238; color: #d9c9ec; border-radius: 7px;
+            padding: 5px 9px; font-size: 10.5px; cursor: pointer;
+        }
+        .dish-card .dc-actions button.primary { background: #6c3fa0; border-color: #a66bd0; color: #fff; }
+        .dish-card .dc-actions button:disabled { opacity: .45; cursor: default; }
+        .dish-card.owned { border-color: #a66bd0; }
+        .dish-anti { margin-top: 12px; background: #1b1626; border: 1px solid #3d2b52; border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
+        .dish-anti .da-main { flex: 1 1 auto; min-width: 0; }
+        .dish-anti .da-name { font-size: 12px; font-weight: bold; color: #ffd84d; }
+        .dish-anti .da-meta { font-size: 10px; color: #9b8fb0; margin-top: 2px; line-height: 1.5; }
+        .dish-anti button { border: 1px solid #5c4a18; background: #2a2512; color: #ffd84d; border-radius: 7px; padding: 6px 10px; font-size: 10.5px; cursor: pointer; white-space: nowrap; }
+        .dish-anti button:disabled { opacity: .45; cursor: default; }
+
         /* ==================== 文档 / 帮助面板（v1.7） ==================== */
         .doc-sec { margin-bottom: 15px; }
         .doc-h { font-size: 13px; font-weight: bold; color: #7fc4ff; margin-bottom: 7px; }
@@ -638,6 +718,7 @@
         <div class="res-badge nut-badge">🧪<span id="nutVal">100</span></div>
         <div class="res-badge">⚡<span id="atpVal">30</span></div>
         <div class="res-badge marrow-badge">🦴<span id="marrowVal">5</span></div>
+        <div class="res-badge suppression-badge" id="suppressionBadge" style="display:none;">☣<span id="suppressionVal">0</span>层</div>
     </div>
 
     <div class="game-row">
@@ -648,6 +729,13 @@
 
             <div class="dock-area">
                 <div class="tip-line" id="tipMsg">提示：点选下方干员，再点棋盘格部署；点已部署细胞可诱导凋亡（回收50%ATP）</div>
+                <div class="suppression-hint" id="suppressionHint" style="display:none;">
+                    <span class="sup-text" id="suppressionHintText"></span>
+                    <span class="suppression-actions">
+                        <button class="suppression-btn clear" id="antiPd1SkillBtn" style="display:none;" onclick="useAntiPd1Skill()">🧬 清除 3 层</button>
+                        <button class="suppression-btn" id="checkpointBtn" style="display:none;" onclick="useCheckpointInhibitor()">🧪 抑制剂 ×0</button>
+                    </span>
+                </div>
                 <div class="operator-list" id="operatorList"></div>
                 <div class="controls-row">
                     <button class="btn-secondary" onclick="resetGame()">↺ 重置</button>
@@ -700,6 +788,7 @@
                     每通关一关解锁一条档案。每条档案为全队提供 <b style="color:#4ce08a;">+0.5% 攻击与寿命</b>，最多 +12%。
                 </div>
                 <button class="btn-primary" style="width:100%;" onclick="closeDrawer();openArchive()">📖 查看病理档案</button>
+                <button class="btn-secondary" style="width:100%; margin-top:8px;" onclick="closeDrawer();openDish()">🧫 病理培养皿</button>
             </div>
 
             <div class="card-box">
@@ -780,6 +869,8 @@
         </div>
         <div class="modal-body">
             <div style="font-size:12px; color:#aaa;">已编队：<b style="color:#4facfe;" id="deckCount">0</b> / 5（3~5名干员，星级加成生效）</div>
+            <div class="squad-suppression" id="deckSuppression" style="margin-top:10px;"></div>
+            <div class="abnormal-box" id="abnormalSlot"></div>
             <div class="collection-list" id="collectionList"></div>
         </div>
     </div>
@@ -824,6 +915,20 @@
         <div class="modal-body">
             <div class="archive-summary" id="archiveSummary"></div>
             <div id="archiveList"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== 病理培养皿 ===== -->
+<div class="modal-overlay" id="dishModal" style="display:none; z-index:1100;">
+    <div class="modal" style="width:700px;">
+        <div class="modal-header">
+            <span>🧫 病理培养皿</span>
+            <button onclick="closeDish()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="archive-summary" id="dishSummary"></div>
+            <div id="dishBody"></div>
         </div>
     </div>
 </div>
@@ -908,7 +1013,7 @@
                 <div class="doc-h">✨ 特色亮点</div>
                 <div class="doc-list">
                     · 24 关 · 6 个生命周期阶段，病原体各具特性；<br>
-                    · 13 名免疫干员，真实生理功能设定；<br>
+                    · 14 名免疫干员 + 3 名癌细胞干员，真实生理功能设定；<br>
                     · 抽卡保底（50 抽必出传奇、30 抽起分层递增；10 抽必出紫）+ 华丽出金演出；<br>
                     · 招募演出还原<b>有丝分裂五阶段 + 定向分化</b>。
                 </div>
@@ -928,6 +1033,7 @@
             <button onclick="closeChangelog()">✕</button>
         </div>
         <div class="modal-body">
+            <div class="doc-ver"><div class="tag" style="color:#ff8fd8">v2.2</div><div class="info"><b>异常位与癌细胞</b>：编队可携带 1 名癌细胞（不占常规位）；新增 3 名癌细胞、抑制信号阶梯 debuff、抗 PD-1 效应 T 细胞、病理培养皿、病变样本与免疫检查点抑制剂；病理档案面板补齐 19–24 关条目。</div></div>
             <div class="doc-ver"><div class="tag" style="color:#ffd84d">v1.9</div><div class="info"><b>分层保底 + 修复</b>：传奇保底改为 30 抽起每 10 抽概率递增（50 抽必出）；修复十连保底替换后保底计数未同步的问题。</div></div>
             <div class="doc-ver"><div class="tag">v1.8</div><div class="info"><b>保底调整</b>：传奇硬保底由 20 抽延长至 50 抽（35 抽起软保底递增）；史诗 10 抽必出紫保持不变。</div></div>
             <div class="doc-ver"><div class="tag" style="color:#4facfe">v1.7</div><div class="info"><b>新手指导 + 文档</b>：首次进入分步引导、帮助手册、游戏介绍 / 更新日志面板。</div></div>
@@ -1112,7 +1218,9 @@
         { id: 'memoryT', name: "记忆T细胞", rarity: 'legendary', unlockLevel: 8, cost: 15, maxCount: 2, rangeType: 'circle2', atk: 8, maxLifeSec: 40, desc: "5x5超长寿命(40秒)" },
         { id: 'monocyte', name: "单核细胞", rarity: 'rare', unlockLevel: 10, cost: 9, maxCount: 4, rangeType: 'cross2', atk: 17, maxLifeSec: 13, desc: "十字2格巡逻吞噬，迁入组织即分化为巨噬细胞" },
         { id: 'mastCell', name: "肥大细胞", rarity: 'rare', unlockLevel: 13, cost: 7, maxCount: 4, rangeType: 'circle1', atk: 32, maxLifeSec: 6, desc: "周围3x3组胺脱颗粒范围爆发，短寿高爆" },
-        { id: 'plasmaCell', name: "浆细胞", rarity: 'epic', unlockLevel: 16, cost: 13, maxCount: 3, rangeType: 'allRow', atk: 26, maxLifeSec: 14, desc: "B细胞终末形态，整行高频分泌抗体远程轰击" }
+        { id: 'plasmaCell', name: "浆细胞", rarity: 'epic', unlockLevel: 16, cost: 13, maxCount: 3, rangeType: 'allRow', atk: 26, maxLifeSec: 14, desc: "B细胞终末形态，整行高频分泌抗体远程轰击" },
+        // 病理培养皿专属：不进入抽卡池（gacha:false），通关第20关或2个病变样本兑换获得
+        { id: 'antiPD1', name: "抗 PD-1 效应 T 细胞", rarity: 'epic', unlockLevel: 20, cost: 11, maxCount: 2, rangeType: 'circle1', atk: 20, maxLifeSec: 18, gacha: false, desc: "周围3x3；主动清除3层抑制信号（CD 45s）" }
     ];
 
     // 稀有度配置：概率、颜色、重复转化信物数量
@@ -1120,8 +1228,86 @@
         common:    { label: '普通', color: '#7f8c8d', glow: '#27ae60', fragReward: 1 },
         rare:      { label: '精英', color: '#3498db', glow: '#4facfe', fragReward: 2 },
         epic:      { label: '史诗', color: '#9b59b6', glow: '#c39bd3', fragReward: 5 },
-        legendary: { label: '传奇', color: '#f39c12', glow: '#ffd700', fragReward: 10 }
+        legendary: { label: '传奇', color: '#f39c12', glow: '#ffd700', fragReward: 10 },
+        pathology: { label: '病理', color: '#ff6b8a', glow: '#c0392b', fragReward: 0 }
     };
+
+    // ==================== 癌细胞干员（异常位，独立于常规抽卡） ====================
+    const cancerOperators = {
+        cancer_melanoma: {
+            id: 'cancer_melanoma',
+            name: "MHC-I 缺失黑色素瘤",
+            rarity: 'pathology',
+            cost: 10,
+            maxCount: 1,
+            rangeType: 'circle1',
+            atk: 12,
+            maxLifeSec: 30,
+            suppression: 2,
+            sampleCost: 3,
+            desc: "35% 闪避诱饵，敌人优先攻击它",
+            special: { dodge: 0.35, taunt: true },
+            squadDebuff: { type: 'tCellAtk', value: -0.20, label: '全队 T 细胞攻击 -20%' },
+            bioBasis: "MHC-I 下调，CD8⁺ T 细胞无法识别",
+            role: "高闪避诱饵，拖住高威胁敌人；代价是削弱 T 细胞输出。"
+        },
+        cancer_lung_pdl1: {
+            id: 'cancer_lung_pdl1',
+            name: "PD-L1 高表达肺鳞癌细胞",
+            rarity: 'pathology',
+            cost: 12,
+            maxCount: 1,
+            rangeType: 'circle2',
+            atk: 22,
+            maxLifeSec: 25,
+            suppression: 3,
+            sampleCost: 4,
+            desc: "被攻击时反弹 30% 伤害；周围友军寿命 -30%",
+            special: { reflect: 0.30, absorbRanged: true },
+            squadDebuff: { type: 'nearbyLifespan', value: -0.30, radius: 2, label: '部署后周围 2 格友军寿命 -30%' },
+            bioBasis: "PD-L1 与 T 细胞 PD-1 结合，抑制 T 细胞功能",
+            role: "反伤肉盾，适合前排吸收火力；会缩短周围友军寿命。"
+        },
+        cancer_treg: {
+            id: 'cancer_treg',
+            name: "Treg 招募型肿瘤",
+            rarity: 'pathology',
+            cost: 9,
+            maxCount: 1,
+            rangeType: 'circle1',
+            atk: 14,
+            maxLifeSec: 35,
+            suppression: 2,
+            sampleCost: 3,
+            desc: "削弱周围敌人防御 15%，最多 3 层；传奇越多全队攻击越低",
+            special: { defenseDown: 0.15, stack: 3 },
+            squadDebuff: { type: 'legendaryAtk', value: -0.05, label: '每 1 名传奇干员，全队攻击 -5%' },
+            bioBasis: "肿瘤招募 Treg 形成免疫抑制微环境",
+            role: "破防辅助，克制高减伤敌人；传奇干员越多，编队惩罚越大。"
+        }
+    };
+    const CANCER_FRAG_ON_DUPLICATE = 3;   // 重复培养转化的癌细胞信物数
+    const T_CELL_IDS = ['tcell', 'memoryT', 'antiPD1'];   // 受 MHC-I 缺失黑色素瘤影响的全队 T 细胞
+
+    // ==================== 抑制信号阈值 ====================
+    const suppressionThresholds = [
+        { min: 3, max: 4, effect: 'atpRegen', value: -0.10, label: '全队 ATP 回复 -10%' },
+        { min: 5, max: 7, effect: 'legendaryCost', value: 2, label: '传奇干员费用 +2' },
+        { min: 8, max: Infinity, effect: 'randomApoptosis', interval: 10, label: '每 10 秒随机一名已部署干员凋亡' }
+    ];
+
+    // ==================== 病变样本掉落 ====================
+    const sampleDrops = {
+        19: { first: 1, repeat: 0 },
+        20: { first: 1, repeat: 0.20 },
+        21: { first: 1, repeat: 0.25 },
+        22: { first: 1, repeat: 0.30 },
+        23: { first: 1, repeat: 0.30 },
+        24: { first: 1, repeat: 0.30 }
+    };
+    const CHECKPOINT_DROP_RATE = 0.15;      // 第21关后重复通关掉率
+    const ANTI_PD1_SAMPLE_COST = 2;          // 培养皿兑换抗 PD-1 所需样本
+    const LEVEL_ENV_SUPPRESSION = { 21: 1, 22: 1, 23: 2, 24: 2 };
 
     // ==================== 抽卡概率与保底系统（仿主流抽卡游戏） ====================
     // 综合概率（含保底）远高于基础概率，基础概率也整体上调
@@ -1254,9 +1440,13 @@
         memoryT: "cute cartoon mascot of a memory T cell, teal round lymphocyte with Y-shaped receptors and a small glowing golden star medal on its chest, calm veteran kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
         monocyte: "cute cartoon mascot of a monocyte white blood cell, large steel-blue grey-blue round cell with a big kidney-bean shaped purple nucleus, patrolling with tiny footprints, alert kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
         plasmaCell: "cute cartoon mascot of a plasma cell, warm orange cell with an eccentric wheel-shaped purple nucleus pushed to one side and a pale golgi halo, shooting lots of tiny glowing Y-shaped antibodies from its hands, energetic kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
-        mastCell: "cute cartoon mascot of a mast cell, round red cell stuffed full of dark red and blue granules with a small central nucleus, sneezing out a burst of tiny granule dots, surprised cute kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon"
+        mastCell: "cute cartoon mascot of a mast cell, round red cell stuffed full of dark red and blue granules with a small central nucleus, sneezing out a burst of tiny granule dots, surprised cute kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        antiPD1: "cute cartoon mascot of an anti-PD-1 effector T cell, bright cyan T lymphocyte with Y-shaped receptors and a small glowing shield badge blocking a purple checkpoint molecule, determined heroic kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        cancer_melanoma: "cartoon mascot of a melanoma cancer cell, irregular dark purple blob with jagged membrane and a broken missing MHC-I receptor marker, sly mischievous kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        cancer_lung_pdl1: "cartoon mascot of a PD-L1 expressing lung squamous cancer cell, lumpy orange-red cell covered with small shield-shaped PD-L1 receptors, smug kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon",
+        cancer_treg: "cartoon mascot of a Treg-recruiting tumor cell, purple-pink irregular cell surrounded by tiny suppressive halo rings and small regulatory cell minions, calm sinister kawaii face, educational biology illustration, clean flat vector style, plain white background, centered game icon"
     };
-    const avatarEmoji = { rbc: '🔴', neutrophil: '⚡', macrophage: '🌀', lysozyme: '💧', tcell: '🎯', nkcell: '🗡️', bcell: '🛡️', dendritic: '☀️', eosinophil: '🏹', memoryT: '📚', monocyte: '🛰️', plasmaCell: '🔆', mastCell: '💥' };
+    const avatarEmoji = { rbc: '🔴', neutrophil: '⚡', macrophage: '🌀', lysozyme: '💧', tcell: '🎯', nkcell: '🗡️', bcell: '🛡️', dendritic: '☀️', eosinophil: '🏹', memoryT: '📚', monocyte: '🛰️', plasmaCell: '🔆', mastCell: '💥', antiPD1: '🧬', cancer_melanoma: '🟣', cancer_lung_pdl1: '🟠', cancer_treg: '🟪' };
     const cellAvatars = {};      // Image对象（Canvas绘制用）
     const avatarURLs = {};       // URL（UI <img>用）
     const avatarStatus = {};     // loading / ok / fail
@@ -1422,6 +1612,8 @@
         }
     };
     levels.forEach(lvl => Object.assign(lvl, LEVEL_STORY[lvl.id] || {}));
+    // 高难关卡环境抑制信号
+    levels.forEach(lvl => { lvl.envSuppression = LEVEL_ENV_SUPPRESSION[lvl.id] || 0; });
 
     // 阶段报告：每个阶段第一关前展示一次
     const STAGE_REPORTS = {
@@ -1509,6 +1701,18 @@
     let seenStageReports = [];                         // 已查看过阶段报告的阶段名（持久化）
     let unlockedArchives = [];                         // 已解锁档案的关卡 id（持久化）
 
+    // 2.2 异常位 / 癌细胞 / 病理培养皿
+    let pathologySamples = 0;                          // 病变样本（持久化）
+    let checkpointItems = 0;                           // 免疫检查点抑制剂数量（持久化）
+    let sampleFirstClears = [];                        // 已发放首通样本的关卡 id（持久化）
+    let cancerCollection = {};                         // 已培养癌细胞 { id: {stars, fragments} }（持久化）
+    let abnormalId = null;                             // 当前异常位选择的癌细胞 id（持久化）
+    let battleSuppression = 0;                         // 战斗中当前抑制信号层数
+    let antiPd1Cd = 0;                                 // 抗 PD-1 技能冷却（帧）
+    let checkpointUsedThisLevel = false;               // 本关是否已使用检查点抑制剂
+    let suppressionApoptosisTimer = 0;                 // 8+ 层随机凋亡计时（帧）
+    let cancerPickerOpen = false;                      // 编队界面癌细胞列表是否展开（不持久化）
+
     // 初始赠送3名初始干员（1星）
     for(let starterId of deck) {
         collection[starterId] = { stars: 1, fragments: 0 };
@@ -1534,7 +1738,12 @@
                 tutorialDone: tutorialDone,
                 seenBriefs: seenBriefs,
                 seenStageReports: seenStageReports,
-                unlockedArchives: unlockedArchives
+                unlockedArchives: unlockedArchives,
+                pathologySamples: pathologySamples,
+                checkpointItems: checkpointItems,
+                sampleFirstClears: sampleFirstClears,
+                cancerCollection: cancerCollection,
+                abnormalId: abnormalId
             }));
         } catch(e) { /* 隐私模式/存储已满时静默降级，不影响游戏 */ }
     }
@@ -1582,6 +1791,23 @@
             if(Array.isArray(d.unlockedArchives)) {
                 unlockedArchives = Array.from(new Set(d.unlockedArchives.filter(n => Number.isInteger(n) && n >= 1 && n <= levels.length)));
             }
+            if(typeof d.pathologySamples === 'number' && d.pathologySamples >= 0) pathologySamples = Math.floor(d.pathologySamples);
+            if(typeof d.checkpointItems === 'number' && d.checkpointItems >= 0) checkpointItems = Math.floor(d.checkpointItems);
+            if(Array.isArray(d.sampleFirstClears)) {
+                sampleFirstClears = Array.from(new Set(d.sampleFirstClears.filter(n => Number.isInteger(n) && n >= 1 && n <= levels.length)));
+            }
+            if(d.cancerCollection && typeof d.cancerCollection === 'object') {
+                for(let id in d.cancerCollection) {
+                    if(cancerOperators[id]) {
+                        let c = d.cancerCollection[id];
+                        cancerCollection[id] = {
+                            stars: Math.min(5, Math.max(1, Math.floor(c.stars) || 1)),
+                            fragments: Math.max(0, Math.floor(c.fragments) || 0)
+                        };
+                    }
+                }
+            }
+            if(typeof d.abnormalId === 'string' && cancerCollection[d.abnormalId]) abnormalId = d.abnormalId;
             baseHp = levels[currentLevel - 1].baseHp;
             refreshDeckOperators();
         } catch(e) { /* 存档损坏时以新档启动 */ }
@@ -1808,10 +2034,78 @@
     }
 
     // 由编队 + 收藏重新生成出战干员列表
+    function getSelectedCancerDef() {
+        return (abnormalId && cancerCollection[abnormalId]) ? cancerOperators[abnormalId] : null;
+    }
+
+    // 癌细胞属性：每星攻击 +10%，特殊效果 +5%，并享受病理档案加成
+    function getUpgradedCancerStats(def, stars) {
+        let starBonus = (stars - 1) * 0.10;
+        let specialBonus = 1 + 0.05 * (stars - 1);
+        let special = {};
+        for(let k in def.special) {
+            special[k] = (typeof def.special[k] === 'number' && k !== 'stack')
+                ? def.special[k] * specialBonus
+                : def.special[k];
+        }
+        return {
+            ...def,
+            atk: Math.round(def.atk * (1 + starBonus) * (1 + getArchiveBonus()) * 10) / 10,
+            maxLifeSec: Math.round(def.maxLifeSec * (1 + getArchiveBonus()) * 10) / 10,
+            special: special,
+            stars: stars,
+            isCancer: true
+        };
+    }
+
+    // 抑制信号 5 层以上，传奇干员费用 +2
+    function getEffectiveCost(op) {
+        if(!op) return 0;
+        let extra = op.rarity === 'legendary' ? getSuppressionEffects().legendaryCostAdd : 0;
+        return op.cost + extra;
+    }
+
     function refreshDeckOperators() {
-        playerOperators = deck
+        const cancerDef = getSelectedCancerDef();
+        const cancerState = cancerDef ? cancerCollection[cancerDef.id] : null;
+        const legendCount = deck.filter(id => {
+            let op = masterPool.find(m => m.id === id);
+            return op && op.rarity === 'legendary';
+        }).length;
+
+        let list = deck
             .filter(id => collection[id])
             .map(id => getUpgradedStats(masterPool.find(m => m.id === id), collection[id].stars));
+
+        // 癌细胞编队负面：编队存在期间持续生效
+        if(cancerDef) {
+            if(cancerDef.squadDebuff.type === 'tCellAtk') {
+                list = list.map(op => {
+                    if(!T_CELL_IDS.includes(op.id)) return op;
+                    return {
+                        ...op,
+                        atk: Math.round(op.atk * (1 + cancerDef.squadDebuff.value) * 10) / 10,
+                        squadDebuffNote: cancerDef.squadDebuff.label.replace('全队 ', '')
+                    };
+                });
+            } else if(cancerDef.squadDebuff.type === 'legendaryAtk' && legendCount > 0) {
+                let mult = 1 + cancerDef.squadDebuff.value * legendCount;
+                list = list.map(op => ({
+                    ...op,
+                    atk: Math.round(op.atk * mult * 10) / 10,
+                    squadDebuffNote: `全队攻击 ${Math.round((mult - 1) * 100)}%`
+                }));
+            }
+
+            let cancerOp = getUpgradedCancerStats(cancerDef, cancerState.stars);
+            if(cancerDef.squadDebuff.type === 'legendaryAtk' && legendCount > 0) {
+                cancerOp.atk = Math.round(cancerOp.atk * (1 + cancerDef.squadDebuff.value * legendCount) * 10) / 10;
+                cancerOp.squadDebuffNote = `全队攻击 ${Math.round(cancerDef.squadDebuff.value * legendCount * 100)}%`;
+            }
+            list.push(cancerOp);
+        }
+
+        playerOperators = list;
         let currentId = selectedOp ? selectedOp.id : null;
         selectedOp = playerOperators.find(o => o.id === currentId) || playerOperators[0] || null;
         renderOperators();
@@ -1847,7 +2141,7 @@
 
     // 当前卡池：仅包含已解锁（unlockLevel <= currentLevel）的干员
     function getAvailablePool() {
-        return masterPool.filter(op => op.unlockLevel <= currentLevel);
+        return masterPool.filter(op => op.unlockLevel <= currentLevel && op.gacha !== false);
     }
 
     function rollOne(pool, upOps, upRate) {
@@ -3295,6 +3589,7 @@
         renderCollectionUI();
         saveGame();
         alert(`🎉 ${masterPool.find(m => m.id === opId).name} 升星成功！攻击+15%、寿命+2秒。`);
+        try { if(document.getElementById('dishModal').style.display === 'flex') renderDish(); } catch(e) {}
     }
 
     function renderCollectionUI() {
@@ -3315,6 +3610,15 @@
             let actionHtml = upCost
                 ? `<button onclick="upgradeStar('${id}')">升星(${upCost}信物)</button>`
                 : '<span class="full-star">满星 ★</span>';
+            let cancerDef = getSelectedCancerDef();
+            let debuffHtml = '';
+            if(cancerDef) {
+                if(cancerDef.squadDebuff.type === 'tCellAtk' && T_CELL_IDS.includes(id)) {
+                    debuffHtml = `<div class="ci-debuff">异常位：T 细胞攻击 -20%</div>`;
+                } else if(cancerDef.squadDebuff.type === 'legendaryAtk' && op.rarity === 'legendary') {
+                    debuffHtml = `<div class="ci-debuff">异常位：全队攻击 -5% / 每名传奇</div>`;
+                }
+            }
             return `<div class="collection-item" style="border-left:3px solid ${rc.color};">
                 <div class="ci-row">
                     ${avatarImg(id, 38, 'border-color:' + rc.color)}
@@ -3325,6 +3629,7 @@
                         </div>
                         <div class="ci-stars">${'★'.repeat(c.stars)}${'☆'.repeat(5 - c.stars)}</div>
                         <div class="ci-info">信物 ${c.fragments} · ${op.desc}</div>
+                        ${debuffHtml}
                     </div>
                 </div>
                 <div class="ci-actions">
@@ -3337,7 +3642,10 @@
     }
 
     function openDeck() {
+        cancerPickerOpen = false;
         renderCollectionUI();
+        renderDeckSuppression();
+        renderAbnormalSlot();
         document.getElementById('deckModal').style.display = 'flex';
     }
     function closeDeck() {
@@ -3513,6 +3821,415 @@
         list.innerHTML = html;
     }
 
+    // ==================== 抑制信号 / 异常位 / 病理培养皿 ====================
+    function isDishUnlocked() {
+        return unlockedArchives.includes(18) || currentLevel >= 19;
+    }
+    function isAbnormalSlotUnlocked() {
+        return unlockedArchives.includes(19) || currentLevel >= 20;
+    }
+
+    // 编队层面的抑制信号：癌细胞 + 关卡环境
+    function getSquadSuppression() {
+        let n = 0;
+        const def = getSelectedCancerDef();
+        if(def) n += def.suppression;
+        const lvl = levels[currentLevel - 1];
+        if(lvl) n += (lvl.envSuppression || 0);
+        return n;
+    }
+    function getActiveSuppression() {
+        return waveInProgress ? battleSuppression : getSquadSuppression();
+    }
+    function getSuppressionState(layers) {
+        if(layers >= 8) {
+            return {
+                cls: 'danger', label: '危险',
+                effects: ['ATP 回复 -10%', '传奇干员费用 +2', '每 10 秒随机凋亡'],
+                next: '已至最高阈值'
+            };
+        }
+        if(layers >= 5) {
+            return {
+                cls: 'danger', label: '危险',
+                effects: ['ATP 回复 -10%', '传奇干员费用 +2'],
+                next: '下一阈值 8 层：每 10 秒随机一名已部署干员凋亡'
+            };
+        }
+        if(layers >= 3) {
+            return {
+                cls: 'warn', label: '警戒',
+                effects: ['ATP 回复 -10%'],
+                next: '下一阈值 5 层：传奇干员费用 +2'
+            };
+        }
+        return {
+            cls: 'safe', label: '安全', effects: [],
+            next: '下一阈值 3 层：全队 ATP 回复 -10%'
+        };
+    }
+    function getSuppressionEffects() {
+        const l = getActiveSuppression();
+        const active = (effect) => suppressionThresholds.some(t => t.effect === effect && l >= t.min && l <= t.max);
+        return {
+            atpRegenMult: active('atpRegen') ? 0.9 : 1,
+            legendaryCostAdd: active('legendaryCost') ? 2 : 0,
+            randomApoptosis: active('randomApoptosis')
+        };
+    }
+
+    function showSuppressionFloat(text, color) {
+        try {
+            const anchor = document.getElementById('suppressionBadge');
+            if(!anchor || anchor.style.display === 'none') return;
+            const r = anchor.getBoundingClientRect();
+            if(r.width <= 0) return;
+            let el = document.createElement('div');
+            el.className = 'suppression-float';
+            el.textContent = '抑制信号 ' + text;
+            el.style.color = color || '#9be7c4';
+            el.style.left = (r.left + r.width / 2) + 'px';
+            el.style.top = (r.top - 4) + 'px';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 1250);
+        } catch(e) { /* 特效失败不影响数值 */ }
+    }
+
+    function renderSuppressionUI() {
+        const layers = getActiveSuppression();
+        const st = getSuppressionState(layers);
+        const inBattle = waveInProgress;
+
+        const badge = document.getElementById('suppressionBadge');
+        const val = document.getElementById('suppressionVal');
+        if(badge && val) {
+            if(layers > 0) {
+                badge.style.display = '';
+                badge.className = 'res-badge suppression-badge ' + st.cls;
+                val.innerText = layers;
+                badge.title = st.next;
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        const hint = document.getElementById('suppressionHint');
+        const text = document.getElementById('suppressionHintText');
+        const antiBtn = document.getElementById('antiPd1SkillBtn');
+        const cpBtn = document.getElementById('checkpointBtn');
+        if(!hint || !text || !antiBtn || !cpBtn) return;
+
+        if(layers <= 0) {
+            hint.style.display = 'none';
+            antiBtn.style.display = 'none';
+            cpBtn.style.display = 'none';
+            cpBtn.disabled = false;
+            return;
+        }
+        hint.style.display = 'flex';
+        hint.className = 'suppression-hint ' + st.cls;
+        text.innerText = `☣ ${inBattle ? '抑制信号' : '编队抑制信号'} ${layers} 层 · ${st.next}`;
+
+        // 抗 PD-1 主动技能
+        const hasAnti = inBattle && playerOperators.some(o => o.id === 'antiPD1') && hasDeployedAntiPd1();
+        antiBtn.style.display = hasAnti ? '' : 'none';
+        if(hasAnti) {
+            if(antiPd1Cd > 0) {
+                antiBtn.disabled = true;
+                antiBtn.innerText = `🧬 CD ${Math.ceil(antiPd1Cd / 60)}s`;
+            } else {
+                antiBtn.disabled = false;
+                antiBtn.innerText = `🧬 清除 ${Math.min(3, layers)} 层`;
+            }
+        }
+
+        // 免疫检查点抑制剂
+        if(inBattle && checkpointItems > 0) {
+            cpBtn.style.display = '';
+            cpBtn.disabled = checkpointUsedThisLevel;
+            cpBtn.innerText = checkpointUsedThisLevel
+                ? '🧪 本关已使用'
+                : `🧪 抑制剂 ×${checkpointItems}`;
+        } else {
+            cpBtn.style.display = 'none';
+        }
+    }
+
+    function renderDeckSuppression() {
+        const el = document.getElementById('deckSuppression');
+        if(!el) return;
+        const layers = getSquadSuppression();
+        const st = getSuppressionState(layers);
+        el.className = 'squad-suppression ' + st.cls;
+        const effectText = st.effects.length ? st.effects.join(' · ') : '当前无负面';
+        el.innerHTML = `抑制信号：<b>${layers} 层</b>（${st.label}）<br><span class="sup-next">${effectText} · ${st.next}</span>`;
+    }
+
+    function renderAbnormalSlot() {
+        const box = document.getElementById('abnormalSlot');
+        if(!box) return;
+        let html = '<div class="ab-head"><span>异常位（1）</span><span style="font-size:10px;color:#9b8fb0;">不占常规出战位</span></div>';
+        if(!isAbnormalSlotUnlocked()) {
+            box.innerHTML = html + '<div class="ab-empty">🔒 通关第 19 关后解锁异常位。</div>';
+            return;
+        }
+        const def = getSelectedCancerDef();
+        if(def) {
+            const c = cancerCollection[def.id];
+            html += `<div class="abnormal-slot">
+                ${avatarImg(def.id, 36, 'border-color:' + rarityConfig.pathology.color)}
+                <div class="ab-main">
+                    <div class="ab-name">${def.name} ${'★'.repeat(c.stars)}</div>
+                    <div class="ab-meta">☣ 抑制信号 +${def.suppression} 层 · ${def.squadDebuff.label}</div>
+                </div>
+                <div class="abnormal-actions">
+                    <button onclick="toggleCancerPicker()">更换</button>
+                    <button onclick="clearAbnormal()">移除</button>
+                </div>
+            </div>`;
+        } else {
+            html += `<div class="abnormal-slot">
+                <div class="ab-empty">未选择癌细胞。不携带则没有编队负面。</div>
+                <div class="abnormal-actions"><button onclick="toggleCancerPicker()">选择癌细胞</button></div>
+            </div>`;
+        }
+        if(cancerPickerOpen) {
+            const owned = Object.keys(cancerCollection);
+            html += '<div class="cancer-pick-list">';
+            if(owned.length === 0) {
+                html += '<div style="font-size:10px;color:#888;">暂无可选癌细胞，前往病理培养皿培养。</div>';
+            }
+            owned.forEach(id => {
+                const d = cancerOperators[id];
+                const c = cancerCollection[id];
+                html += `<div class="cancer-pick-item">
+                    ${avatarImg(id, 28, 'border-color:' + rarityConfig.pathology.color)}
+                    <div class="cp-main">
+                        <div class="cp-name">${d.name} ${'★'.repeat(c.stars)}</div>
+                        <div class="cp-meta">☣ +${d.suppression} 层 · ${d.squadDebuff.label}</div>
+                    </div>
+                    <button onclick="selectAbnormal('${id}')" ${abnormalId === id ? 'disabled' : ''}>${abnormalId === id ? '已选' : '选择'}</button>
+                </div>`;
+            });
+            html += `<div class="cancer-pick-item">
+                <div class="cp-main">
+                    <div class="cp-name">不携带癌细胞</div>
+                    <div class="cp-meta">抑制信号归零，无编队负面</div>
+                </div>
+                <button onclick="clearAbnormal()">清空</button>
+            </div>`;
+            html += '</div>';
+        }
+        box.innerHTML = html;
+    }
+
+    function toggleCancerPicker() {
+        if(waveInProgress) { alert('战斗中无法调整异常位！'); return; }
+        cancerPickerOpen = !cancerPickerOpen;
+        renderAbnormalSlot();
+    }
+
+    function selectAbnormal(id) {
+        if(waveInProgress) { alert('战斗中无法调整异常位！'); return; }
+        if(!cancerCollection[id]) return;
+        const oldDef = getSelectedCancerDef();
+        const delta = cancerOperators[id].suppression - (oldDef ? oldDef.suppression : 0);
+        abnormalId = id;
+        cancerPickerOpen = false;
+        saveGame();
+        refreshDeckOperators();
+        renderCollectionUI();
+        renderDeckSuppression();
+        renderAbnormalSlot();
+        updateUI();
+        if(delta !== 0) showSuppressionFloat(`${delta > 0 ? '+' : ''}${delta} 层`, delta > 0 ? '#ffd84d' : '#9be7c4');
+    }
+
+    function clearAbnormal() {
+        if(waveInProgress) { alert('战斗中无法调整异常位！'); return; }
+        const oldDef = getSelectedCancerDef();
+        if(oldDef) showSuppressionFloat(`-${oldDef.suppression} 层`, '#9be7c4');
+        abnormalId = null;
+        cancerPickerOpen = false;
+        saveGame();
+        refreshDeckOperators();
+        renderCollectionUI();
+        renderDeckSuppression();
+        renderAbnormalSlot();
+        updateUI();
+    }
+
+    // ---------- 病理培养皿 ----------
+    function openDish() {
+        renderDish();
+        const m = document.getElementById('dishModal');
+        if(m) m.style.display = 'flex';
+    }
+    function closeDish() {
+        const m = document.getElementById('dishModal');
+        if(m) m.style.display = 'none';
+    }
+    function renderDish() {
+        const sum = document.getElementById('dishSummary');
+        const body = document.getElementById('dishBody');
+        if(!sum || !body) return;
+        if(!isDishUnlocked()) {
+            sum.innerHTML = '🔒 通关第 18 关后解锁病理培养皿。';
+            body.innerHTML = '';
+            return;
+        }
+        sum.innerHTML = `病变样本：<b>${pathologySamples}</b> 🧫 · 免疫检查点抑制剂：<b>${checkpointItems}</b> 🧪<br><span style="color:#6f7a8c;">培养是确定性兑换，不随机；重复培养转化为癌细胞信物。通关第 19–24 关掉落样本。</span>`;
+        let html = '<div class="dish-grid">';
+        Object.values(cancerOperators).forEach(def => {
+            const c = cancerCollection[def.id];
+            const can = pathologySamples >= def.sampleCost;
+            const upCost = (c && c.stars < 5) ? 5 * c.stars : null;
+            html += `<div class="dish-card ${c ? 'owned' : ''}">
+                <div class="dc-top">
+                    ${avatarImg(def.id, 40, 'border-color:' + rarityConfig.pathology.color)}
+                    <div class="dc-name">${def.name}${c ? `<br><span style="color:#ffb142;font-size:10px;">${'★'.repeat(c.stars)}</span>` : ''}</div>
+                </div>
+                <div class="dc-bio">${def.bioBasis}</div>
+                <div class="dc-stats">
+                    ☣ 抑制信号 <b>+${def.suppression}</b> · 费用 ${def.cost} ATP · 寿命 ${def.maxLifeSec}s · 攻击 ${def.atk}<br>
+                    ${def.squadDebuff.label}<br>
+                    <span style="color:#ffb3dc;">${def.role}</span>
+                </div>
+                <div class="dc-actions">
+                    ${c ? `
+                        <button onclick="cultivateCancer('${def.id}')" ${can ? '' : 'disabled'}>再培养 +${CANCER_FRAG_ON_DUPLICATE} 信物（${def.sampleCost} 样本）</button>
+                        ${upCost
+                            ? `<button class="primary" onclick="upgradeCancerStar('${def.id}')" ${c.fragments >= upCost ? '' : 'disabled'}>升星（${upCost} 信物）</button>`
+                            : '<span style="font-size:10px;color:#ffb142;">满星 ★</span>'}
+                        <span style="font-size:9.5px;color:#8e82a6;width:100%;">当前信物 ${c.fragments}</span>
+                    ` : `
+                        <button class="primary" onclick="cultivateCancer('${def.id}')" ${can ? '' : 'disabled'}>培养（${def.sampleCost} 样本）</button>
+                    `}
+                </div>
+            </div>`;
+        });
+        html += '</div>';
+
+        const anti = collection.antiPD1;
+        html += `<div class="dish-anti">
+            ${avatarImg('antiPD1', 40, 'border-color:' + rarityConfig.epic.color)}
+            <div class="da-main">
+                <div class="da-name">抗 PD-1 效应 T 细胞</div>
+                <div class="da-meta">
+                    史诗 · 11 ATP · 18s · 周围3×3<br>
+                    主动：清除 3 层抑制信号（CD 45s）；每清除 1 层，自身攻击 +5%（10s）<br>
+                    ${anti ? `已拥有 ${'★'.repeat(anti.stars)} · 信物 ${anti.fragments}` : `需要 ${ANTI_PD1_SAMPLE_COST} 个病变样本兑换`}
+                </div>
+            </div>
+            <button onclick="exchangeAntiPD1()" ${pathologySamples >= ANTI_PD1_SAMPLE_COST ? '' : 'disabled'}>
+                ${anti ? '重复兑换 +5 信物' : '兑换'}
+            </button>
+        </div>`;
+        body.innerHTML = html;
+    }
+
+    function cultivateCancer(id) {
+        const def = cancerOperators[id];
+        if(!def || !isDishUnlocked()) return;
+        if(pathologySamples < def.sampleCost) { alert('病变样本不足！'); return; }
+        pathologySamples -= def.sampleCost;
+        if(cancerCollection[id]) {
+            cancerCollection[id].fragments += CANCER_FRAG_ON_DUPLICATE;
+            alert(`「${def.name}」已培养过，转化为癌细胞信物 ×${CANCER_FRAG_ON_DUPLICATE}。`);
+        } else {
+            cancerCollection[id] = { stars: 1, fragments: 0 };
+            alert(`培养成功：「${def.name}」已进入异常位可选列表。`);
+        }
+        saveGame();
+        refreshDeckOperators();
+        renderDish();
+        renderCollectionUI();
+        renderDeckSuppression();
+        renderAbnormalSlot();
+        updateUI();
+    }
+
+    function exchangeAntiPD1() {
+        if(!isDishUnlocked()) return;
+        if(pathologySamples < ANTI_PD1_SAMPLE_COST) { alert('病变样本不足！'); return; }
+        pathologySamples -= ANTI_PD1_SAMPLE_COST;
+        if(collection.antiPD1) {
+            collection.antiPD1.fragments += 5;
+            alert('重复兑换：抗 PD-1 效应 T 细胞信物 ×5。');
+        } else {
+            collection.antiPD1 = { stars: 1, fragments: 0 };
+            alert('兑换成功：抗 PD-1 效应 T 细胞已加入图鉴，可在编队中出战。');
+        }
+        saveGame();
+        refreshDeckOperators();
+        renderCollectionUI();
+        renderDish();
+        updateUI();
+    }
+
+    function upgradeCancerStar(id) {
+        const c = cancerCollection[id];
+        if(!c) return;
+        if(c.stars >= 5) { alert('已达最高星级！'); return; }
+        const cost = 5 * c.stars;
+        if(c.fragments < cost) { alert(`癌细胞信物不足，升星需 ${cost} 个！`); return; }
+        c.fragments -= cost;
+        c.stars++;
+        saveGame();
+        refreshDeckOperators();
+        renderDish();
+        renderCollectionUI();
+        renderAbnormalSlot();
+        renderDeckSuppression();
+        alert(`🎉 ${cancerOperators[id].name} 升星成功！攻击 +10%、特殊效果 +5%。`);
+    }
+
+    function hasDeployedAntiPd1() {
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                if(grid[r][c] && grid[r][c].id === 'antiPD1') return true;
+            }
+        }
+        return false;
+    }
+
+    function useAntiPd1Skill() {
+        if(!waveInProgress) { alert('战斗中才能使用主动技能！'); return; }
+        if(!hasDeployedAntiPd1()) { alert('请先部署抗 PD-1 效应 T 细胞！'); return; }
+        if(antiPd1Cd > 0) return;
+        if(battleSuppression <= 0) { alert('当前没有抑制信号可清除。'); return; }
+        const cleared = Math.min(3, battleSuppression);
+        battleSuppression -= cleared;
+        antiPd1Cd = 45 * 60;
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                let cell = grid[r][c];
+                if(cell && cell.id === 'antiPD1') {
+                    cell.atkBuff = 0.05 * cleared;
+                    cell.atkBuffTimer = 600;   // 10 秒
+                }
+            }
+        }
+        showSuppressionFloat(`-${cleared} 层`, '#9be7c4');
+        updateUI();
+        renderOperators();
+    }
+
+    function useCheckpointInhibitor() {
+        if(!waveInProgress) { alert('战斗中才能使用检查点抑制剂！'); return; }
+        if(checkpointUsedThisLevel) { alert('本关已使用过检查点抑制剂。'); return; }
+        if(checkpointItems <= 0) { alert('没有免疫检查点抑制剂。'); return; }
+        if(battleSuppression <= 0) { alert('当前没有抑制信号可清除。'); return; }
+        checkpointItems--;
+        checkpointUsedThisLevel = true;
+        const cleared = Math.min(5, battleSuppression);
+        battleSuppression -= cleared;
+        showSuppressionFloat(`-${cleared} 层`, '#9be7c4');
+        saveGame();
+        updateUI();
+        renderOperators();
+    }
+
     function selectLevel(lvlId) {
         if(waveInProgress) { alert("战斗中无法切换关卡！"); return; }
         currentLevel = lvlId;
@@ -3531,15 +4248,22 @@
     function renderOperators() {
         const list = document.getElementById('operatorList');
         if(!list) return;
-        list.innerHTML = playerOperators.map((op, idx) => `
-            <div class="operator-card ${selectedOp === op ? 'selected' : ''}" onclick="selectOperator(${idx})">
+        list.innerHTML = playerOperators.map((op, idx) => {
+            let cost = getEffectiveCost(op);
+            let cancerClass = op.isCancer ? 'cancer' : '';
+            let cancerTag = op.isCancer ? '<div class="cancer-tag">异常位</div>' : '';
+            let debuff = op.squadDebuffNote ? `<div class="op-debuff">${op.squadDebuffNote}</div>` : '';
+            return `
+            <div class="operator-card ${cancerClass} ${selectedOp === op ? 'selected' : ''}" onclick="selectOperator(${idx})">
                 <div class="op-avatar">${avatarImg(op.id, 32, 'border-color:' + (rarityConfig[op.rarity] ? rarityConfig[op.rarity].color : '#38384d'))}</div>
+                ${cancerTag}
                 <div class="name">${op.name}</div>
-                <div class="cost">⚡${op.cost} · ${'★'.repeat(op.stars)}</div>
+                <div class="cost ${cost > op.cost ? 'up' : ''}">⚡${cost} · ${'★'.repeat(op.stars)}</div>
                 <div class="range">${rangeTypeInfo[op.rangeType].label}</div>
                 <div class="desc">${op.desc}</div>
-            </div>
-        `).join('');
+                ${debuff}
+            </div>`;
+        }).join('');
     }
 
     function selectOperator(idx) {
@@ -3584,7 +4308,8 @@
             }
 
             if(!selectedOp) { alert("请先选择细胞！"); return; }
-            if(atp < selectedOp.cost) { alert("ATP 能量不足！"); return; }
+            let deployCost = getEffectiveCost(selectedOp);
+            if(atp < deployCost) { alert("ATP 能量不足！"); return; }
 
             let deployedCount = grid.flat().filter(cell => cell && cell.id === selectedOp.id).length;
             if(deployedCount >= selectedOp.maxCount) {
@@ -3592,10 +4317,48 @@
                 return;
             }
 
-            atp -= selectedOp.cost;
+            atp -= deployCost;
             let totalFrames = selectedOp.maxLifeSec * 60;
-            grid[r][c] = { ...selectedOp, r, c, lifeTimer: totalFrames, maxLifeTimer: totalFrames, infected: false, infectTimer: 0 };
+            grid[r][c] = {
+                ...selectedOp,
+                cost: deployCost, r, c,
+                lifeTimer: totalFrames, maxLifeTimer: totalFrames,
+                infected: false, infectTimer: 0,
+                atkBuff: 0, atkBuffTimer: 0
+            };
+            applyPdl1LifeCutOnDeploy(r, c);
             updateUI();
+        }
+    }
+
+    // PD-L1 癌细胞：部署时削减周围 2 格友军 30% 寿命
+    function cutCellLife(cell) {
+        if(!cell || cell.isCancer) return;
+        cell.lifeTimer = Math.max(1, cell.lifeTimer * 0.7);
+        cell.maxLifeTimer = Math.max(1, cell.maxLifeTimer * 0.7);
+    }
+    function applyPdl1LifeCutOnDeploy(r, c) {
+        const placed = grid[r][c];
+        if(!placed) return;
+        if(placed.id === 'cancer_lung_pdl1') {
+            for(let nr = Math.max(0, r - 2); nr <= Math.min(rows - 1, r + 2); nr++) {
+                for(let nc = Math.max(0, c - 2); nc <= Math.min(cols - 1, c + 2); nc++) {
+                    if(nr === r && nc === c) continue;
+                    cutCellLife(grid[nr][nc]);
+                }
+            }
+            spawnFloatingText(c * tileSize + tileSize / 2, r * tileSize + 10, '寿命 -30%', '#ff6b6b');
+        } else {
+            for(let nr = 0; nr < rows; nr++) {
+                for(let nc = 0; nc < cols; nc++) {
+                    let cell = grid[nr][nc];
+                    if(cell && cell.id === 'cancer_lung_pdl1' && Math.abs(nr - r) <= 2 && Math.abs(nc - c) <= 2) {
+                        cutCellLife(placed);
+                        spawnFloatingText(c * tileSize + tileSize / 2, r * tileSize + 10, '寿命 -30%', '#ff6b6b');
+                        return;
+                    }
+                }
+            }
         }
     }
 
@@ -3678,7 +4441,12 @@
         clearSpawnTimer();              // 先清理任何残留调度
         waveInProgress = true;
         waveSpawningDone = false;
+        battleSuppression = getSquadSuppression();
+        antiPd1Cd = 0;
+        checkpointUsedThisLevel = false;
+        suppressionApoptosisTimer = 0;
         updateWaveButton();
+        updateUI();
         let lvlData = levels[currentLevel - 1];
         let allowed = lvlData.allowedEnemies || ['influenza'];
         let bossMap = {};
@@ -3751,6 +4519,36 @@
             saveGame();
         }
 
+        // 2.2 病变样本 / 抗 PD-1 / 检查点抑制剂掉落
+        let rewardLines = [];
+        let firstSampleClear = false;
+        const dropCfg = sampleDrops[lvlData.id];
+        if(dropCfg) {
+            if(!sampleFirstClears.includes(lvlData.id)) {
+                firstSampleClear = true;
+                sampleFirstClears.push(lvlData.id);
+                pathologySamples += (dropCfg.first || 1);
+                rewardLines.push(`🧫 病变样本 +${dropCfg.first || 1}`);
+            } else if(Math.random() < (dropCfg.repeat || 0)) {
+                pathologySamples += 1;
+                rewardLines.push('🧫 病变样本 +1');
+            }
+        }
+        if(lvlData.id === 20 && firstSampleClear) {
+            if(!collection.antiPD1) {
+                collection.antiPD1 = { stars: 1, fragments: 0 };
+                rewardLines.push('🧬 抗 PD-1 效应 T 细胞已加入图鉴');
+            } else {
+                collection.antiPD1.fragments += 5;
+                rewardLines.push('🧬 抗 PD-1 效应 T 细胞信物 +5');
+            }
+        }
+        if(lvlData.id >= 21 && !firstSampleClear && Math.random() < CHECKPOINT_DROP_RATE) {
+            checkpointItems += 1;
+            rewardLines.push('🧪 免疫检查点抑制剂 +1');
+        }
+        refreshDeckOperators();
+
         let desc = `${lvlData.name}<br>获得营养 🧪 +${lvlData.rewardNut}　骨髓原液 🦴 +2`;
         if(archiveJustUnlocked) {
             const pctText = (Math.round(getArchiveBonus() * 1000) / 10).toString().replace('.0', '');
@@ -3759,6 +4557,12 @@
                 <span style="font-size:11px; color:#8fa0b5;">全队 +0.5% 攻击与寿命（累计 +${pctText}%）· 可在「病理档案」回看</span>
             </div>`;
         }
+        if(rewardLines.length) {
+            desc += `<div style="margin-top:12px; padding:9px 12px; background:#1b1626; border:1px solid #3d2b52; border-left:3px solid #a66bd0; border-radius:8px; text-align:left; font-size:12px; color:#ffb3dc; line-height:1.7;">
+                ${rewardLines.join('<br>')}
+            </div>`;
+        }
+        saveGame();
 
         let hasNext = currentLevel < levels.length;
         openResultModal(
@@ -3798,15 +4602,75 @@
         }
     }
 
+    // ==================== 癌细胞实战特性 ====================
+    // 黑色素瘤：35% 闪避 + 诱饵
+    function enemyDamageCell(en, cell, amount, r, c) {
+        if(!cell) return;
+        let dodge = (cell.special && cell.special.dodge) || 0;
+        if(dodge > 0 && Math.random() < dodge) {
+            spawnFloatingText(c * tileSize + tileSize / 2, r * tileSize + 12, '闪避!', '#ffd84d');
+            return;
+        }
+        cell.lifeTimer -= amount;
+        // PD-L1 肺鳞癌细胞：反弹 30% 伤害给攻击者
+        let reflect = (cell.special && cell.special.reflect) || 0;
+        if(reflect > 0 && en) {
+            let back = amount * reflect;
+            en.hp -= back;
+            spawnFloatingText(en.x, en.y - 12, `反伤 ${Math.round(back)}`, '#ff6b6b');
+        }
+    }
+
+    // 在敌人附近寻找可嘲讽的黑色素瘤
+    function findTauntMelanoma(en) {
+        let best = null;
+        for(let r = 0; r < rows; r++) {
+            for(let c = 0; c < cols; c++) {
+                let cell = grid[r][c];
+                if(!cell || cell.id !== 'cancer_melanoma' || cell.infected) continue;
+                if(!cell.special || !cell.special.taunt) continue;
+                if(Math.abs(r - en.currentR) <= 1 && Math.abs(c - en.currentC) <= 2) {
+                    if(!best || Math.abs(c - en.currentC) < best.d) {
+                        best = { r, c, cell, d: Math.abs(c - en.currentC) };
+                    }
+                }
+            }
+        }
+        return best;
+    }
+
     // ==================== 游戏逻辑更新 ====================
     function updateGame(nowTs) {
         // 时间累积出怪（每帧驱动，杜绝递归定时器丢链）
         tickSpawn(nowTs || performance.now());
 
-        // ATP 自然恢复
-        if(Math.random() < 0.035) {
+        // ATP 自然恢复（抑制信号 3 层以上 -10%）
+        if(Math.random() < 0.035 * getSuppressionEffects().atpRegenMult) {
             atp = Math.min(60, atp + 1);
             updateUI();
+        }
+
+        // Treg 招募型肿瘤：持续削弱范围内敌人防御，最多叠加 3 层
+        for(let en of enemies) {
+            let base = 0;
+            for(let r = 0; r < rows; r++) {
+                for(let c = 0; c < cols; c++) {
+                    let treg = grid[r][c];
+                    if(!treg || treg.id !== 'cancer_treg' || treg.infected) continue;
+                    if(Math.abs(en.currentR - r) <= 1 && Math.abs(en.currentC - c) <= 1) {
+                        base = Math.max(base, (treg.special && treg.special.defenseDown) || 0.15);
+                    }
+                }
+            }
+            if(base > 0) {
+                en.tregExposure = (en.tregExposure || 0) + 1;
+                en.defStacks = Math.min(3, 1 + Math.floor(en.tregExposure / 120));
+                en.defDown = Math.min(0.45, base * en.defStacks);
+            } else {
+                en.tregExposure = 0;
+                en.defStacks = 0;
+                en.defDown = 0;
+            }
         }
 
         // 计算树突状细胞增益范围
@@ -3830,6 +4694,7 @@
                 if(op) {
                     // 寿命倒计时
                     op.lifeTimer -= 1;
+                    if(op.atkBuffTimer > 0) op.atkBuffTimer--;
                     if(op.infected) {
                         op.infectTimer--;
                         op.lifeTimer -= 1; // 感染时额外损耗
@@ -3848,8 +4713,10 @@
                         if(targetGrids.some(tg => tg.r === en.currentR && tg.c === en.currentC)) {
                             // 闪避判定
                             if(Math.random() < (en.evasion || 0)) continue;
-                            // 基础伤害
-                            let damage = op.atk * 0.06 * buffMult * (1 - (en.damageReduction || 0));
+                            // 基础伤害（抗 PD-1 技能 buff + Treg 破防）
+                            let atkNow = op.atk * (1 + (op.atkBuffTimer > 0 ? (op.atkBuff || 0) : 0));
+                            let effectiveDR = Math.max(0, (en.damageReduction || 0) - (en.defDown || 0));
+                            let damage = atkNow * 0.06 * buffMult * (1 - effectiveDR);
                             // 溶菌酶对细菌加伤
                             if(op.id === 'lysozyme' && en.isBacteria) damage *= 1.5;
                             // 疟原虫隐匿期（红细胞内期）：近乎免疫，重置护盾恢复计时
@@ -3901,17 +4768,23 @@
 
             // 与免疫细胞碰撞（隐匿期疟原虫直接穿过）
             let cell = grid[en.currentR][en.currentC];
-            if(cell && !en.phaseHidden) {
-                en.x += en.speed * 0.8;
-                // 腐蚀能力：链球菌对细胞造成3倍损耗
-                let corrodeMult = en.ability === 'corrode' ? 3 : 1.5;
-                cell.lifeTimer -= corrodeMult;
+            if(!en.phaseHidden) {
+                // MHC-I 缺失黑色素瘤：附近敌人优先攻击它（诱饵）
+                let taunt = findTauntMelanoma(en);
+                let target = taunt ? taunt.cell : cell;
+                if(target) {
+                    en.x += en.speed * 0.8;
+                    // 腐蚀能力：链球菌对细胞造成3倍损耗
+                    let corrodeMult = en.ability === 'corrode' ? 3 : 1.5;
+                    enemyDamageCell(en, target, corrodeMult, taunt ? taunt.r : en.currentR, taunt ? taunt.c : en.currentC);
+                    if(taunt) spawnFloatingText(en.x, en.y - 20, "诱饵!", '#c78fff');
 
-                // 感染能力：冠状病毒使细胞瘫痪
-                if(en.ability === 'infect' && !cell.infected) {
-                    cell.infected = true;
-                    cell.infectTimer = 180; // 3秒
-                    spawnFloatingText(en.x, en.y - 20, "感染!", '#e84393');
+                    // 感染能力：冠状病毒使细胞瘫痪
+                    if(en.ability === 'infect' && !target.infected) {
+                        target.infected = true;
+                        target.infectTimer = 180; // 3秒
+                        spawnFloatingText(en.x, en.y - 20, "感染!", '#e84393');
+                    }
                 }
             }
 
@@ -3924,7 +4797,7 @@
                         for(let dc = -1; dc <= 1; dc++) {
                             let nr = en.currentR + dr, nc = en.currentC + dc;
                             if(nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc]) {
-                                grid[nr][nc].lifeTimer -= 30;
+                                enemyDamageCell(en, grid[nr][nc], 30, nr, nc);
                             }
                         }
                     }
@@ -3941,8 +4814,8 @@
                         if(k === 0) continue;
                         let cr1 = en.currentR, cc1 = en.currentC + k;
                         let cr2 = en.currentR + k, cc2 = en.currentC;
-                        if(cc1 >= 0 && cc1 < cols && grid[cr1][cc1]) grid[cr1][cc1].lifeTimer -= 24;
-                        if(cr2 >= 0 && cr2 < rows && grid[cr2][cc2]) grid[cr2][cc2].lifeTimer -= 24;
+                        if(cc1 >= 0 && cc1 < cols && grid[cr1][cc1]) enemyDamageCell(en, grid[cr1][cc1], 24, cr1, cc1);
+                        if(cr2 >= 0 && cr2 < rows && grid[cr2][cc2]) enemyDamageCell(en, grid[cr2][cc2], 24, cr2, cc2);
                     }
                     spawnFloatingText(en.x, en.y - 20, "孢子云!", '#ecf0f1');
                 }
@@ -4064,6 +4937,35 @@
             }
             s.life--;
             if(s.life <= 0) skillEffects.splice(i, 1);
+        }
+
+        // 抗 PD-1 技能冷却
+        if(antiPd1Cd > 0) {
+            antiPd1Cd--;
+            if(antiPd1Cd % 30 === 0) renderSuppressionUI();
+        }
+
+        // 抑制信号 8 层以上：每 10 秒随机一名已部署干员凋亡
+        if(getSuppressionEffects().randomApoptosis) {
+            suppressionApoptosisTimer++;
+            if(suppressionApoptosisTimer >= 600) {
+                suppressionApoptosisTimer = 0;
+                let cells = [];
+                for(let r = 0; r < rows; r++) {
+                    for(let c = 0; c < cols; c++) {
+                        if(grid[r][c]) cells.push({ r, c });
+                    }
+                }
+                if(cells.length > 0) {
+                    let pick = cells[Math.floor(Math.random() * cells.length)];
+                    let dead = grid[pick.r][pick.c];
+                    grid[pick.r][pick.c] = null;
+                    spawnFloatingText(pick.c * tileSize + tileSize / 2, pick.r * tileSize + 14, `${dead.name} 凋亡`, '#ff6b6b');
+                    updateUI();
+                }
+            }
+        } else {
+            suppressionApoptosisTimer = 0;
         }
 
         // 每帧幂等兜底：出怪完成且场上清空即结算，不依赖某个死亡/突破事件，杜绝永久卡关
@@ -4624,6 +5526,7 @@
         setText('baseHp', baseHp);
         setText('atpVal', atp);
         setText('nutVal', nutrients);
+        renderSuppressionUI();
     }
     // 骨髓原液唯一变更入口：数值与两处显示强一致，杜绝"扣了但显示没变"
     function changeMarrow(delta, opts) {
@@ -4682,6 +5585,10 @@
         skillEffects = [];
         baseHp = levels[currentLevel - 1].baseHp;
         atp = 30;
+        battleSuppression = getSquadSuppression();
+        antiPd1Cd = 0;
+        checkpointUsedThisLevel = false;
+        suppressionApoptosisTimer = 0;
         syncLevelUI();
         renderLevelList();
         updateWaveButton();
@@ -4739,7 +5646,7 @@
     function closeIntro(){ const m = document.getElementById('introModal'); if(m) m.style.display = 'none'; }
     function openChangelog(){ const m = document.getElementById('changelogModal'); if(m) m.style.display = 'flex'; }
     function closeChangelog(){ const m = document.getElementById('changelogModal'); if(m) m.style.display = 'none'; }
-    ['helpModal', 'introModal', 'changelogModal', 'archiveModal'].forEach(id => {
+    ['helpModal', 'introModal', 'changelogModal', 'archiveModal', 'dishModal'].forEach(id => {
         const m = document.getElementById(id);
         if(m) m.addEventListener('click', e => { if(e.target.id === id) m.style.display = 'none'; });
     });
