@@ -652,6 +652,12 @@
         .dish-card .dc-actions button.primary { background: #6c3fa0; border-color: #a66bd0; color: #fff; }
         .dish-card .dc-actions button:disabled { opacity: .45; cursor: default; }
         .dish-card.owned { border-color: #a66bd0; }
+        .dish-card.flash { animation: dishFlash .75s ease; }
+        @keyframes dishFlash {
+            0% { box-shadow: 0 0 0 rgba(199,143,255,0); transform: scale(1); }
+            30% { box-shadow: 0 0 26px rgba(199,143,255,.95); transform: scale(1.025); }
+            100% { box-shadow: none; transform: scale(1); }
+        }
         .dish-anti { margin-top: 12px; background: #1b1626; border: 1px solid #3d2b52; border-radius: 10px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; }
         .dish-anti .da-main { flex: 1 1 auto; min-width: 0; }
         .dish-anti .da-name { font-size: 12px; font-weight: bold; color: #ffd84d; }
@@ -898,6 +904,7 @@
             <div class="squad-suppression" id="deckSuppression" style="margin-top:10px;"></div>
             <div class="abnormal-box" id="abnormalSlot"></div>
             <div class="collection-list" id="collectionList"></div>
+            <button class="btn-primary" style="width:100%; margin-top:12px;" onclick="closeDeck()">保存并返回</button>
         </div>
     </div>
 </div>
@@ -1075,7 +1082,7 @@
             <button onclick="closeChangelog()">✕</button>
         </div>
         <div class="modal-body">
-            <div class="doc-ver"><div class="tag" style="color:#6fc0ff">v2.3</div><div class="info"><b>病理档案特殊关</b>：新增 P01–P03 反向生存关（8/10/12 波），操控癌细胞在免疫细胞追杀下存活；新增免疫细胞敌人与 PD-1 光环、病变原液、每日 2 次挑战、特殊档案条目。</div></div>
+            <div class="doc-ver"><div class="tag" style="color:#6fc0ff">v2.3</div><div class="info"><b>病理档案特殊关</b>：新增 P01–P03 反向生存关（8/10/12 波）；新增免疫细胞敌人、PD-1 光环与四方向推进；新增病变原液、癌细胞信物、检查点抑制剂；每日 2 次、不消耗 ATP；病理档案面板新增 P01–P03；抑制信号 HUD 阈值提示与层数飘字优化。</div></div>
             <div class="doc-ver"><div class="tag" style="color:#ff8fd8">v2.2</div><div class="info"><b>异常位与癌细胞</b>：编队可携带 1 名癌细胞（不占常规位）；新增 3 名癌细胞、抑制信号阶梯 debuff、抗 PD-1 效应 T 细胞、病理培养皿、病变样本与免疫检查点抑制剂；病理档案面板补齐 19–24 关条目。</div></div>
             <div class="doc-ver"><div class="tag" style="color:#ffd84d">v1.9</div><div class="info"><b>分层保底 + 修复</b>：传奇保底改为 30 抽起每 10 抽概率递增（50 抽必出）；修复十连保底替换后保底计数未同步的问题。</div></div>
             <div class="doc-ver"><div class="tag">v1.8</div><div class="info"><b>保底调整</b>：传奇硬保底由 20 抽延长至 50 抽（35 抽起软保底递增）；史诗 10 抽必出紫保持不变。</div></div>
@@ -1878,6 +1885,7 @@
     let seenPathologyBriefs = [];                       // 已查看特殊关 brief（持久化）
     let unlockedPathologyArchives = [];                 // 已解锁特殊档案 P01-P03（持久化）
     let pd1AuraActive = 0;                              // 当前生效的 PD-1 光环敌人数
+    let dishFlashId = null;                             // 培养皿短动画目标（不持久化）
 
     // 初始赠送3名初始干员（1星）
     for(let starterId of deck) {
@@ -4388,7 +4396,7 @@
             const c = cancerCollection[def.id];
             const can = pathologySamples >= def.sampleCost;
             const upCost = (c && c.stars < 5) ? 5 * c.stars : null;
-            html += `<div class="dish-card ${c ? 'owned' : ''}">
+            html += `<div class="dish-card ${c ? 'owned' : ''} ${dishFlashId === def.id ? 'flash' : ''}">
                 <div class="dc-top">
                     ${avatarImg(def.id, 40, 'border-color:' + rarityConfig.pathology.color)}
                     <div class="dc-name">${def.name}${c ? `<br><span style="color:#ffb142;font-size:10px;">${'★'.repeat(c.stars)}</span>` : ''}</div>
@@ -4446,6 +4454,8 @@
         }
         saveGame();
         refreshDeckOperators();
+        dishFlashId = id;
+        setTimeout(() => { dishFlashId = null; }, 850);
         renderDish();
         renderCollectionUI();
         renderDeckSuppression();
